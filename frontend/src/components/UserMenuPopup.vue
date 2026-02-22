@@ -16,7 +16,7 @@ interface MenuItem {
 }
 
 defineProps<{
-  user: UserInfo;
+  user?: UserInfo;
 }>();
 
 const emit = defineEmits<{

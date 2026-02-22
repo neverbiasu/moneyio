@@ -7,7 +7,7 @@ import BudgetsPage from '../pages/BudgetsPage.vue';
 import SettingsPage from '../pages/SettingsPage.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',

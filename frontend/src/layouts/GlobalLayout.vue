@@ -40,9 +40,14 @@ watch(
 
     <div
       v-if="sidebarOpen"
+      role="button"
+      tabindex="0"
       class="fixed inset-0 z-30 bg-gray-900/50 transition-opacity md:hidden"
       aria-label="Close navigation"
       @click="sidebarOpen = false"
+      @keydown.enter.prevent="sidebarOpen = false"
+      @keydown.space.prevent="sidebarOpen = false"
+      @keydown.esc.prevent="sidebarOpen = false"
     ></div>
 
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">

@@ -30,7 +30,7 @@ const navItems = [
 const currentUser = {
   name: 'Takamatsu Tomori',
   email: 'tomori@mygo.bandream',
-  avatar: '/avatar.png',
+  avatar: '/avatar.webp',
 };
 
 const userMenuOpen = ref(false);
@@ -45,9 +45,6 @@ function toggleUserMenu() {
 }
 
 function handleUserAction(key: string) {
-  if (key === 'logout') {
-    console.warn('Logout triggered');
-  }
   userMenuOpen.value = false;
 }
 
@@ -70,7 +67,10 @@ onBeforeUnmount(() => {
   <aside
     id="primary-navigation"
     class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col"
-    :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
+    :class="[
+      isOpen ? 'translate-x-0' : '-translate-x-full',
+      { 'pointer-events-none md:pointer-events-auto': !isOpen },
+    ]"
     aria-label="Primary navigation"
   >
     <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">

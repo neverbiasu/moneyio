@@ -6,9 +6,7 @@ import pluginVue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
 
 /**
- * ESLint configuration for TypeScript projects
- * Based on our TypeScript Style Guide
- * @see https://github.com/yourorg/standards/tree/main/typescript
+ * ESLint configuration for TypeScript + Vue projects
  */
 export default tseslint.config(
   // Extend recommended configs

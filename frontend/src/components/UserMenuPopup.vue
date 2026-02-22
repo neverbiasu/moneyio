@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { UserIcon, ShieldCheckIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline';
 import type { Component } from 'vue';
-
-interface UserInfo {
-  name: string;
-  email: string;
-  avatarUrl?: string;
-}
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 interface MenuItem {
   key: string;
@@ -14,10 +9,6 @@ interface MenuItem {
   icon: Component;
   badge?: string;
 }
-
-defineProps<{
-  user?: UserInfo;
-}>();
 
 const emit = defineEmits<{
   (e: 'action', key: string): void;
@@ -30,25 +21,40 @@ const menuItems: MenuItem[] = [
   { key: 'logout', label: 'Logout', icon: ArrowRightOnRectangleIcon },
 ];
 
+const rootRef = ref<HTMLElement | null>(null);
+
 function handleAction(key: string) {
   emit('action', key);
   emit('close');
 }
+
+function handleClickOutside(event: MouseEvent) {
+  if (rootRef.value && !rootRef.value.contains(event.target as Node)) {
+    emit('close');
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
   <div
+    ref="rootRef"
     class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-    role="menu"
     aria-label="User menu"
   >
     <hr class="border-gray-100" />
 
-    <ul class="py-1" role="none">
-      <li v-for="item in menuItems" :key="item.key" role="none">
+    <ul class="py-1">
+      <li v-for="item in menuItems" :key="item.key">
         <button
           type="button"
-          role="menuitem"
           class="flex items-center w-full gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           @click="handleAction(item.key)"
         >

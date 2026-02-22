@@ -30,11 +30,13 @@ const navItems = [
 const currentUser = {
   name: 'Takamatsu Tomori',
   email: 'tomori@mygo.bandream',
-  avatar: '/avatar.webp',
+  avatar: '/avatar.png',
 };
 
 const userMenuOpen = ref(false);
-const userEntryRef = ref<HTMLDivElement | null>(null);
+
+const mq = typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)') : null;
+const isDesktop = ref(mq?.matches ?? true);
 
 function handleNavClick() {
   emit('close');
@@ -44,22 +46,20 @@ function toggleUserMenu() {
   userMenuOpen.value = !userMenuOpen.value;
 }
 
-function handleUserAction(key: string) {
+function handleUserAction(_key: string) {
   userMenuOpen.value = false;
 }
 
-function handleClickOutside(event: MouseEvent) {
-  if (userEntryRef.value && !userEntryRef.value.contains(event.target as Node)) {
-    userMenuOpen.value = false;
-  }
+function onMqChange(e: MediaQueryListEvent) {
+  isDesktop.value = e.matches;
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+  mq?.addEventListener('change', onMqChange);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
+  mq?.removeEventListener('change', onMqChange);
 });
 </script>
 
@@ -71,6 +71,8 @@ onBeforeUnmount(() => {
       isOpen ? 'translate-x-0' : '-translate-x-full',
       { 'pointer-events-none md:pointer-events-auto': !isOpen },
     ]"
+    :aria-hidden="!isOpen && !isDesktop ? true : undefined"
+    :inert="!isOpen && !isDesktop ? true : undefined"
     aria-label="Primary navigation"
   >
     <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">
@@ -98,13 +100,8 @@ onBeforeUnmount(() => {
       </ul>
     </nav>
 
-    <div ref="userEntryRef" class="relative border-t border-gray-200 p-4">
-      <UserMenuPopup
-        v-if="userMenuOpen"
-        :user="currentUser"
-        @action="handleUserAction"
-        @close="userMenuOpen = false"
-      />
+    <div class="relative border-t border-gray-200 p-4">
+      <UserMenuPopup v-if="userMenuOpen" @action="handleUserAction" @close="userMenuOpen = false" />
 
       <button
         type="button"

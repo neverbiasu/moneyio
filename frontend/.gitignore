@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Generated / local debug files
+eslint-config-dump.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

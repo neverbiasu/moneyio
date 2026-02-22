@@ -71,9 +71,9 @@ onBeforeUnmount(() => {
       isOpen ? 'translate-x-0' : '-translate-x-full',
       { 'pointer-events-none md:pointer-events-auto': !isOpen },
     ]"
-    :aria-hidden="!isOpen && !isDesktop ? true : undefined"
-    :inert="!isOpen && !isDesktop ? true : undefined"
     aria-label="Primary navigation"
+    :aria-hidden="!isOpen"
+    :inert="!isOpen"
   >
     <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">
       <img src="/logo.svg" alt="MoneyIO Logo" class="w-8 h-8 mr-2" />

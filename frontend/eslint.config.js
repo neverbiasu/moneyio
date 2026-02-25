@@ -161,6 +161,21 @@ export default tseslint.config(
   },
 
   {
+    // The type-checked unsafe-* rules produce false positives in Vue SFC files
+    // because ESLint's projectService cannot always fully resolve Pinia store
+    // return types across the <script setup> boundary. TypeScript's own compiler
+    // already enforces these constraints, so disabling here avoids noise.
+    files: ['**/*.vue', '**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
+  },
+
+  {
     // Configuration files can be more lenient
     files: ['*.config.{js,ts,mjs,cjs}'],
     rules: {

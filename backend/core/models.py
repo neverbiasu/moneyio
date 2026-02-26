@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    # reg_date add index
+    email = models.EmailField(unique=True, blank=False, null=False)
     reg_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -12,6 +12,8 @@ class User(AbstractUser):
             models.Index(fields=['email'], name='idx_users_email'),
             models.Index(fields=['reg_date'], name='idx_users_reg_date'),
         ]
+    def __str__(self):
+        return self.username
 
 class Account(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
@@ -25,6 +27,8 @@ class Account(models.Model):
             # Optimize the speed of account query
             models.Index(fields=['user'], name='idx_accounts_user_id'),
         ]
+    def __str__(self):
+        return self.name
 
 class Category(models.Model):
     class CategoryType(models.TextChoices):
@@ -44,6 +48,8 @@ class Category(models.Model):
             # Optimize by user and category_type
             models.Index(fields=['user', 'category_type'], name='idx_categories_user_type'),
         ]
+    def __str__(self):
+        return self.name
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -63,6 +69,9 @@ class Transaction(models.Model):
             models.Index(fields=['trans_date'], name='idx_trans_date'),
             models.Index(fields=['crt_time'], name='idx_trans_created'),
         ]
+    def __str__(self):
+        local_time = self.trans_date.strftime("%Y-%m-%d %H:%M")
+        return f"{self.category.name} | {local_time} | ￥{self.amount}"
 
 class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -80,3 +89,5 @@ class Budget(models.Model):
             # index, optimize search
             models.Index(fields=['user', 'budget_month'], name='idx_budgets_user_month'),
         ]
+    def __str__(self):
+        return f"{self.budget_month} Budget"

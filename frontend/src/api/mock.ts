@@ -29,6 +29,11 @@ interface ApiError extends Error {
 // Simulate network delay
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Safe id generator to handle empty arrays
+const getNextId = (arr: Array<{ id: number }>): number => {
+  return arr.length === 0 ? 1 : Math.max(...arr.map((item) => item.id)) + 1;
+};
+
 const createApiError = (message: string): ApiError => {
   const error: ApiError = new Error(message);
   error.response = { data: { message } };
@@ -95,7 +100,7 @@ export const mockAccountsAPI = {
   async createAccount(data: Omit<Account, 'id' | 'userId' | 'balance'>): Promise<Account> {
     await delay(500);
     const newAccount: Account = {
-      id: Math.max(...mockAccounts.map((a) => a.id)) + 1,
+      id: getNextId(mockAccounts),
       userId: 1,
       ...data,
       balance: 0,
@@ -146,7 +151,7 @@ export const mockCategoriesAPI = {
   async createCategory(data: Omit<Category, 'id' | 'userId'>): Promise<Category> {
     await delay(500);
     const newCategory: Category = {
-      id: Math.max(...mockCategories.map((c) => c.id)) + 1,
+      id: getNextId(mockCategories),
       userId: 1,
       ...data,
     };
@@ -219,7 +224,7 @@ export const mockTransactionsAPI = {
     await delay(500);
     const now = new Date().toISOString();
     const newTransaction: Transaction = {
-      id: Math.max(...mockTransactions.map((t) => t.id)) + 1,
+      id: getNextId(mockTransactions),
       userId: 1,
       ...data,
       crtTime: now,
@@ -279,7 +284,7 @@ export const mockBudgetsAPI = {
   async createBudget(data: Omit<Budget, 'id' | 'userId' | 'updatedAt'>): Promise<Budget> {
     await delay(500);
     const newBudget: Budget = {
-      id: Math.max(...mockBudgets.map((b) => b.id)) + 1,
+      id: getNextId(mockBudgets),
       userId: 1,
       ...data,
       updatedAt: new Date().toISOString(),

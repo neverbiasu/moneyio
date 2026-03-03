@@ -26,7 +26,6 @@ export default tseslint.config(
         extraFileExtensions: ['.vue'],
       },
       globals: {
-        ...eslint.configs.recommended.languageOptions?.globals,
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
@@ -165,7 +164,7 @@ export default tseslint.config(
     // because ESLint's projectService cannot always fully resolve Pinia store
     // return types across the <script setup> boundary. TypeScript's own compiler
     // already enforces these constraints, so disabling here avoids noise.
-    files: ['**/*.vue', '**/*.ts'],
+    files: ['**/*.vue'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',

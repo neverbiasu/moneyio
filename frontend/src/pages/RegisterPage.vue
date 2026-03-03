@@ -35,8 +35,8 @@ async function handleSubmit() {
     await authStore.register(form.username, form.email, form.password);
     await router.push('/dashboard');
   } catch (err) {
-    const e = err as { response?: { data?: { detail?: string } } };
-    apiError.value = e.response?.data?.detail ?? 'Registration failed';
+    const e = err as { response?: { data?: { message?: string; detail?: string } } };
+    apiError.value = e.response?.data?.message ?? e.response?.data?.detail ?? 'Registration failed';
     await nextTick(() => document.getElementById('register-error')?.focus());
   } finally {
     isLoading.value = false;

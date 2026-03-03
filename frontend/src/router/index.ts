@@ -47,9 +47,17 @@ const router = createRouter({
 
 router.beforeEach((to): { name: string } | undefined => {
   const authStore = useAuthStore();
+
+  // Redirect authenticated users away from auth pages
+  if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
+    return { name: 'dashboard' };
+  }
+
+  // Redirect unauthenticated users to login for protected routes
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     return { name: 'login' };
   }
+
   return undefined;
 });
 

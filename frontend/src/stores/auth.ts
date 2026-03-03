@@ -13,7 +13,9 @@ interface AuthState {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('token'));
+  const token = ref<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  );
   const user = ref<AuthState['user']>(null);
 
   const isAuthenticated = computed(() => !!token.value);

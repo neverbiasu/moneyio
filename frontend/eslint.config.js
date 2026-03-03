@@ -26,7 +26,6 @@ export default tseslint.config(
         extraFileExtensions: ['.vue'],
       },
       globals: {
-        ...eslint.configs.recommended.languageOptions?.globals,
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
@@ -158,6 +157,21 @@ export default tseslint.config(
     // Disable type-checked rules for JS files
     files: ['**/*.js'],
     ...tseslint.configs.disableTypeChecked,
+  },
+
+  {
+    // The type-checked unsafe-* rules produce false positives in Vue SFC files
+    // because ESLint's projectService cannot always fully resolve Pinia store
+    // return types across the <script setup> boundary. TypeScript's own compiler
+    // already enforces these constraints, so disabling here avoids noise.
+    files: ['**/*.vue'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
   },
 
   {

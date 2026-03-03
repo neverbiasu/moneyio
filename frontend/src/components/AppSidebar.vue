@@ -7,8 +7,9 @@ import {
   Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
 
 defineProps<{
@@ -18,6 +19,7 @@ defineProps<{
 const emit = defineEmits<(e: 'close') => void>();
 
 const route = useRoute();
+const authStore = useAuthStore();
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: Squares2X2Icon },
@@ -27,11 +29,14 @@ const navItems = [
   { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
 ];
 
-const currentUser = {
-  name: 'Takamatsu Tomori',
-  email: 'tomori@mygo.bandream',
-  avatar: '/avatar.png',
-};
+const currentUser = computed(() => {
+  const user = authStore.user as { username?: string; email?: string } | null;
+  return {
+    name: user?.username ?? 'User',
+    email: user?.email ?? 'user@example.com',
+    avatar: '/avatar.png',
+  };
+});
 
 const userMenuOpen = ref(false);
 

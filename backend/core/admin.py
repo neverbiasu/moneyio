@@ -1,12 +1,17 @@
 from django.contrib import admin
 from .models import User, Account, Category, Transaction, Budget
-# Register your models here.
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'reg_date')
-    # search
+    readonly_fields = ('reg_date',)
     search_fields = ('username', 'email')
+
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Custom Info', {'fields': ('reg_date',)}),
+    )
+        
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
@@ -26,3 +31,4 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Budget)
 class BudgetAdmin(admin.ModelAdmin):
     list_display = ('user', 'budget_month', 'amount_limit', 'actual_spending', 'upt_time')
+    

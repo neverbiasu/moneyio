@@ -35,7 +35,7 @@ class Category(models.Model):
         INCOME = 'IN', 'Income'
         EXPENSE = 'OUT', 'Expense'
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=50)
     category_type = models.CharField(max_length=10, choices=CategoryType.choices)
@@ -52,9 +52,9 @@ class Category(models.Model):
         return self.name
 
 class Transaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, on_delete=models.PROTECT)
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name='transactions')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     trans_date = models.DateTimeField()
     note = models.CharField(max_length=254, blank=True)
@@ -70,11 +70,11 @@ class Transaction(models.Model):
             models.Index(fields=['crt_time'], name='idx_trans_created'),
         ]
     def __str__(self):
-        local_time = self.trans_date.strftime("%Y-%m-%d %H:%M")
+        local_time = timezone.localtime(self.trans_date).strftime("%Y-%m-%d %H:%M")
         return f"{self.category.name} | {local_time} | ￥{self.amount}"
 
 class Budget(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
     amount_limit = models.DecimalField(max_digits=12, decimal_places=2)
     actual_spending = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     budget_month = models.DateField()
@@ -91,3 +91,4 @@ class Budget(models.Model):
         ]
     def __str__(self):
         return f"{self.budget_month} Budget"
+    

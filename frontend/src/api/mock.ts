@@ -15,7 +15,15 @@ import {
   mockBudgets,
   mockToken,
 } from './mock-data';
-import type { Account, Category, Transaction, Budget, AuthResponse } from './mock-data';
+import type {
+  Account,
+  Category,
+  Transaction,
+  Budget,
+  AuthResponse,
+  Summary,
+  ChartData,
+} from './mock-data';
 
 // Custom error type for API errors
 interface ApiError extends Error {
@@ -320,6 +328,77 @@ export const mockBudgetsAPI = {
 };
 
 /**
+ * Dashboard API
+ */
+export const mockDashboardAPI = {
+  async getSummary(): Promise<Summary> {
+    await delay(600);
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    const totalBalance = mockAccounts.reduce((sum, acc) => sum + acc.balance, 0);
+
+    const monthlyTransactions = mockTransactions.filter((t) => {
+      const transactionMonth = t.transactionDate.slice(0, 7);
+      return transactionMonth === currentMonth;
+    });
+
+    const monthlyIncome = monthlyTransactions
+      .filter((t) => {
+        const category = mockCategories.find((c) => c.id === t.categoryId);
+        return category?.type === 'income';
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const monthlyExpense = monthlyTransactions
+      .filter((t) => {
+        const category = mockCategories.find((c) => c.id === t.categoryId);
+        return category?.type === 'expense';
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const savingsRate =
+      monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100) : 0;
+
+    return {
+      totalBalance,
+      monthlyIncome,
+      monthlyExpense,
+      savingsRate,
+    };
+  },
+
+  async getChartData(): Promise<ChartData> {
+    await delay(800);
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      return date.toISOString().slice(0, 10);
+    });
+
+    const data = last30Days.map((date) => {
+      const dayTransactions = mockTransactions.filter((t) => t.transactionDate.startsWith(date));
+      const income = dayTransactions
+        .filter((t) => {
+          const category = mockCategories.find((c) => c.id === t.categoryId);
+          return category?.type === 'income';
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const expense = dayTransactions
+        .filter((t) => {
+          const category = mockCategories.find((c) => c.id === t.categoryId);
+          return category?.type === 'expense';
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return { date, income, expense };
+    });
+
+    return { data };
+  },
+};
+
+/**
  * Central Mock API service
  * Use this to switch between real API and mock in development
  */
@@ -329,6 +408,7 @@ export const mockAPI = {
   categories: mockCategoriesAPI,
   transactions: mockTransactionsAPI,
   budgets: mockBudgetsAPI,
+  dashboard: mockDashboardAPI,
 };
 
 export default mockAPI;

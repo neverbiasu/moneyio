@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppSidebar from '../components/AppSidebar.vue';
 
 const route = useRoute();
 const sidebarOpen = ref(false);
+
+onMounted(() => {
+  const mq = window.matchMedia('(min-width: 768px)');
+  sidebarOpen.value = mq.matches;
+
+  const handleMqChange = (e: MediaQueryListEvent) => {
+    sidebarOpen.value = e.matches;
+  };
+
+  mq.addEventListener('change', handleMqChange);
+
+  return () => mq.removeEventListener('change', handleMqChange);
+});
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },

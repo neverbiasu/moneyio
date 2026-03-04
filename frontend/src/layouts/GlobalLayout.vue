@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppSidebar from '../components/AppSidebar.vue';
 
 const route = useRoute();
 const sidebarOpen = ref(false);
+const isDesktop = ref(false);
+let mq: MediaQueryList | null = null;
+let handleMqChange: ((e: MediaQueryListEvent) => void) | null = null;
 
 onMounted(() => {
-  const mq = window.matchMedia('(min-width: 768px)');
+  mq = window.matchMedia('(min-width: 768px)');
+  isDesktop.value = mq.matches;
   sidebarOpen.value = mq.matches;
 
-  const handleMqChange = (e: MediaQueryListEvent) => {
+  handleMqChange = (e: MediaQueryListEvent) => {
+    isDesktop.value = e.matches;
     sidebarOpen.value = e.matches;
   };
 
   mq.addEventListener('change', handleMqChange);
+});
 
-  return () => mq.removeEventListener('change', handleMqChange);
+onUnmounted(() => {
+  if (mq && handleMqChange) {
+    mq.removeEventListener('change', handleMqChange);
+  }
 });
 
 const navItems = [
@@ -35,7 +44,9 @@ const pageTitle = computed(() => {
 watch(
   () => route.fullPath,
   () => {
-    sidebarOpen.value = false;
+    if (!isDesktop.value) {
+      sidebarOpen.value = false;
+    }
   },
 );
 </script>

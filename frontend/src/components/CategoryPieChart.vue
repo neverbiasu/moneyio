@@ -36,12 +36,20 @@ const legendColorClasses = [
   'bg-cyan-600',
 ];
 
+const outerR = 42;
+const innerR = 24;
+const cx = 50;
+const cy = 50;
+
 const total = computed(() => props.items.reduce((sum, item) => sum + item.value, 0));
 
+const totalLabel = computed(() => {
+  if (total.value >= 1000) return `$${(total.value / 1000).toFixed(1)}k`;
+  return `$${total.value}`;
+});
+
 const slices = computed(() => {
-  if (!total.value) {
-    return [];
-  }
+  if (!total.value) return [];
 
   let cumulative = 0;
   return props.items.map((item, index) => {
@@ -53,13 +61,18 @@ const slices = computed(() => {
     const startAngle = start * Math.PI * 2 - Math.PI / 2;
     const endAngle = end * Math.PI * 2 - Math.PI / 2;
 
-    const x1 = 50 + Math.cos(startAngle) * 38;
-    const y1 = 50 + Math.sin(startAngle) * 38;
-    const x2 = 50 + Math.cos(endAngle) * 38;
-    const y2 = 50 + Math.sin(endAngle) * 38;
+    const ox1 = cx + Math.cos(startAngle) * outerR;
+    const oy1 = cy + Math.sin(startAngle) * outerR;
+    const ox2 = cx + Math.cos(endAngle) * outerR;
+    const oy2 = cy + Math.sin(endAngle) * outerR;
+    const ix1 = cx + Math.cos(startAngle) * innerR;
+    const iy1 = cy + Math.sin(startAngle) * innerR;
+    const ix2 = cx + Math.cos(endAngle) * innerR;
+    const iy2 = cy + Math.sin(endAngle) * innerR;
 
     const largeArcFlag = portion > 0.5 ? 1 : 0;
-    const path = `M 50 50 L ${x1} ${y1} A 38 38 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+    // Outer arc CW, then inner arc CCW to form donut slice
+    const path = `M ${ox1.toFixed(2)} ${oy1.toFixed(2)} A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${ox2.toFixed(2)} ${oy2.toFixed(2)} L ${ix2.toFixed(2)} ${iy2.toFixed(2)} A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${ix1.toFixed(2)} ${iy1.toFixed(2)} Z`;
 
     return {
       ...item,
@@ -77,7 +90,7 @@ const slices = computed(() => {
     class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
     aria-label="Expense category pie chart"
   >
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Expense Category Breakdown</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Category Spending</h2>
 
     <div v-if="isLoading" class="h-64 bg-gray-100 rounded-md animate-pulse"></div>
     <p v-else-if="items.length === 0" class="text-sm text-gray-500 py-10 text-center">
@@ -88,7 +101,7 @@ const slices = computed(() => {
         viewBox="0 0 100 100"
         class="w-56 h-56 mx-auto"
         role="img"
-        aria-label="Pie chart for expense categories"
+        aria-label="Donut chart for expense categories"
       >
         <path
           v-for="slice in slices"
@@ -96,8 +109,14 @@ const slices = computed(() => {
           :d="slice.path"
           :class="slice.colorClass"
           class="stroke-white"
-          stroke-width="1"
+          stroke-width="0.8"
         />
+        <text x="50" y="47" text-anchor="middle" class="fill-gray-900 font-semibold text-[8px]">
+          Total
+        </text>
+        <text x="50" y="56" text-anchor="middle" class="fill-gray-900 font-bold text-[7px]">
+          {{ totalLabel }}
+        </text>
       </svg>
 
       <ul class="space-y-2">

@@ -3,13 +3,12 @@ import { ref, onMounted } from 'vue';
 import SummaryCards from '@/components/SummaryCards.vue';
 import RecentTransactionsList from '@/components/RecentTransactionsList.vue';
 import { mockAPI } from '@/api/mock';
-import type { Summary, ChartData, Transaction, Category } from '@/api/mock-data';
+import type { Summary, Transaction, Category } from '@/api/mock-data';
 
 defineOptions({ name: 'DashboardPage' });
 
 const summaryData = ref<Summary | null>(null);
 const recentTransactions = ref<Transaction[]>([]);
-const chartData = ref<ChartData | null>(null);
 const categories = ref<Category[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
@@ -20,16 +19,14 @@ async function fetchDashboardData() {
 
   try {
     // Parallel data fetching
-    const [summary, transactions, chart, categoriesData] = await Promise.all([
+    const [summary, transactions, categoriesData] = await Promise.all([
       mockAPI.dashboard.getSummary(),
       mockAPI.transactions.getTransactions(),
-      mockAPI.dashboard.getChartData(),
       mockAPI.categories.getCategories(),
     ]);
 
     summaryData.value = summary;
     recentTransactions.value = transactions;
-    chartData.value = chart;
     categories.value = categoriesData;
   } catch (err) {
     console.error('Failed to load dashboard data:', err);
@@ -40,7 +37,7 @@ async function fetchDashboardData() {
 }
 
 onMounted(() => {
-  fetchDashboardData();
+  void fetchDashboardData();
 });
 </script>
 

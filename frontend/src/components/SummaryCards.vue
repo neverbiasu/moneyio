@@ -5,8 +5,8 @@ import type { Summary } from '@/api/mock-data';
 defineOptions({ name: 'SummaryCards' });
 
 interface Props {
-  data: Summary | null;
-  isLoading: boolean;
+  data?: Summary | null;
+  isLoading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {

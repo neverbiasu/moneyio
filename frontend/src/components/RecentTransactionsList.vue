@@ -6,9 +6,9 @@ import type { Transaction, Category } from '@/api/mock-data';
 defineOptions({ name: 'RecentTransactionsList' });
 
 interface Props {
-  transactions: Transaction[];
-  categories: Category[];
-  isLoading: boolean;
+  transactions?: Transaction[];
+  categories?: Category[];
+  isLoading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,9 +20,9 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter();
 
 const recentTransactions = computed(() => {
-  return props.transactions.slice(0, 5).sort((a, b) => {
-    return new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
-  });
+  return [...props.transactions]
+    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+    .slice(0, 5);
 });
 
 const getCategoryName = (categoryId: number) => {
@@ -51,7 +51,7 @@ const getAmountColor = (type: string) => {
 };
 
 function goToTransactions() {
-  router.push('/transactions');
+  void router.push('/transactions');
 }
 </script>
 

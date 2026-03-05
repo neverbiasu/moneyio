@@ -333,13 +333,22 @@ export const mockBudgetsAPI = {
 export const mockDashboardAPI = {
   async getSummary(): Promise<Summary> {
     await delay(600);
-    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    // Derive the target month from the most recent transaction so the mock
+    // summary stays accurate regardless of the current calendar date.
+    const latestTransaction = mockTransactions.reduce<(typeof mockTransactions)[0] | null>(
+      (latest, current) =>
+        !latest || current.transactionDate > latest.transactionDate ? current : latest,
+      null,
+    );
+    const targetMonth =
+      latestTransaction?.transactionDate.slice(0, 7) ?? new Date().toISOString().slice(0, 7);
 
     const totalBalance = mockAccounts.reduce((sum, acc) => sum + acc.balance, 0);
 
     const monthlyTransactions = mockTransactions.filter((t) => {
       const transactionMonth = t.transactionDate.slice(0, 7);
-      return transactionMonth === currentMonth;
+      return transactionMonth === targetMonth;
     });
 
     const monthlyIncome = monthlyTransactions

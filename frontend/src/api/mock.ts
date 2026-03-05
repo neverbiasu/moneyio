@@ -378,9 +378,16 @@ export const mockDashboardAPI = {
 
   async getChartData(): Promise<ChartData> {
     await delay(800);
+    const latestTransaction = mockTransactions.reduce<(typeof mockTransactions)[0] | null>(
+      (latest, current) =>
+        !latest || current.transactionDate > latest.transactionDate ? current : latest,
+      null,
+    );
+    const endDate = latestTransaction ? new Date(latestTransaction.transactionDate) : new Date();
+
     const last30Days = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (29 - i));
+      const date = new Date(endDate);
+      date.setDate(endDate.getDate() - (29 - i));
       return date.toISOString().slice(0, 10);
     });
 

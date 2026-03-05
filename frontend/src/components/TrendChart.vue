@@ -133,6 +133,10 @@ const xTicks = computed(() => {
             <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2" />
             <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
           </linearGradient>
+          <!-- Clip to chart area so bezier overshoots never show outside the axes -->
+          <clipPath id="chartArea">
+            <rect :x="paddingX" :y="paddingTop" :width="width - paddingX * 2" :height="innerHeight" />
+          </clipPath>
         </defs>
 
         <g v-for="tick in yTicks" :key="tick.y">
@@ -149,25 +153,27 @@ const xTicks = computed(() => {
           </text>
         </g>
 
-        <path :d="incomeArea" fill="url(#incomeGradient)" />
-        <path :d="expenseArea" fill="url(#expenseGradient)" />
+        <g clip-path="url(#chartArea)">
+          <path :d="incomeArea" fill="url(#incomeGradient)" />
+          <path :d="expenseArea" fill="url(#expenseGradient)" />
 
-        <path
-          :d="incomeLine"
-          fill="none"
-          class="stroke-blue-600"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          :d="expenseLine"
-          fill="none"
-          class="stroke-red-500"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
+          <path
+            :d="incomeLine"
+            fill="none"
+            class="stroke-blue-600"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            :d="expenseLine"
+            fill="none"
+            class="stroke-red-500"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
 
         <text
           v-for="tick in xTicks"

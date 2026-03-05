@@ -38,8 +38,8 @@ const pieItems = computed(() => {
 });
 
 const radarItems = computed(() => {
-  return budgets.value.map((budget, index) => ({
-    name: `Budget ${index + 1}`,
+  return budgets.value.map((budget) => ({
+    name: budget.name,
     value: budget.actualSpending,
     maxValue: budget.amountLimit,
   }));

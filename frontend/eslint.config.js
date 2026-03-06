@@ -32,6 +32,10 @@ export default tseslint.config(
         fetch: 'readonly',
         self: 'readonly',
         global: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
 
@@ -171,6 +175,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
+      // In Vue <script setup>, variables and functions defined in script are used
+      // in the template, but ESLint cannot detect this usage. Disable this rule
+      // for Vue files and rely on TypeScript compiler checking.
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 

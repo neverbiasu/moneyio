@@ -2,5 +2,9 @@
 __pycache__/
 *.py[cod]
 
+# Editor & IDE
+.vscode/
+
 # Documents
 docs/
+

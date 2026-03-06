@@ -1,36 +1,58 @@
-<template>
-  <section class="grid gap-3">
-    <p class="text-sm text-gray-500">Transactions page — content coming soon.</p>
-  </section>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
+import { DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
+import {
+  ChevronDownIcon,
+  CheckIcon,
+  MagnifyingGlassIcon,
+  CalendarIcon,
+  XMarkIcon,
+  FunnelIcon,
+} from '@heroicons/vue/20/solid';
 import type { Transaction, Category, Account } from '@/api/mock-data';
 import { mockAPI } from '@/api/mock';
 
-// State
+// ── State ──────────────────────────────────────────────────────────────
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
 const accounts = ref<Account[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-const filters = reactive({
-  search: '',
+// Pending filter state (form — not yet applied)
+const searchQuery = ref('');
+const selectedCategoryId = ref<number | null>(null);
+const selectedAccountId = ref<number | null>(null);
+const startDate = ref<Date | null>(null);
+const endDate = ref<Date | null>(null);
+
+// Active filter state (applied — drives the fetch)
+const activeSearch = ref('');
+const activeFilters = reactive({
   categoryId: null as number | null,
   accountId: null as number | null,
-  startDate: null as string | null,
-  endDate: null as string | null,
+  startDate: null as Date | null,
+  endDate: null as Date | null,
 });
 
-const pagination = reactive({
-  page: 1,
-  limit: 20,
-  total: 0,
-});
+const pagination = reactive({ page: 1, limit: 20, total: 0 });
 
-// Computed
+// ── Computed ───────────────────────────────────────────────────────────
+const ALL_CATEGORY = { id: null as unknown as number, name: 'All', type: 'expense' as const };
+const ALL_ACCOUNT = { id: null as unknown as number, name: 'All' };
+
+const categoryOptions = computed(() => [ALL_CATEGORY, ...categories.value]);
+const accountOptions = computed(() => [ALL_ACCOUNT, ...accounts.value]);
+
+const selectedCategory = computed(
+  () => categoryOptions.value.find((c) => c.id === selectedCategoryId.value) ?? ALL_CATEGORY,
+);
+const selectedAccount = computed(
+  () => accountOptions.value.find((a) => a.id === selectedAccountId.value) ?? ALL_ACCOUNT,
+);
+
 const paginatedTransactions = computed(() => {
   const start = (pagination.page - 1) * pagination.limit;
   return transactions.value.slice(start, start + pagination.limit);
@@ -40,42 +62,50 @@ const totalPages = computed(() => Math.ceil(pagination.total / pagination.limit)
 const canPrevious = computed(() => pagination.page > 1);
 const canNext = computed(() => pagination.page < totalPages.value);
 
-// Functions
+const hasActiveFilters = computed(
+  () =>
+    activeSearch.value ||
+    activeFilters.categoryId !== null ||
+    activeFilters.accountId !== null ||
+    activeFilters.startDate !== null ||
+    activeFilters.endDate !== null,
+);
+
+// ── Data fetching ──────────────────────────────────────────────────────
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
   try {
-    const allTransactions = await mockAPI.transactions.getTransactions();
-    let filtered = allTransactions;
+    let filtered = await mockAPI.transactions.getTransactions();
 
-    if (filters.search) {
-      const sl = filters.search.toLowerCase();
+    if (activeSearch.value) {
+      const sl = activeSearch.value.toLowerCase();
       filtered = filtered.filter((t) => t.note?.toLowerCase().includes(sl) ?? false);
     }
-    if (filters.categoryId) {
-      filtered = filtered.filter((t) => t.categoryId === filters.categoryId);
+    if (activeFilters.categoryId !== null) {
+      filtered = filtered.filter((t) => t.categoryId === activeFilters.categoryId);
     }
-    if (filters.accountId) {
-      filtered = filtered.filter((t) => t.accountId === filters.accountId);
+    if (activeFilters.accountId !== null) {
+      filtered = filtered.filter((t) => t.accountId === activeFilters.accountId);
     }
-    if (filters.startDate) {
-      const startDate = filters.startDate;
-      filtered = filtered.filter((t) => t.transactionDate >= startDate);
+    if (activeFilters.startDate) {
+      const sd = activeFilters.startDate;
+      filtered = filtered.filter((t) => new Date(t.transactionDate) >= sd);
     }
-    if (filters.endDate) {
-      const endDate = filters.endDate;
-      filtered = filtered.filter((t) => t.transactionDate <= endDate);
+    if (activeFilters.endDate) {
+      const ed = new Date(activeFilters.endDate);
+      ed.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((t) => new Date(t.transactionDate) <= ed);
     }
 
     filtered.sort(
       (a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime(),
     );
-
     transactions.value = filtered;
     pagination.total = filtered.length;
   } catch (err) {
     console.error('Failed to load transactions:', err);
-    error.value = '无法加载交易记录，请稍后重试。';
+    error.value = 'Failed to load transactions. Please try again.';
   } finally {
     isLoading.value = false;
   }
@@ -94,17 +124,39 @@ async function fetchMetadata() {
   }
 }
 
+// ── Actions ────────────────────────────────────────────────────────────
+function commitAndFetch() {
+  activeSearch.value = searchQuery.value;
+  activeFilters.categoryId = selectedCategoryId.value;
+  activeFilters.accountId = selectedAccountId.value;
+  activeFilters.startDate = startDate.value;
+  activeFilters.endDate = endDate.value;
+  pagination.page = 1;
+  void fetchTransactions();
+}
+
+function handleSearchKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') commitAndFetch();
+}
+
 function resetFilters() {
-  Object.assign(filters, {
-    search: '',
+  searchQuery.value = '';
+  selectedCategoryId.value = null;
+  selectedAccountId.value = null;
+  startDate.value = null;
+  endDate.value = null;
+  activeSearch.value = '';
+  Object.assign(activeFilters, {
     categoryId: null,
     accountId: null,
     startDate: null,
     endDate: null,
   });
   pagination.page = 1;
+  void fetchTransactions();
 }
 
+// ── Helpers ────────────────────────────────────────────────────────────
 function getCategoryName(id: number): string {
   return categories.value.find((c) => c.id === id)?.name ?? 'Unknown';
 }
@@ -121,18 +173,6 @@ function getCategoryType(id: number): 'income' | 'expense' {
   return categories.value.find((c) => c.id === id)?.type ?? 'expense';
 }
 
-const debouncedFetch = (() => {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  return () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      pagination.page = 1;
-      void fetchTransactions();
-    }, 300);
-  };
-})();
-
-watch(filters, debouncedFetch, { deep: true });
 watch(
   () => pagination.page,
   () => window.scrollTo(0, 0),
@@ -144,115 +184,259 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4">
     <h1 class="text-2xl font-bold text-neutral-900">Transactions</h1>
 
-    <!-- Filters -->
-    <div class="rounded-lg border border-neutral-200 bg-white p-4 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div>
-          <label for="search" class="block text-sm font-medium text-neutral-700 mb-1">Search</label>
+    <!-- Filter panel -->
+    <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
+      <!-- Row 1: Search -->
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <MagnifyingGlassIcon
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+          />
           <input
-            id="search"
-            v-model="filters.search"
+            v-model="searchQuery"
             type="text"
-            placeholder="By notes..."
-            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:border-blue-500 focus:outline-none"
+            placeholder="Search by notes..."
+            class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            @keydown="handleSearchKeydown"
           />
         </div>
-        <div>
-          <label for="cat" class="block text-sm font-medium text-neutral-700 mb-1">Category</label>
-          <select
-            id="cat"
-            v-model.number="filters.categoryId"
-            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:border-blue-500 focus:outline-none"
-          >
-            <option :value="null">All</option>
-            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-        <div>
-          <label for="acc" class="block text-sm font-medium text-neutral-700 mb-1">Account</label>
-          <select
-            id="acc"
-            v-model.number="filters.accountId"
-            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:border-blue-500 focus:outline-none"
-          >
-            <option :value="null">All</option>
-            <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
-          </select>
-        </div>
-        <div>
-          <label for="from" class="block text-sm font-medium text-neutral-700 mb-1">From</label>
-          <input
-            v-model="filters.startDate"
-            id="from"
-            type="date"
-            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:border-blue-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label for="to" class="block text-sm font-medium text-neutral-700 mb-1">To</label>
-          <input
-            v-model="filters.endDate"
-            id="to"
-            type="date"
-            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:border-blue-500 focus:outline-none"
-          />
-        </div>
-      </div>
-      <div class="flex justify-end">
         <button
-          @click="resetFilters"
-          class="px-4 py-2 text-sm font-medium bg-neutral-200 text-neutral-700 rounded hover:bg-neutral-300"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          @click="commitAndFetch"
         >
-          Reset
+          <MagnifyingGlassIcon class="size-4" />
+          Search
         </button>
+      </div>
+
+      <!-- Row 2: Filters -->
+      <div class="flex flex-wrap items-end gap-2">
+        <!-- Category -->
+        <div class="flex-1 min-w-36">
+          <label class="block text-xs font-medium text-neutral-500 mb-1">Category</label>
+          <Listbox v-model="selectedCategoryId">
+            <div class="relative">
+              <ListboxButton
+                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
+              >
+                <span class="truncate text-neutral-800">{{ selectedCategory.name }}</span>
+                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
+              </ListboxButton>
+              <ListboxOptions
+                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
+              >
+                <ListboxOption
+                  v-for="opt in categoryOptions"
+                  :key="opt.id ?? 'all'"
+                  v-slot="{ active, selected }"
+                  :value="opt.id"
+                >
+                  <li
+                    :class="[
+                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
+                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
+                    ]"
+                  >
+                    <span>{{ opt.name }}</span>
+                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
+                  </li>
+                </ListboxOption>
+              </ListboxOptions>
+            </div>
+          </Listbox>
+        </div>
+
+        <!-- Account -->
+        <div class="flex-1 min-w-36">
+          <label class="block text-xs font-medium text-neutral-500 mb-1">Account</label>
+          <Listbox v-model="selectedAccountId">
+            <div class="relative">
+              <ListboxButton
+                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
+              >
+                <span class="truncate text-neutral-800">{{ selectedAccount.name }}</span>
+                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
+              </ListboxButton>
+              <ListboxOptions
+                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
+              >
+                <ListboxOption
+                  v-for="opt in accountOptions"
+                  :key="opt.id ?? 'all'"
+                  v-slot="{ active, selected }"
+                  :value="opt.id"
+                >
+                  <li
+                    :class="[
+                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
+                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
+                    ]"
+                  >
+                    <span>{{ opt.name }}</span>
+                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
+                  </li>
+                </ListboxOption>
+              </ListboxOptions>
+            </div>
+          </Listbox>
+        </div>
+
+        <!-- From date -->
+        <div class="flex-1 min-w-36">
+          <label class="block text-xs font-medium text-neutral-500 mb-1">From</label>
+          <DatePicker v-model="startDate" locale="en" :max-date="endDate ?? undefined">
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  v-bind="inputEvents"
+                  :value="inputValue"
+                  type="text"
+                  placeholder="Start date"
+                  readonly
+                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
+                  @click="togglePopover"
+                />
+                <button
+                  v-if="startDate"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  @click.stop="startDate = null"
+                >
+                  <XMarkIcon class="size-4" />
+                </button>
+              </div>
+            </template>
+          </DatePicker>
+        </div>
+
+        <!-- To date -->
+        <div class="flex-1 min-w-36">
+          <label class="block text-xs font-medium text-neutral-500 mb-1">To</label>
+          <DatePicker v-model="endDate" locale="en" :min-date="startDate ?? undefined">
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  v-bind="inputEvents"
+                  :value="inputValue"
+                  type="text"
+                  placeholder="End date"
+                  readonly
+                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
+                  @click="togglePopover"
+                />
+                <button
+                  v-if="endDate"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  @click.stop="endDate = null"
+                >
+                  <XMarkIcon class="size-4" />
+                </button>
+              </div>
+            </template>
+          </DatePicker>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2 shrink-0">
+          <button
+            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-neutral-800 text-white rounded-lg hover:bg-neutral-700 active:bg-neutral-900 transition"
+            @click="commitAndFetch"
+          >
+            <FunnelIcon class="size-4" />
+            Apply
+          </button>
+          <button
+            v-if="hasActiveFilters"
+            class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-neutral-300 text-neutral-600 rounded-lg hover:bg-neutral-50 transition"
+            @click="resetFilters"
+          >
+            <XMarkIcon class="size-4" />
+            Reset
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Error -->
-    <div v-if="error" class="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+    <div v-if="error" class="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
       {{ error }}
     </div>
 
-    <!-- Loading -->
-    <div v-if="isLoading" class="space-y-3">
-      <div v-for="i in 5" :key="i" class="h-12 bg-neutral-200 rounded animate-pulse" />
+    <!-- Loading skeleton -->
+    <div v-if="isLoading" class="space-y-2">
+      <div v-for="i in 8" :key="i" class="h-12 bg-neutral-100 rounded-xl animate-pulse" />
     </div>
 
     <!-- Empty -->
     <div
-      v-else-if="transactions.length === 0"
-      class="p-8 text-center text-neural-500 rounded-lg border border-neutral-200 bg-white"
+      v-else-if="!isLoading && transactions.length === 0"
+      class="py-16 text-center rounded-xl border border-neutral-200 bg-white"
     >
-      No transactions found
+      <MagnifyingGlassIcon class="mx-auto size-8 text-neutral-300 mb-3" />
+      <p class="text-sm font-medium text-neutral-500">No transactions found</p>
+      <p class="text-xs text-neutral-400 mt-1">Try adjusting your search or filters</p>
     </div>
 
     <!-- Table -->
-    <div v-else class="overflow-x-auto border border-neutral-200 rounded-lg bg-white">
+    <div v-else class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-neutral-200 bg-neutral-50">
-            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Date</th>
-            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Category</th>
-            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Account</th>
-            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Notes</th>
-            <th class="px-4 py-3 text-right font-semibold text-neutral-700">Amount</th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
+            >
+              Date
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
+            >
+              Category
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
+            >
+              Account
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
+            >
+              Notes
+            </th>
+            <th
+              class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500"
+            >
+              Amount
+            </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-neutral-100">
           <tr
             v-for="t in paginatedTransactions"
             :key="t.id"
-            class="border-b border-neutral-100 hover:bg-neutral-50"
+            class="hover:bg-neutral-50 transition-colors"
           >
-            <td class="px-4 py-3 text-neutral-900">{{ t.transactionDate }}</td>
-            <td class="px-4 py-3 text-neutral-700">{{ getCategoryName(t.categoryId) }}</td>
-            <td class="px-4 py-3 text-neutral-700">{{ getAccountName(t.accountId) }}</td>
-            <td class="px-4 py-3 text-neutral-500">{{ t.note ?? '—' }}</td>
+            <td class="px-4 py-3 text-xs text-neutral-500 tabular-nums">
+              {{ new Date(t.transactionDate).toLocaleDateString('en-CA') }}
+            </td>
+            <td class="px-4 py-3">
+              <span
+                class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-neutral-100 text-neutral-700"
+              >
+                {{ getCategoryName(t.categoryId) }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm text-neutral-600">{{ getAccountName(t.accountId) }}</td>
+            <td class="px-4 py-3 text-sm text-neutral-500">{{ t.note ?? '—' }}</td>
             <td
-              class="px-4 py-3 text-right font-medium"
+              class="px-4 py-3 text-right text-sm font-semibold tabular-nums"
               :class="
                 getCategoryType(t.categoryId) === 'income' ? 'text-green-600' : 'text-red-600'
               "
@@ -268,23 +452,25 @@ onMounted(() => {
     <!-- Pagination -->
     <div
       v-if="transactions.length > 0"
-      class="flex items-center justify-between p-4 bg-white border border-neutral-200 rounded-lg"
+      class="flex items-center justify-between px-4 py-3 bg-white border border-neutral-200 rounded-xl shadow-sm"
     >
-      <div class="text-sm text-neutral-600">
-        Page {{ pagination.page }} of {{ totalPages }} · {{ pagination.total }} total
-      </div>
+      <p class="text-sm text-neutral-500">
+        Page <span class="font-medium text-neutral-800">{{ pagination.page }}</span> of
+        <span class="font-medium text-neutral-800">{{ totalPages }}</span>
+        · {{ pagination.total }} total
+      </p>
       <div class="flex gap-2">
         <button
-          @click="() => pagination.page--"
           :disabled="!canPrevious"
-          class="px-3 py-2 text-sm font-medium border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          @click="() => pagination.page--"
         >
           ← Previous
         </button>
         <button
-          @click="() => pagination.page++"
           :disabled="!canNext"
-          class="px-3 py-2 text-sm font-medium border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          @click="() => pagination.page++"
         >
           Next →
         </button>

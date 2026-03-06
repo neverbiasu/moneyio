@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+
 import type { ChartDataPoint } from '@/api/mock-data';
 
 defineOptions({ name: 'TrendChart' });
@@ -21,8 +22,14 @@ const paddingTop = 16;
 const paddingBottom = 28;
 
 const innerHeight = height - paddingTop - paddingBottom;
-const innerWidth = computed(() => width - paddingX * 2);
+const innerWidth = width - paddingX * 2;
 const bottomY = paddingTop + innerHeight;
+
+// Scoped SVG IDs to prevent collisions when rendering multiple instances
+const uid = Math.random().toString(36).substring(2, 9);
+const incomeGradientId = `income-gradient-${uid}`;
+const expenseGradientId = `expense-gradient-${uid}`;
+const clipPathId = `chart-area-${uid}`;
 
 const maxValue = computed(() => {
   const values = props.points.flatMap((p) => [p.income, p.expense]);
@@ -31,7 +38,7 @@ const maxValue = computed(() => {
 
 const chartPoints = computed(() => {
   if (props.points.length === 0) return [];
-  const stepX = innerWidth.value / Math.max(props.points.length - 1, 1);
+  const stepX = innerWidth / Math.max(props.points.length - 1, 1);
   return props.points.map((p, i) => ({
     x: paddingX + i * stepX,
     incomeY: paddingTop + (1 - p.income / maxValue.value) * innerHeight,
@@ -40,7 +47,7 @@ const chartPoints = computed(() => {
   }));
 });
 
-function smoothCurve(pts: { x: number; y: number }[]): string {
+function smoothCurve(pts: Array<{ x: number; y: number }>): string {
   if (pts.length < 2) return '';
   // Safe: pts.length >= 2 is guaranteed by the guard above
   let d = `M${pts[0]!.x},${pts[0]!.y}`;
@@ -82,7 +89,10 @@ const expenseArea = computed(() => {
 const yTicks = computed(() =>
   [0, 0.25, 0.5, 0.75, 1].map((t) => ({
     y: paddingTop + (1 - t) * innerHeight,
-    label: maxValue.value >= 1000 ? `$${Math.round((t * maxValue.value) / 1000)}k` : `$${Math.round(t * maxValue.value)}`,
+    label:
+      maxValue.value >= 1000
+        ? `$${Math.round((t * maxValue.value) / 1000)}k`
+        : `$${Math.round(t * maxValue.value)}`,
   })),
 );
 
@@ -125,17 +135,22 @@ const xTicks = computed(() => {
         aria-label="Line chart showing income and expense over 30 days"
       >
         <defs>
-          <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient :id="incomeGradientId" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25" />
             <stop offset="100%" stop-color="#2563eb" stop-opacity="0" />
           </linearGradient>
-          <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient :id="expenseGradientId" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2" />
             <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
           </linearGradient>
           <!-- Clip to chart area so bezier overshoots never show outside the axes -->
-          <clipPath id="chartArea">
-            <rect :x="paddingX" :y="paddingTop" :width="width - paddingX * 2" :height="innerHeight" />
+          <clipPath :id="clipPathId">
+            <rect
+              :x="paddingX"
+              :y="paddingTop"
+              :width="width - paddingX * 2"
+              :height="innerHeight"
+            />
           </clipPath>
         </defs>
 
@@ -148,14 +163,19 @@ const xTicks = computed(() => {
             class="stroke-gray-100"
             stroke-width="1"
           />
-          <text :x="paddingX - 6" :y="tick.y + 4" text-anchor="end" class="fill-gray-400 text-[10px]">
+          <text
+            :x="paddingX - 6"
+            :y="tick.y + 4"
+            text-anchor="end"
+            class="fill-gray-400 text-[10px]"
+          >
             {{ tick.label }}
           </text>
         </g>
 
-        <g clip-path="url(#chartArea)">
-          <path :d="incomeArea" fill="url(#incomeGradient)" />
-          <path :d="expenseArea" fill="url(#expenseGradient)" />
+        <g :clip-path="`url(#${clipPathId})`">
+          <path :d="incomeArea" :fill="`url(#${incomeGradientId})`" />
+          <path :d="expenseArea" :fill="`url(#${expenseGradientId})`" />
 
           <path
             :d="incomeLine"

@@ -53,7 +53,9 @@ const slices = computed(() => {
 
   let cumulative = 0;
   return props.items.map((item, index) => {
-    const portion = item.value / total.value;
+    // Clamp portion to 0.9999 to handle the case where a single category is 100%
+    // (SVG arc coincidence when start angle === end angle)
+    const portion = Math.min(item.value / total.value, 0.9999);
     const start = cumulative;
     cumulative += portion;
     const end = cumulative;

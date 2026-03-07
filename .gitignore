@@ -2,5 +2,12 @@
 __pycache__/
 *.py[cod]
 
+# Editor & IDE
+.vscode/
+
 # Documents
 docs/
+
+# Local dev instructions (kept locally, not tracked)
+.github/copilot-instructions.md
+

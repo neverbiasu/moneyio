@@ -106,7 +106,7 @@ export const mockAccounts: Account[] = [
   {
     id: 2,
     userId: 1,
-    name: 'Daily Account',
+    name: 'Debit Card',
     type: 'checking',
     balance: 8500.5,
   },

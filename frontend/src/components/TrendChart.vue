@@ -115,7 +115,7 @@ const xTicks = computed(() => {
       </div>
       <div class="flex items-center gap-4 text-sm text-gray-600">
         <span class="flex items-center gap-2"
-          ><span class="w-3 h-3 rounded-full bg-blue-600"></span>Income</span
+          ><span class="w-3 h-3 rounded-full bg-green-600"></span>Income</span
         >
         <span class="flex items-center gap-2"
           ><span class="w-3 h-3 rounded-full bg-red-500"></span>Expense</span
@@ -136,12 +136,12 @@ const xTicks = computed(() => {
       >
         <defs>
           <linearGradient :id="incomeGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25" />
-            <stop offset="100%" stop-color="#2563eb" stop-opacity="0" />
+            <stop offset="0%" stop-color="var(--color-green-600)" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="var(--color-green-600)" stop-opacity="0" />
           </linearGradient>
           <linearGradient :id="expenseGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2" />
-            <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+            <stop offset="0%" stop-color="var(--color-red-500)" stop-opacity="0.2" />
+            <stop offset="100%" stop-color="var(--color-red-500)" stop-opacity="0" />
           </linearGradient>
           <!-- Clip to chart area so bezier overshoots never show outside the axes -->
           <clipPath :id="clipPathId">
@@ -180,7 +180,7 @@ const xTicks = computed(() => {
           <path
             :d="incomeLine"
             fill="none"
-            class="stroke-blue-600"
+            class="stroke-green-600"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"

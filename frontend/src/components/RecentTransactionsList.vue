@@ -17,6 +17,10 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
 });
 
+defineEmits<{
+  'add-click': [];
+}>();
+
 const router = useRouter();
 
 const recentTransactions = computed(() => {
@@ -105,13 +109,22 @@ function goToTransactions() {
 
     <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-      <button
-        type="button"
-        class="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 py-2 rounded-md hover:bg-blue-50 transition-colors"
-        @click="goToTransactions"
-      >
-        View All Transactions
-      </button>
+      <div class="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          class="text-sm font-medium text-blue-600 hover:text-blue-700 py-2 px-2 rounded-md hover:bg-blue-50 transition-colors"
+          @click="goToTransactions"
+        >
+          View All Transactions
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+          @click="$emit('add-click')"
+        >
+          + Add
+        </button>
+      </div>
     </div>
   </div>
 </template>

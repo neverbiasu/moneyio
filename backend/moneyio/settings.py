@@ -55,7 +55,7 @@ ROOT_URLCONF = "moneyio.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'templates'], # 添加这一行，指定模板目录用于测试
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

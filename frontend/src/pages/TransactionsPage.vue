@@ -230,7 +230,6 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
-
     <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
       <!-- Row 1: Search -->

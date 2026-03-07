@@ -106,8 +106,8 @@ async function handleTransactionSaved() {
     <!-- Add Transaction CTA -->
     <div class="flex justify-center">
       <button
+        class="px-6 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 active:bg-purple-800 transition"
         @click="isModalOpen = true"
-        class="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition"
       >
         + Add Transaction
       </button>

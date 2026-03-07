@@ -5,6 +5,7 @@ import RecentTransactionsList from '@/components/RecentTransactionsList.vue';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
+import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import { mockAPI } from '@/api/mock';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/mock-data';
 
@@ -17,6 +18,7 @@ const chartData = ref<ChartData | null>(null);
 const budgets = ref<Budget[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+const isModalOpen = ref(false);
 
 const pieItems = computed(() => {
   const expenseCategories = categories.value.filter((category) => category.type === 'expense');
@@ -74,10 +76,24 @@ async function fetchDashboardData() {
 onMounted(() => {
   void fetchDashboardData();
 });
+
+async function handleTransactionSaved() {
+  await fetchDashboardData();
+}
 </script>
 
 <template>
   <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <button
+        @click="isModalOpen = true"
+        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+      >
+        + Add Transaction
+      </button>
+    </div>
+
     <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
       <p class="text-sm text-red-800">{{ error }}</p>
     </div>
@@ -96,5 +112,7 @@ onMounted(() => {
       :categories="categories"
       :is-loading="isLoading"
     />
+
+    <TransactionFormModal :is-open="isModalOpen" @close="isModalOpen = false" @saved="handleTransactionSaved" />
   </div>
 </template>

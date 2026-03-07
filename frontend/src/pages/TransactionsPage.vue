@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
+import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/mock-data';
 import { mockAPI } from '@/api/mock';
 
@@ -22,6 +23,7 @@ const categories = ref<Category[]>([]);
 const accounts = ref<Account[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
+const isModalOpen = ref(false);
 
 // Pending filter state (form — not yet applied)
 const searchQuery = ref('');
@@ -151,15 +153,14 @@ function resetFilters() {
   selectedAccountId.value = null;
   startDate.value = null;
   endDate.value = null;
-  activeSearch.value = '';
-  Object.assign(activeFilters, {
-    categoryId: null,
-    accountId: null,
-    startDate: null,
-    endDate: null,
-  });
   pagination.page = 1;
   void fetchTransactions();
+}
+
+async function handleTransactionSaved() {
+  isModalOpen.value = false;
+  pagination.page = 1;
+  await fetchTransactions();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -222,7 +223,15 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
-    <h1 class="text-2xl font-bold text-neutral-900">Transactions</h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-neutral-900">Transactions</h1>
+      <button
+        @click="isModalOpen = true"
+        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+      >
+        + Add Transaction
+      </button>
+    </div>
 
     <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
@@ -538,5 +547,7 @@ onMounted(() => {
         </button>
       </div>
     </div>
+
+    <TransactionFormModal :is-open="isModalOpen" @close="isModalOpen = false" @saved="handleTransactionSaved" />
   </div>
 </template>

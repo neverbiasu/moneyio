@@ -230,6 +230,16 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
+    <!-- Add Transaction Button -->
+    <div class="flex justify-end">
+      <button
+        @click="isModalOpen = true"
+        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+      >
+        + Add Transaction
+      </button>
+    </div>
+
     <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
       <!-- Row 1: Search -->

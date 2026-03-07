@@ -101,17 +101,8 @@ async function handleTransactionSaved() {
       :transactions="recentTransactions"
       :categories="categories"
       :is-loading="isLoading"
+      @add-click="isModalOpen = true"
     />
-
-    <!-- Add Transaction CTA -->
-    <div class="flex justify-center">
-      <button
-        class="px-6 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 active:bg-purple-800 transition"
-        @click="isModalOpen = true"
-      >
-        + Add Transaction
-      </button>
-    </div>
 
     <TransactionFormModal
       :is-open="isModalOpen"

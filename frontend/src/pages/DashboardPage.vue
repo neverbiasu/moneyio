@@ -84,16 +84,6 @@ async function handleTransactionSaved() {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <button
-        @click="isModalOpen = true"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
-      >
-        + Add Transaction
-      </button>
-    </div>
-
     <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
       <p class="text-sm text-red-800">{{ error }}</p>
     </div>
@@ -113,6 +103,20 @@ async function handleTransactionSaved() {
       :is-loading="isLoading"
     />
 
-    <TransactionFormModal :is-open="isModalOpen" @close="isModalOpen = false" @saved="handleTransactionSaved" />
+    <!-- Add Transaction CTA -->
+    <div class="flex justify-center">
+      <button
+        @click="isModalOpen = true"
+        class="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition"
+      >
+        + Add Transaction
+      </button>
+    </div>
+
+    <TransactionFormModal
+      :is-open="isModalOpen"
+      @close="isModalOpen = false"
+      @saved="handleTransactionSaved"
+    />
   </div>
 </template>

@@ -41,17 +41,13 @@ const isSaving = ref(false);
 const isLoading = ref(false);
 
 // ── Computed ───────────────────────────────────────────────────────────
-const selectedCategory = computed(() =>
-  categories.value.find((c) => c.id === form.categoryId) ?? null
+const selectedCategory = computed(
+  () => categories.value.find((c) => c.id === form.categoryId) ?? null,
 );
 
-const selectedAccount = computed(() =>
-  accounts.value.find((a) => a.id === form.accountId) ?? null
-);
+const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.accountId) ?? null);
 
-const hasErrors = computed(
-  () => !!errors.amount || !!errors.categoryId || !!errors.accountId
-);
+const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
 // ── Methods ────────────────────────────────────────────────────────────
 function validate(): boolean {
@@ -77,11 +73,10 @@ async function submitForm(): Promise<void> {
 
   isSaving.value = true;
   try {
-    const date =  form.date || new Date();
-    const dateStr = date instanceof Date 
-      ? date.toISOString().split('T')[0] 
-      : (date as any).slice(0, 10);
-    
+    const date = form.date || new Date();
+    const dateStr =
+      date instanceof Date ? date.toISOString().split('T')[0] : (date as any).slice(0, 10);
+
     const transaction: Omit<Transaction, 'id' | 'userId' | 'crtTime' | 'uptTime'> = {
       amount: Number(form.amount),
       categoryId: form.categoryId!,
@@ -131,7 +126,13 @@ onMounted(async () => {
 
 <template>
   <TransitionRoot :show="isOpen">
-    <Dialog :open="isOpen" as="div" @close="handleClose" @keydown="handleKeyDown" class="relative z-50">
+    <Dialog
+      :open="isOpen"
+      as="div"
+      class="relative z-50"
+      @close="handleClose"
+      @keydown="handleKeyDown"
+    >
       <TransitionChild
         as="template"
         enter="ease-out duration-200"
@@ -166,12 +167,14 @@ onMounted(async () => {
               <!-- Loading state -->
               <div v-if="isLoading" class="text-center py-8">
                 <div class="inline-block animate-spin">
-                  <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  <div
+                    class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               </div>
 
               <!-- Form -->
-              <form v-else @submit.prevent="submitForm" class="space-y-4">
+              <form v-else class="space-y-4" @submit.prevent="submitForm">
                 <!-- Amount -->
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
@@ -313,8 +316,8 @@ onMounted(async () => {
                 <div class="flex gap-2 justify-end pt-4">
                   <button
                     type="button"
-                    @click="handleClose"
                     class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
+                    @click="handleClose"
                   >
                     Cancel
                   </button>

@@ -44,8 +44,15 @@ const activeFilters = reactive({
 const pagination = reactive({ page: 1, limit: 20, total: 0 });
 
 // ── Option types ──────────────────────────────────────────────────────
-type CategoryOption = { id: number | null; name: string; type: Category['type'] };
-type AccountOption = { id: number | null; name: string };
+interface CategoryOption {
+  id: number | null;
+  name: string;
+  type: Category['type'];
+}
+interface AccountOption {
+  id: number | null;
+  name: string;
+}
 
 // ── Computed ───────────────────────────────────────────────────────────
 const ALL_CATEGORY: CategoryOption = { id: null, name: 'All', type: 'expense' };
@@ -223,15 +230,6 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-neutral-900">Transactions</h1>
-      <button
-        @click="isModalOpen = true"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
-      >
-        + Add Transaction
-      </button>
-    </div>
 
     <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
@@ -548,6 +546,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <TransactionFormModal :is-open="isModalOpen" @close="isModalOpen = false" @saved="handleTransactionSaved" />
+    <TransactionFormModal
+      :is-open="isModalOpen"
+      @close="isModalOpen = false"
+      @saved="handleTransactionSaved"
+    />
   </div>
 </template>

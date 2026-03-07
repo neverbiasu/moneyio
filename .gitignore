@@ -8,3 +8,6 @@ __pycache__/
 # Documents
 docs/
 
+# Local dev instructions (kept locally, not tracked)
+.github/copilot-instructions.md
+

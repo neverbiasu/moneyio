@@ -173,6 +173,32 @@ function getCategoryType(id: number): 'income' | 'expense' {
   return categories.value.find((c) => c.id === id)?.type ?? 'expense';
 }
 
+// Badge color per category — extend as categories grow
+const CATEGORY_BADGE: Record<number, string> = {
+  1: 'bg-orange-100 text-orange-700',   // Food & Dining
+  2: 'bg-amber-100 text-amber-700',     // Breakfast
+  3: 'bg-yellow-100 text-yellow-800',   // Lunch
+  4: 'bg-sky-100 text-sky-700',         // Transportation
+  5: 'bg-purple-100 text-purple-700',   // Entertainment
+  10: 'bg-green-100 text-green-700',    // Salary
+  11: 'bg-emerald-100 text-emerald-700', // Bonus
+};
+
+function getCategoryBadgeClass(id: number): string {
+  return CATEGORY_BADGE[id] ?? 'bg-neutral-100 text-neutral-700';
+}
+
+// ── Pagination jump ────────────────────────────────────────────────────
+const jumpInput = ref('');
+
+function jumpToPage() {
+  const n = parseInt(jumpInput.value);
+  if (!isNaN(n) && n >= 1 && n <= totalPages.value) {
+    pagination.page = n;
+  }
+  jumpInput.value = '';
+}
+
 watch(
   () => pagination.page,
   () => window.scrollTo(0, 0),
@@ -347,7 +373,7 @@ onMounted(() => {
         <!-- Action buttons -->
         <div class="flex gap-2 shrink-0">
           <button
-            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-neutral-800 text-white rounded-lg hover:bg-neutral-700 active:bg-neutral-900 transition"
+            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 active:bg-blue-200 transition"
             @click="commitAndFetch"
           >
             <FunnelIcon class="size-4" />
@@ -428,7 +454,8 @@ onMounted(() => {
             </td>
             <td class="px-4 py-3">
               <span
-                class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-neutral-100 text-neutral-700"
+                class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md"
+                :class="getCategoryBadgeClass(t.categoryId)"
               >
                 {{ getCategoryName(t.categoryId) }}
               </span>
@@ -459,7 +486,7 @@ onMounted(() => {
         <span class="font-medium text-neutral-800">{{ totalPages }}</span>
         · {{ pagination.total }} total
       </p>
-      <div class="flex gap-2">
+      <div class="flex items-center gap-2">
         <button
           :disabled="!canPrevious"
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
@@ -467,6 +494,25 @@ onMounted(() => {
         >
           ← Previous
         </button>
+        <!-- Jump to page -->
+        <div class="flex items-center gap-1 text-sm text-neutral-500">
+          <span class="hidden sm:inline">Go to</span>
+          <input
+            v-model="jumpInput"
+            type="number"
+            min="1"
+            :max="totalPages"
+            placeholder="#"
+            class="w-14 px-2 py-1.5 text-sm text-center border border-neutral-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+            @keydown.enter="jumpToPage"
+          />
+          <button
+            class="px-2.5 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
+            @click="jumpToPage"
+          >
+            Go
+          </button>
+        </div>
         <button
           :disabled="!canNext"
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"

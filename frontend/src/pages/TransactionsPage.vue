@@ -14,6 +14,8 @@ import {
 import type { Transaction, Category, Account } from '@/api/mock-data';
 import { mockAPI } from '@/api/mock';
 
+defineOptions({ name: 'TransactionsPage' });
+
 // ── State ──────────────────────────────────────────────────────────────
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
@@ -464,7 +466,7 @@ onMounted(() => {
             class="hover:bg-neutral-50 transition-colors"
           >
             <td class="px-4 py-3 text-xs text-neutral-500 tabular-nums">
-              {{ new Date(t.transactionDate).toLocaleDateString('en-CA') }}
+              {{ t.transactionDate.slice(0, 10) }}
             </td>
             <td class="px-4 py-3">
               <span

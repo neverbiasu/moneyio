@@ -136,12 +136,12 @@ const xTicks = computed(() => {
       >
         <defs>
           <linearGradient :id="incomeGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#16a34a" stop-opacity="0.25" />
-            <stop offset="100%" stop-color="#16a34a" stop-opacity="0" />
+            <stop offset="0%" stop-color="var(--color-green-600)" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="var(--color-green-600)" stop-opacity="0" />
           </linearGradient>
           <linearGradient :id="expenseGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2" />
-            <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+            <stop offset="0%" stop-color="var(--color-red-500)" stop-opacity="0.2" />
+            <stop offset="100%" stop-color="var(--color-red-500)" stop-opacity="0" />
           </linearGradient>
           <!-- Clip to chart area so bezier overshoots never show outside the axes -->
           <clipPath :id="clipPathId">

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Auth Test</title>
+</head>
+
+<body>
+
+<h2>Register</h2>
+
+<input id="username" placeholder="username">
+<input id="email" placeholder="email">
+<input id="password" placeholder="password">
+
+<button onclick="register()">Register</button>
+
+<hr>
+
+<h2>Login</h2>
+
+<input id="login_username" placeholder="username">
+<input id="login_password" placeholder="password">
+
+<button onclick="login()">Login</button>
+
+<hr>
+
+<h2>Current User</h2>
+
+<button onclick="getUser()">Get Current User</button>
+
+<hr>
+
+<h2>Change Password</h2>
+
+<input id="new_password" placeholder="new password">
+
+<button onclick="changePassword()">Change Password</button>
+
+<hr>
+
+<h2>Logout</h2>
+
+<button onclick="logout()">Logout</button>
+
+<hr>
+
+<h3>Result</h3>
+<pre id="result"></pre>
+
+
+<script>
+
+const API = "http://127.0.0.1:8000/api/auth"
+
+
+function show(data){
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2)
+}
+
+
+async function register(){
+
+    const res = await fetch(`${API}/register/`,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            username:document.getElementById("username").value,
+            email:document.getElementById("email").value,
+            password:document.getElementById("password").value
+        })
+    })
+
+    show(await res.json())
+}
+
+
+async function login(){
+
+    const res = await fetch(`${API}/login/`,{
+        method:"POST",
+        credentials:"include",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            username:document.getElementById("login_username").value,
+            password:document.getElementById("login_password").value
+        })
+    })
+
+    show(await res.json())
+}
+
+
+async function getUser(){
+
+    const res = await fetch(`${API}/me/`,{
+        credentials:"include"
+    })
+
+    show(await res.json())
+}
+
+
+async function changePassword(){
+
+    const res = await fetch(`${API}/change-password/`,{
+        method:"POST",
+        credentials:"include",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            password:document.getElementById("new_password").value
+        })
+    })
+
+    show(await res.json())
+}
+
+
+async function logout(){
+
+    const res = await fetch(`${API}/logout/`,{
+        method:"POST",
+        credentials:"include"
+    })
+
+    show(await res.json())
+}
+
+</script>
+
+</body>
+</html>

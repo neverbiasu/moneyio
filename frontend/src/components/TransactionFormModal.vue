@@ -11,9 +11,17 @@ import { mockAPI } from '@/api/mock';
 defineOptions({ name: 'TransactionFormModal' });
 
 // ── Props & Emits ──────────────────────────────────────────────────────
-const props = defineProps<{
-  isOpen: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean;
+    categories?: Category[];
+    accounts?: Account[];
+  }>(),
+  {
+    categories: () => [],
+    accounts: () => [],
+  },
+);
 
 const emit = defineEmits<{
   close: [];
@@ -34,6 +42,7 @@ const errors = reactive({
   categoryId: '',
   accountId: '',
 });
+const submitError = ref<string>('');
 
 const categories = ref<Category[]>([]);
 const accounts = ref<Account[]>([]);
@@ -66,23 +75,25 @@ function resetForm(): void {
   errors.amount = '';
   errors.categoryId = '';
   errors.accountId = '';
+  submitError.value = '';
 }
 
 async function submitForm(): Promise<void> {
   if (!validate()) return;
 
   isSaving.value = true;
+  submitError.value = '';
   try {
     const date = form.date || new Date();
-    const dateStr =
-      date instanceof Date ? date.toISOString().split('T')[0] : (date as any).slice(0, 10);
+    const transactionDate =
+      date instanceof Date ? date.toISOString() : new Date(date as any).toISOString();
 
     const transaction: Omit<Transaction, 'id' | 'userId' | 'crtTime' | 'uptTime'> = {
       amount: Number(form.amount),
       categoryId: form.categoryId!,
       accountId: form.accountId!,
       note: form.notes || null,
-      transactionDate: dateStr,
+      transactionDate,
     };
     await mockAPI.transactions.createTransaction(transaction);
     emit('saved');
@@ -90,7 +101,7 @@ async function submitForm(): Promise<void> {
     handleClose();
   } catch (err) {
     console.error('Failed to save transaction', err);
-    errors.amount = 'Failed to save. Please try again.';
+    submitError.value = 'Failed to save transaction. Please try again.';
   } finally {
     isSaving.value = false;
   }
@@ -101,25 +112,29 @@ function handleClose(): void {
   emit('close');
 }
 
-const handleKeyDown = (e: KeyboardEvent): void => {
-  if (e.key === 'Escape') {
-    handleClose();
-  }
-};
-
 onMounted(async () => {
-  isLoading.value = true;
-  try {
-    const [cats, accs] = await Promise.all([
-      mockAPI.categories.getCategories(),
-      mockAPI.accounts.getAccounts(),
-    ]);
-    categories.value = cats;
-    accounts.value = accs;
-  } catch (err) {
-    console.error('Failed to load categories or accounts', err);
-  } finally {
-    isLoading.value = false;
+  // Use provided props; only fetch if empty
+  if (props.categories && props.categories.length > 0) {
+    categories.value = props.categories;
+  } else {
+    isLoading.value = true;
+    try {
+      categories.value = await mockAPI.categories.getCategories();
+    } catch (err) {
+      console.error('Failed to load categories', err);
+    }
+  }
+
+  if (props.accounts && props.accounts.length > 0) {
+    accounts.value = props.accounts;
+  } else {
+    try {
+      accounts.value = await mockAPI.accounts.getAccounts();
+    } catch (err) {
+      console.error('Failed to load accounts', err);
+    } finally {
+      isLoading.value = false;
+    }
   }
 });
 </script>
@@ -131,7 +146,6 @@ onMounted(async () => {
       as="div"
       class="relative z-50"
       @close="handleClose"
-      @keydown="handleKeyDown"
     >
       <TransitionChild
         as="template"
@@ -175,6 +189,11 @@ onMounted(async () => {
 
               <!-- Form -->
               <form v-else class="space-y-4" @submit.prevent="submitForm">
+                <!-- Submit Error -->
+                <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p class="text-sm text-red-700">{{ submitError }}</p>
+                </div>
+
                 <!-- Amount -->
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">

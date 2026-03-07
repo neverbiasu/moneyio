@@ -553,6 +553,8 @@ async function handleTransactionSaved() {
 
     <TransactionFormModal
       :is-open="isModalOpen"
+      :categories="categories"
+      :accounts="accounts"
       @close="isModalOpen = false"
       @saved="handleTransactionSaved"
     />

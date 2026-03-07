@@ -39,17 +39,21 @@ const activeFilters = reactive({
 
 const pagination = reactive({ page: 1, limit: 20, total: 0 });
 
+// ── Option types ──────────────────────────────────────────────────────
+type CategoryOption = { id: number | null; name: string; type: Category['type'] };
+type AccountOption = { id: number | null; name: string };
+
 // ── Computed ───────────────────────────────────────────────────────────
-const ALL_CATEGORY = { id: null as unknown as number, name: 'All', type: 'expense' as const };
-const ALL_ACCOUNT = { id: null as unknown as number, name: 'All' };
+const ALL_CATEGORY: CategoryOption = { id: null, name: 'All', type: 'expense' };
+const ALL_ACCOUNT: AccountOption = { id: null, name: 'All' };
 
-const categoryOptions = computed(() => [ALL_CATEGORY, ...categories.value]);
-const accountOptions = computed(() => [ALL_ACCOUNT, ...accounts.value]);
+const categoryOptions = computed<CategoryOption[]>(() => [ALL_CATEGORY, ...categories.value]);
+const accountOptions = computed<AccountOption[]>(() => [ALL_ACCOUNT, ...accounts.value]);
 
-const selectedCategory = computed(
+const selectedCategory = computed<CategoryOption>(
   () => categoryOptions.value.find((c) => c.id === selectedCategoryId.value) ?? ALL_CATEGORY,
 );
-const selectedAccount = computed(
+const selectedAccount = computed<AccountOption>(
   () => accountOptions.value.find((a) => a.id === selectedAccountId.value) ?? ALL_ACCOUNT,
 );
 
@@ -175,12 +179,12 @@ function getCategoryType(id: number): 'income' | 'expense' {
 
 // Badge color per category — extend as categories grow
 const CATEGORY_BADGE: Record<number, string> = {
-  1: 'bg-orange-100 text-orange-700',   // Food & Dining
-  2: 'bg-amber-100 text-amber-700',     // Breakfast
-  3: 'bg-yellow-100 text-yellow-800',   // Lunch
-  4: 'bg-sky-100 text-sky-700',         // Transportation
-  5: 'bg-purple-100 text-purple-700',   // Entertainment
-  10: 'bg-green-100 text-green-700',    // Salary
+  1: 'bg-orange-100 text-orange-700', // Food & Dining
+  2: 'bg-amber-100 text-amber-700', // Breakfast
+  3: 'bg-yellow-100 text-yellow-800', // Lunch
+  4: 'bg-sky-100 text-sky-700', // Transportation
+  5: 'bg-purple-100 text-purple-700', // Entertainment
+  10: 'bg-green-100 text-green-700', // Salary
   11: 'bg-emerald-100 text-emerald-700', // Bonus
 };
 
@@ -192,13 +196,18 @@ function getCategoryBadgeClass(id: number): string {
 const jumpInput = ref('');
 
 function jumpToPage() {
-  const n = parseInt(jumpInput.value);
+  const n = parseInt(jumpInput.value, 10);
   if (!isNaN(n) && n >= 1 && n <= totalPages.value) {
     pagination.page = n;
   }
   jumpInput.value = '';
 }
-
+function prevPage() {
+  pagination.page--;
+}
+function nextPage() {
+  pagination.page++;
+}
 watch(
   () => pagination.page,
   () => window.scrollTo(0, 0),
@@ -224,6 +233,7 @@ onMounted(() => {
           <input
             v-model="searchQuery"
             type="text"
+            aria-label="Search transactions by notes"
             placeholder="Search by notes..."
             class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
             @keydown="handleSearchKeydown"
@@ -330,6 +340,8 @@ onMounted(() => {
                 />
                 <button
                   v-if="startDate"
+                  type="button"
+                  aria-label="Clear start date"
                   class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                   @click.stop="startDate = null"
                 >
@@ -360,6 +372,8 @@ onMounted(() => {
                 />
                 <button
                   v-if="endDate"
+                  type="button"
+                  aria-label="Clear end date"
                   class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                   @click.stop="endDate = null"
                 >
@@ -490,7 +504,7 @@ onMounted(() => {
         <button
           :disabled="!canPrevious"
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          @click="() => pagination.page--"
+          @click="prevPage"
         >
           ← Previous
         </button>
@@ -516,7 +530,7 @@ onMounted(() => {
         <button
           :disabled="!canNext"
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          @click="() => pagination.page++"
+          @click="nextPage"
         >
           Next →
         </button>

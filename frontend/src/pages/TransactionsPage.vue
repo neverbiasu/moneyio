@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
+import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/mock-data';
 import { mockAPI } from '@/api/mock';
 
@@ -22,6 +23,7 @@ const categories = ref<Category[]>([]);
 const accounts = ref<Account[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
+const isModalOpen = ref(false);
 
 // Pending filter state (form — not yet applied)
 const searchQuery = ref('');
@@ -163,7 +165,8 @@ function resetFilters() {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
-function getCategoryName(id: number): string {
+function getCategoryName(id: number | null): string {
+  if (id === null) return 'Transfer';
   return categories.value.find((c) => c.id === id)?.name ?? 'Unknown';
 }
 
@@ -175,7 +178,8 @@ function formatCurrency(amount: number): string {
   return `$${Math.abs(amount).toFixed(2)}`;
 }
 
-function getCategoryType(id: number): 'income' | 'expense' {
+function getCategoryType(id: number | null): 'income' | 'expense' | 'transfer' {
+  if (id === null) return 'transfer';
   return categories.value.find((c) => c.id === id)?.type ?? 'expense';
 }
 
@@ -190,7 +194,8 @@ const CATEGORY_BADGE: Record<number, string> = {
   11: 'bg-emerald-100 text-emerald-700', // Bonus
 };
 
-function getCategoryBadgeClass(id: number): string {
+function getCategoryBadgeClass(id: number | null): string {
+  if (id === null) return 'bg-blue-100 text-blue-700'; // Transfer
   return CATEGORY_BADGE[id] ?? 'bg-neutral-100 text-neutral-700';
 }
 
@@ -218,15 +223,19 @@ watch(
 onMounted(() => {
   void Promise.all([fetchMetadata(), fetchTransactions()]);
 });
+
+async function handleTransactionSaved() {
+  isModalOpen.value = false;
+  pagination.page = 1;
+  await fetchTransactions();
+}
 </script>
 
 <template>
   <div class="space-y-4">
-    <h1 class="text-2xl font-bold text-neutral-900">Transactions</h1>
-
     <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
-      <!-- Row 1: Search -->
+      <!-- Row 1: Search + Add Transaction -->
       <div class="flex gap-2">
         <div class="relative flex-1">
           <MagnifyingGlassIcon
@@ -247,6 +256,12 @@ onMounted(() => {
         >
           <MagnifyingGlassIcon class="size-4" />
           Search
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+          @click="isModalOpen = true"
+        >
+          + Add
         </button>
       </div>
 
@@ -481,10 +496,10 @@ onMounted(() => {
             <td
               class="px-4 py-3 text-right text-sm font-semibold tabular-nums"
               :class="
-                getCategoryType(t.categoryId) === 'income' ? 'text-green-600' : 'text-red-600'
+                getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? 'text-green-600' : 'text-red-600'
               "
             >
-              {{ getCategoryType(t.categoryId) === 'income' ? '+' : '-'
+              {{ getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? '+' : '-'
               }}{{ formatCurrency(t.amount) }}
             </td>
           </tr>
@@ -538,5 +553,14 @@ onMounted(() => {
         </button>
       </div>
     </div>
+
+    <TransactionFormModal
+      v-if="isModalOpen"
+      :is-open="isModalOpen"
+      :categories="categories"
+      :accounts="accounts"
+      @close="isModalOpen = false"
+      @saved="handleTransactionSaved"
+    />
   </div>
 </template>

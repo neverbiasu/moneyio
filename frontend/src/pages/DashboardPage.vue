@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue';
 import SummaryCards from '@/components/SummaryCards.vue';
 import RecentTransactionsList from '@/components/RecentTransactionsList.vue';
+import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
@@ -17,6 +18,7 @@ const chartData = ref<ChartData | null>(null);
 const budgets = ref<Budget[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+const isModalOpen = ref(false);
 
 const pieItems = computed(() => {
   const expenseCategories = categories.value.filter((category) => category.type === 'expense');
@@ -74,6 +76,10 @@ async function fetchDashboardData() {
 onMounted(() => {
   void fetchDashboardData();
 });
+
+async function handleTransactionSaved() {
+  await fetchDashboardData();
+}
 </script>
 
 <template>
@@ -95,6 +101,15 @@ onMounted(() => {
       :transactions="recentTransactions"
       :categories="categories"
       :is-loading="isLoading"
+      @add-click="isModalOpen = true"
+    />
+
+    <TransactionFormModal
+      v-if="isModalOpen"
+      :is-open="isModalOpen"
+      :categories="categories"
+      @close="isModalOpen = false"
+      @saved="handleTransactionSaved"
     />
   </div>
 </template>

@@ -29,6 +29,7 @@ const emit = defineEmits<{
 }>();
 
 // ── State ──────────────────────────────────────────────────────────────
+const transactionType = ref<'expense' | 'income' | 'transfer'>('expense');
 const form = reactive({
   amount: '',
   categoryId: null as number | null,
@@ -66,6 +67,15 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
+const typeConfig = computed(() => {
+  const configs = {
+    expense: { label: 'Expense', color: 'red', icon: '💸' },
+    income: { label: 'Income', color: 'green', icon: '💰' },
+    transfer: { label: 'Transfer', color: 'blue', icon: '🔄' },
+  };
+  return configs[transactionType.value];
+});
+
 // ── Methods ────────────────────────────────────────────────────────────
 function validate(): boolean {
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
@@ -84,6 +94,12 @@ function resetForm(): void {
   errors.categoryId = '';
   errors.accountId = '';
   submitError.value = '';
+}
+
+function selectTransactionType(type: 'expense' | 'income' | 'transfer'): void {
+  transactionType.value = type;
+  form.categoryId = null;
+  errors.categoryId = '';
 }
 
 async function submitForm(): Promise<void> {
@@ -191,6 +207,44 @@ onMounted(async () => {
             >
               <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">Add Transaction</h2>
 
+              <!-- Transaction Type Selection (Phase 1) -->
+              <div class="mb-6 flex gap-2">
+                <button
+                  @click="selectTransactionType('expense')"
+                  :class="{
+                    'bg-red-100 border-2 border-red-500 text-red-700': transactionType === 'expense',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'expense',
+                  }"
+                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  :aria-pressed="transactionType === 'expense'"
+                >
+                  💸 Expense
+                </button>
+                <button
+                  @click="selectTransactionType('income')"
+                  :class="{
+                    'bg-green-100 border-2 border-green-500 text-green-700': transactionType === 'income',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'income',
+                  }"
+                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  :aria-pressed="transactionType === 'income'"
+                >
+                  💰 Income
+                </button>
+                <button
+                  v-if="accounts.length > 1"
+                  @click="selectTransactionType('transfer')"
+                  :class="{
+                    'bg-blue-100 border-2 border-blue-500 text-blue-700': transactionType === 'transfer',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'transfer',
+                  }"
+                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  :aria-pressed="transactionType === 'transfer'"
+                >
+                  🔄 Transfer
+                </button>
+              </div>
+
               <!-- Loading state -->
               <div v-if="isLoading" class="text-center py-8">
                 <div class="inline-block animate-spin">
@@ -210,7 +264,7 @@ onMounted(async () => {
                 <!-- Amount -->
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                    Amount
+                    {{ transactionType === 'transfer' ? 'Amount to Transfer' : 'Amount' }}
                   </label>
                   <input
                     id="amount"
@@ -356,9 +410,14 @@ onMounted(async () => {
                   <button
                     type="submit"
                     :disabled="isSaving"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    :class="{
+                      'bg-red-600 hover:bg-red-700': transactionType === 'expense',
+                      'bg-green-600 hover:bg-green-700': transactionType === 'income',
+                      'bg-blue-600 hover:bg-blue-700': transactionType === 'transfer',
+                    }"
+                    class="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {{ isSaving ? 'Saving...' : 'Add Transaction' }}
+                    {{ isSaving ? 'Saving...' : `Add ${typeConfig.label}` }}
                   </button>
                 </div>
               </form>

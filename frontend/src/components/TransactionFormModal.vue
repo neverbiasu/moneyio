@@ -4,7 +4,14 @@ import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessu
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
-import { CheckIcon, ChevronDownIcon, CalendarIcon } from '@heroicons/vue/20/solid';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  CalendarIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  ArrowPathIcon,
+} from '@heroicons/vue/20/solid';
 import type { Category, Account, Transaction } from '@/api/mock-data';
 import { mockAPI } from '@/api/mock';
 
@@ -67,11 +74,24 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
+/**
+ * Filter categories based on transaction type.
+ * - Expense: show only expense categories
+ * - Income: show only income categories
+ * - Transfer: no category required (transfers are inter-account movements)
+ */
+const filteredCategories = computed(() => {
+  if (transactionType.value === 'transfer') {
+    return [];
+  }
+  return categories.value.filter((c) => c.type === transactionType.value);
+});
+
 const typeConfig = computed(() => {
   const configs = {
-    expense: { label: 'Expense', color: 'red', icon: '💸' },
-    income: { label: 'Income', color: 'green', icon: '💰' },
-    transfer: { label: 'Transfer', color: 'blue', icon: '🔄' },
+    expense: { label: 'Expense', color: 'red', icon: ArrowDownTrayIcon },
+    income: { label: 'Income', color: 'green', icon: ArrowUpTrayIcon },
+    transfer: { label: 'Transfer', color: 'blue', icon: ArrowPathIcon },
   };
   return configs[transactionType.value];
 });
@@ -79,7 +99,11 @@ const typeConfig = computed(() => {
 // ── Methods ────────────────────────────────────────────────────────────
 function validate(): boolean {
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
-  errors.categoryId = form.categoryId ? '' : 'Please select a category';
+  // Category is not required for transfers (inter-account movements)
+  errors.categoryId =
+    transactionType.value === 'transfer' || form.categoryId
+      ? ''
+      : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
   return !hasErrors.value;
 }
@@ -215,10 +239,12 @@ onMounted(async () => {
                     'bg-red-100 border-2 border-red-500 text-red-700': transactionType === 'expense',
                     'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'expense',
                   }"
-                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'expense'"
+                  title="Expense Transaction"
                 >
-                  💸 Expense
+                  <ArrowDownTrayIcon class="size-5" />
+                  <span>Expense</span>
                 </button>
                 <button
                   @click="selectTransactionType('income')"
@@ -226,10 +252,12 @@ onMounted(async () => {
                     'bg-green-100 border-2 border-green-500 text-green-700': transactionType === 'income',
                     'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'income',
                   }"
-                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'income'"
+                  title="Income Transaction"
                 >
-                  💰 Income
+                  <ArrowUpTrayIcon class="size-5" />
+                  <span>Income</span>
                 </button>
                 <button
                   v-if="accounts.length > 1"
@@ -238,10 +266,12 @@ onMounted(async () => {
                     'bg-blue-100 border-2 border-blue-500 text-blue-700': transactionType === 'transfer',
                     'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'transfer',
                   }"
-                  class="flex-1 py-2 px-3 rounded-lg font-medium transition-colors"
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'transfer'"
+                  title="Transfer Between Accounts"
                 >
-                  🔄 Transfer
+                  <ArrowPathIcon class="size-5" />
+                  <span>Transfer</span>
                 </button>
               </div>
 
@@ -279,8 +309,8 @@ onMounted(async () => {
                   <p v-if="errors.amount" class="mt-1 text-sm text-red-600">{{ errors.amount }}</p>
                 </div>
 
-                <!-- Category -->
-                <div>
+                <!-- Category (hidden for transfers) -->
+                <div v-if="transactionType !== 'transfer'">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <Listbox v-model="form.categoryId">
                     <div class="relative">
@@ -297,7 +327,7 @@ onMounted(async () => {
                         class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
                       >
                         <ListboxOption
-                          v-for="cat in categories"
+                          v-for="cat in filteredCategories"
                           :key="cat.id"
                           v-slot="{ active, selected }"
                           :value="cat.id"

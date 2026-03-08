@@ -89,8 +89,8 @@ const filteredCategories = computed(() => {
 
 const typeConfig = computed(() => {
   const configs = {
-    expense: { label: 'Expense', color: 'red', icon: ArrowDownTrayIcon },
-    income: { label: 'Income', color: 'green', icon: ArrowUpTrayIcon },
+    expense: { label: 'Expense', color: 'red', icon: ArrowUpTrayIcon },
+    income: { label: 'Income', color: 'green', icon: ArrowDownTrayIcon },
     transfer: { label: 'Transfer', color: 'blue', icon: ArrowPathIcon },
   };
   return configs[transactionType.value];
@@ -243,21 +243,8 @@ onMounted(async () => {
                   :aria-pressed="transactionType === 'expense'"
                   title="Expense Transaction"
                 >
-                  <ArrowDownTrayIcon class="size-5" />
-                  <span>Expense</span>
-                </button>
-                <button
-                  @click="selectTransactionType('income')"
-                  :class="{
-                    'bg-green-100 border-2 border-green-500 text-green-700': transactionType === 'income',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'income',
-                  }"
-                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
-                  :aria-pressed="transactionType === 'income'"
-                  title="Income Transaction"
-                >
                   <ArrowUpTrayIcon class="size-5" />
-                  <span>Income</span>
+                  <span>Expense</span>
                 </button>
                 <button
                   v-if="accounts.length > 1"
@@ -272,6 +259,19 @@ onMounted(async () => {
                 >
                   <ArrowPathIcon class="size-5" />
                   <span>Transfer</span>
+                </button>
+                <button
+                  @click="selectTransactionType('income')"
+                  :class="{
+                    'bg-green-100 border-2 border-green-500 text-green-700': transactionType === 'income',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'income',
+                  }"
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
+                  :aria-pressed="transactionType === 'income'"
+                  title="Income Transaction"
+                >
+                  <ArrowDownTrayIcon class="size-5" />
+                  <span>Income</span>
                 </button>
               </div>
 

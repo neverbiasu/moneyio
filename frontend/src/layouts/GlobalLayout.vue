@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppSidebar from '../components/AppSidebar.vue';
+import NotificationBell from '../components/NotificationBell.vue';
 
 const route = useRoute();
 const sidebarOpen = ref(false);
@@ -108,7 +109,9 @@ watch(
             </div>
           </div>
         </div>
-        <div id="page-actions" class="flex items-center space-x-4 shrink-0"></div>
+        <div id="page-actions" class="flex items-center space-x-4 shrink-0">
+          <NotificationBell :unread-count="2" />
+        </div>
       </header>
 
       <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" tabindex="-1">

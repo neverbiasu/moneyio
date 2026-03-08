@@ -44,8 +44,15 @@ const activeFilters = reactive({
 const pagination = reactive({ page: 1, limit: 20, total: 0 });
 
 // ── Option types ──────────────────────────────────────────────────────
-type CategoryOption = { id: number | null; name: string; type: Category['type'] };
-type AccountOption = { id: number | null; name: string };
+interface CategoryOption {
+  id: number | null;
+  name: string;
+  type: Category['type'];
+}
+interface AccountOption {
+  id: number | null;
+  name: string;
+}
 
 // ── Computed ───────────────────────────────────────────────────────────
 const ALL_CATEGORY: CategoryOption = { id: null, name: 'All', type: 'expense' };
@@ -496,10 +503,17 @@ async function handleTransactionSaved() {
             <td
               class="px-4 py-3 text-right text-sm font-semibold tabular-nums"
               :class="
-                getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? 'text-green-600' : 'text-red-600'
+                getCategoryType(t.categoryId) === 'income' ||
+                (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0)
+                  ? 'text-green-600'
+                  : 'text-red-600'
               "
             >
-              {{ getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? '+' : '-'
+              {{
+                getCategoryType(t.categoryId) === 'income' ||
+                (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0)
+                  ? '+'
+                  : '-'
               }}{{ formatCurrency(t.amount) }}
             </td>
           </tr>

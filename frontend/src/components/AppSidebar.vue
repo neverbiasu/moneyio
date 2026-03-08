@@ -4,6 +4,7 @@ import {
   ArrowsUpDownIcon,
   ChartBarIcon,
   BanknotesIcon,
+  SparklesIcon,
   Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
@@ -24,8 +25,9 @@ const authStore = useAuthStore();
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: Squares2X2Icon },
   { to: '/transactions', label: 'Transactions', icon: ArrowsUpDownIcon },
+  { to: '/accounts', label: 'Accounts', icon: BanknotesIcon },
   { to: '/reports', label: 'Analytics', icon: ChartBarIcon },
-  { to: '/budgets', label: 'Budgets', icon: BanknotesIcon },
+  { to: '/budgets', label: 'Budgets', icon: SparklesIcon },
   { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
 ];
 

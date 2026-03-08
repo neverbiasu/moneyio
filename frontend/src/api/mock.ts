@@ -105,13 +105,13 @@ export const mockAccountsAPI = {
     return account;
   },
 
-  async createAccount(data: Omit<Account, 'id' | 'userId' | 'balance'>): Promise<Account> {
+  async createAccount(data: Omit<Account, 'id' | 'userId'>): Promise<Account> {
     await delay(500);
     const newAccount: Account = {
       id: getNextId(mockAccounts),
       userId: 1,
       ...data,
-      balance: 0,
+      balance: data.balance ?? 0,
     };
     mockAccounts.push(newAccount);
     return newAccount;

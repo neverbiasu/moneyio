@@ -44,12 +44,20 @@ const errors = reactive({
 });
 const submitError = ref<string>('');
 
-const categories = ref<Category[]>([]);
-const accounts = ref<Account[]>([]);
+const localCategories = ref<Category[]>([]);
+const localAccounts = ref<Account[]>([]);
 const isSaving = ref(false);
 const isLoading = ref(false);
 
 // ── Computed ───────────────────────────────────────────────────────────
+const categories = computed(() =>
+  props.categories && props.categories.length > 0 ? props.categories : localCategories.value,
+);
+
+const accounts = computed(() =>
+  props.accounts && props.accounts.length > 0 ? props.accounts : localAccounts.value,
+);
+
 const selectedCategory = computed(
   () => categories.value.find((c) => c.id === form.categoryId) ?? null,
 );
@@ -97,7 +105,6 @@ async function submitForm(): Promise<void> {
     };
     await mockAPI.transactions.createTransaction(transaction);
     emit('saved');
-    resetForm();
     handleClose();
   } catch (err) {
     console.error('Failed to save transaction', err);
@@ -113,28 +120,34 @@ function handleClose(): void {
 }
 
 onMounted(async () => {
-  // Use provided props; only fetch if empty
-  if (props.categories && props.categories.length > 0) {
-    categories.value = props.categories;
-  } else {
-    isLoading.value = true;
-    try {
-      categories.value = await mockAPI.categories.getCategories();
-    } catch (err) {
-      console.error('Failed to load categories', err);
-    }
+  // Determine what needs to be fetched
+  const shouldFetchCategories = !props.categories || props.categories.length === 0;
+  const shouldFetchAccounts = !props.accounts || props.accounts.length === 0;
+
+  // If both are provided via props, no need to fetch or show loading
+  if (!shouldFetchCategories && !shouldFetchAccounts) {
+    return;
   }
 
-  if (props.accounts && props.accounts.length > 0) {
-    accounts.value = props.accounts;
-  } else {
-    try {
-      accounts.value = await mockAPI.accounts.getAccounts();
-    } catch (err) {
-      console.error('Failed to load accounts', err);
-    } finally {
-      isLoading.value = false;
+  isLoading.value = true;
+  try {
+    if (shouldFetchCategories) {
+      try {
+        localCategories.value = await mockAPI.categories.getCategories();
+      } catch (err) {
+        console.error('Failed to load categories', err);
+      }
     }
+
+    if (shouldFetchAccounts) {
+      try {
+        localAccounts.value = await mockAPI.accounts.getAccounts();
+      } catch (err) {
+        console.error('Failed to load accounts', err);
+      }
+    }
+  } finally {
+    isLoading.value = false;
   }
 });
 </script>

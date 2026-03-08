@@ -552,6 +552,7 @@ async function handleTransactionSaved() {
     </div>
 
     <TransactionFormModal
+      v-if="isModalOpen"
       :is-open="isModalOpen"
       :categories="categories"
       :accounts="accounts"

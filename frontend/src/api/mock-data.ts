@@ -35,7 +35,7 @@ export interface Transaction {
   id: number;
   userId: number;
   accountId: number;
-  categoryId: number;
+  categoryId: number | null;
   amount: number;
   transactionDate: string;
   note: string | null;

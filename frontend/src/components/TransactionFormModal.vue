@@ -138,7 +138,7 @@ async function submitForm(): Promise<void> {
 
     const transaction: Omit<Transaction, 'id' | 'userId' | 'crtTime' | 'uptTime'> = {
       amount: Number(form.amount),
-      categoryId: form.categoryId!,
+      categoryId: transactionType.value === 'transfer' ? null : form.categoryId!,
       accountId: form.accountId!,
       note: form.notes || null,
       transactionDate,

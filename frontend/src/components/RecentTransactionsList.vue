@@ -29,11 +29,13 @@ const recentTransactions = computed(() => {
     .slice(0, 5);
 });
 
-const getCategoryName = (categoryId: number) => {
+const getCategoryName = (categoryId: number | null) => {
+  if (categoryId === null) return 'Transfer';
   return props.categories.find((c) => c.id === categoryId)?.name ?? 'Unknown';
 };
 
-const getCategoryType = (categoryId: number) => {
+const getCategoryType = (categoryId: number | null) => {
+  if (categoryId === null) return 'transfer';
   return props.categories.find((c) => c.id === categoryId)?.type ?? 'expense';
 };
 
@@ -47,11 +49,15 @@ const formatAmount = (amount: number, type: string) => {
     style: 'currency',
     currency: 'USD',
   });
-  return type === 'income' ? `+${formatted}` : `-${formatted}`;
+  if (type === 'income') return `+${formatted}`;
+  if (type === 'transfer') return amount > 0 ? `+${formatted}` : `-${formatted}`;
+  return `-${formatted}`;
 };
 
-const getAmountColor = (type: string) => {
-  return type === 'income' ? 'text-green-600' : 'text-red-600';
+const getAmountColor = (type: string, amount?: number) => {
+  if (type === 'income') return 'text-green-600';
+  if (type === 'transfer') return amount && amount > 0 ? 'text-green-600' : 'text-red-600';
+  return 'text-red-600';
 };
 
 function goToTransactions() {
@@ -98,7 +104,7 @@ function goToTransactions() {
           <p
             :class="[
               'text-sm font-semibold ml-4',
-              getAmountColor(getCategoryType(transaction.categoryId)),
+              getAmountColor(getCategoryType(transaction.categoryId), transaction.amount),
             ]"
           >
             {{ formatAmount(transaction.amount, getCategoryType(transaction.categoryId)) }}

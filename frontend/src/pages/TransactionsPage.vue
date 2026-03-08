@@ -165,7 +165,8 @@ function resetFilters() {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
-function getCategoryName(id: number): string {
+function getCategoryName(id: number | null): string {
+  if (id === null) return 'Transfer';
   return categories.value.find((c) => c.id === id)?.name ?? 'Unknown';
 }
 
@@ -177,7 +178,8 @@ function formatCurrency(amount: number): string {
   return `$${Math.abs(amount).toFixed(2)}`;
 }
 
-function getCategoryType(id: number): 'income' | 'expense' {
+function getCategoryType(id: number | null): 'income' | 'expense' | 'transfer' {
+  if (id === null) return 'transfer';
   return categories.value.find((c) => c.id === id)?.type ?? 'expense';
 }
 
@@ -192,7 +194,8 @@ const CATEGORY_BADGE: Record<number, string> = {
   11: 'bg-emerald-100 text-emerald-700', // Bonus
 };
 
-function getCategoryBadgeClass(id: number): string {
+function getCategoryBadgeClass(id: number | null): string {
+  if (id === null) return 'bg-blue-100 text-blue-700'; // Transfer
   return CATEGORY_BADGE[id] ?? 'bg-neutral-100 text-neutral-700';
 }
 
@@ -493,10 +496,10 @@ async function handleTransactionSaved() {
             <td
               class="px-4 py-3 text-right text-sm font-semibold tabular-nums"
               :class="
-                getCategoryType(t.categoryId) === 'income' ? 'text-green-600' : 'text-red-600'
+                getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? 'text-green-600' : 'text-red-600'
               "
             >
-              {{ getCategoryType(t.categoryId) === 'income' ? '+' : '-'
+              {{ getCategoryType(t.categoryId) === 'income' || (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0) ? '+' : '-'
               }}{{ formatCurrency(t.amount) }}
             </td>
           </tr>

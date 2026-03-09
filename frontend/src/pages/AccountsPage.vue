@@ -71,7 +71,8 @@ async function confirmDelete(id: number) {
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function formatCurrency(amount: number): string {
-  return `$${Math.abs(amount).toFixed(2)}`;
+  const sign = amount < 0 ? '-' : '';
+  return `${sign}$${Math.abs(amount).toFixed(2)}`;
 }
 
 function getAccountTypeConfig(type: string) {
@@ -153,15 +154,17 @@ onMounted(() => {
           <!-- Action buttons -->
           <div class="flex gap-2">
             <button
+              type="button"
               class="p-1.5 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-              title="Edit account"
+              :aria-label="`Edit ${account.name}`"
               @click="openEditModal(account)"
             >
               <PencilIcon class="size-4" />
             </button>
             <button
+              type="button"
               class="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-              title="Delete account"
+              :aria-label="`Delete ${account.name}`"
               @click="startDeleteConfirm(account.id)"
             >
               <TrashIcon class="size-4" />

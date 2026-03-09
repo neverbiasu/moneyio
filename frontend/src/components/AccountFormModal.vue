@@ -234,7 +234,7 @@ onMounted(() => {
                 <!-- Initial Balance -->
                 <div>
                   <label for="balance" class="block text-sm font-medium text-gray-700 mb-1">
-                    Initial Balance
+                    {{ isEditMode ? 'Current Balance' : 'Initial Balance' }}
                   </label>
                   <div class="relative">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">$</span>

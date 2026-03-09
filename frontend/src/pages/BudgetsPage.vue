@@ -21,8 +21,7 @@ async function fetchBudgets() {
   isLoading.value = true;
   error.value = null;
   try {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    budgets.value = await mockAPI.budgets.getBudgets(currentMonth);
+    budgets.value = await mockAPI.budgets.getBudgets();
   } catch (err) {
     console.error('Failed to load budgets:', err);
     error.value = 'Failed to load budgets. Please try again.';
@@ -35,10 +34,6 @@ async function fetchBudgets() {
 const totalBudget = computed(() => budgets.value.reduce((sum, b) => sum + b.amountLimit, 0));
 
 const totalSpent = computed(() => budgets.value.reduce((sum, b) => sum + b.actualSpending, 0));
-
-const overBudgetCount = computed(() =>
-  budgets.value.filter((b) => b.actualSpending > b.amountLimit).length,
-);
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function formatCurrency(amount: number): string {
@@ -116,7 +111,9 @@ onMounted(() => {
     <div class="flex items-start justify-between">
       <div>
         <h1 class="text-2xl font-bold text-neutral-900">Budgets</h1>
-        <p class="text-sm text-neutral-500 mt-1">Set and track your monthly budgets for each category</p>
+        <p class="text-sm text-neutral-500 mt-1">
+          Set and track your monthly budgets for each category
+        </p>
       </div>
       <button
         class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
@@ -206,18 +203,20 @@ onMounted(() => {
           <!-- Action buttons -->
           <div class="flex gap-2 shrink-0">
             <button
+              type="button"
               class="p-1.5 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-              title="Edit budget"
+              :aria-label="`Edit ${budget.name}`"
               @click="openEditModal(budget)"
             >
-              <PencilIcon class="size-4" />
+              <PencilIcon class="size-4" aria-hidden="true" />
             </button>
             <button
+              type="button"
               class="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-              title="Delete budget"
+              :aria-label="`Delete ${budget.name}`"
               @click="startDeleteConfirm(budget.id)"
             >
-              <TrashIcon class="size-4" />
+              <TrashIcon class="size-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -236,12 +235,20 @@ onMounted(() => {
           </div>
 
           <!-- Progress bar -->
+          <span :id="`budget-progress-${budget.id}`" class="sr-only">
+            {{ budget.name }}: {{ formatCurrency(budget.actualSpending) }} of
+            {{ formatCurrency(budget.amountLimit) }} spent
+          </span>
           <div :class="getProgressBackground(budget)" class="h-2 rounded-full overflow-hidden">
             <div
               :class="getProgressColor(budget)"
               class="h-full rounded-full transition-all duration-300"
               :style="{ width: `${progressPercent(budget)}%` }"
-              :aria-label="`${budget.name}: ${budget.actualSpending} / ${budget.amountLimit}`"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              :aria-valuenow="progressPercent(budget)"
+              :aria-labelledby="`budget-progress-${budget.id}`"
             />
           </div>
 

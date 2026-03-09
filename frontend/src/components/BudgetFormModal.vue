@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue';
-import { Dialog, DialogPanel, TransitionRoot, TransitionChild, Switch } from '@headlessui/vue';
+import { DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
+import {
+  Dialog,
+  DialogPanel,
+  TransitionRoot,
+  TransitionChild,
+  Switch,
+  SwitchGroup,
+  SwitchLabel,
+} from '@headlessui/vue';
 import { mockAPI } from '@/api/mock';
 import type { Budget } from '@/api/mock-data';
 
@@ -44,13 +54,27 @@ const hasErrors = computed(() => !!errors.name || !!errors.amountLimit);
 
 const isEditMode = computed(() => props.mode === 'edit');
 
+const selectedMonth = computed<Date>({
+  get() {
+    const [year, month] = form.budgetMonth.split('-').map(Number);
+    if (!year || !month) {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return new Date(year, month - 1, 1);
+  },
+  set(value) {
+    form.budgetMonth = `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`;
+  },
+});
+
 // ── Validation ──────────────────────────────────────────────────────────
 function validate(): boolean {
   errors.name = form.name.trim() ? '' : 'Budget name is required';
   errors.amountLimit =
     form.amountLimit && !isNaN(Number(form.amountLimit)) && Number(form.amountLimit) > 0
       ? ''
-      : 'Please enter a valid amount';
+      : 'Please enter a valid amount greater than 0';
   return !hasErrors.value;
 }
 
@@ -126,12 +150,7 @@ onMounted(() => {
 
 <template>
   <TransitionRoot :show="isOpen">
-    <Dialog
-      :open="isOpen"
-      as="div"
-      class="relative z-50"
-      @close="handleClose"
-    >
+    <Dialog :open="isOpen" as="div" class="relative z-50" @close="handleClose">
       <TransitionChild
         as="template"
         enter="ease-out duration-200"
@@ -161,7 +180,10 @@ onMounted(() => {
               aria-modal="true"
               :aria-labelledby="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
             >
-              <h2 :id="isEditMode ? 'modal-title-edit' : 'modal-title-create'" class="text-xl font-bold text-gray-900 mb-6">
+              <h2
+                :id="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
+                class="text-xl font-bold text-gray-900 mb-6"
+              >
                 {{ isEditMode ? 'Edit Budget' : 'Create New Budget' }}
               </h2>
 
@@ -193,19 +215,24 @@ onMounted(() => {
                     Monthly Limit
                   </label>
                   <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">$</span>
+                    <span
+                      class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium"
+                      >$</span
+                    >
                     <input
                       id="amount"
                       v-model="form.amountLimit"
                       type="number"
                       step="0.01"
-                      min="0"
+                      min="0.01"
                       placeholder="0.00"
                       class="w-full pl-7 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
                       :aria-invalid="!!errors.amountLimit"
                     />
                   </div>
-                  <p v-if="errors.amountLimit" class="mt-1 text-sm text-red-600">{{ errors.amountLimit }}</p>
+                  <p v-if="errors.amountLimit" class="mt-1 text-sm text-red-600">
+                    {{ errors.amountLimit }}
+                  </p>
                 </div>
 
                 <!-- Budget Month -->
@@ -213,30 +240,41 @@ onMounted(() => {
                   <label for="month" class="block text-sm font-medium text-gray-700 mb-1">
                     Month
                   </label>
-                  <input
+                  <DatePicker
                     id="month"
-                    v-model="form.budgetMonth"
-                    type="month"
-                    class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-                  />
+                    v-model="selectedMonth"
+                    locale="en"
+                    :masks="{ input: 'MMMM YYYY' }"
+                  >
+                    <template #default="{ inputValue, inputEvents }">
+                      <input
+                        :value="inputValue"
+                        class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+                        readonly
+                        v-on="inputEvents"
+                      />
+                    </template>
+                  </DatePicker>
                 </div>
 
                 <!-- Recurring Toggle -->
-                <div class="flex items-center gap-3">
-                  <Switch
-                    v-model="form.isRecurring"
-                    :class="form.isRecurring ? 'bg-blue-600' : 'bg-neutral-300'"
-                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors"
-                  >
-                    <span
-                      :class="form.isRecurring ? 'translate-x-5' : 'translate-x-0'"
-                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                    />
-                  </Switch>
-                  <label class="text-sm font-medium text-gray-700">
-                    Recurring every month
-                  </label>
-                </div>
+                <SwitchGroup>
+                  <div class="flex items-center gap-3">
+                    <Switch
+                      v-model="form.isRecurring"
+                      :class="form.isRecurring ? 'bg-blue-600' : 'bg-neutral-300'"
+                      class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors"
+                    >
+                      <span
+                        :class="form.isRecurring ? 'translate-x-5' : 'translate-x-0'"
+                        class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      />
+                    </Switch>
+                    <SwitchLabel class="text-sm font-medium text-gray-700">
+                      Recurring every month
+                    </SwitchLabel>
+                  </div>
+                </SwitchGroup>
 
                 <!-- Buttons -->
                 <div class="flex gap-2 justify-end pt-4">

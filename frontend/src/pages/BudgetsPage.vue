@@ -2,7 +2,10 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
+  ArrowTrendingUpIcon,
   BanknotesIcon,
+  CreditCardIcon,
+  CurrencyDollarIcon,
   PencilIcon,
   PlusIcon,
   SparklesIcon,
@@ -296,13 +299,13 @@ onMounted(() => {
                 {{ formatCurrency(totalBudget) }}
               </p>
             </div>
-            <span class="rounded-xl bg-slate-100 p-2 text-slate-500">
+            <span class="rounded-2xl bg-slate-100 p-2.5 text-slate-600 shadow-sm">
               <BanknotesIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm">
+        <div class="rounded-2xl border border-blue-100/80 bg-white px-5 py-4 shadow-sm">
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -312,13 +315,16 @@ onMounted(() => {
                 {{ formatCurrency(totalSpent) }}
               </p>
             </div>
-            <span class="rounded-xl bg-blue-50 px-2.5 py-2 text-sm font-semibold text-blue-600">
-              {{ budgets.length }}
+            <span class="rounded-2xl bg-blue-50 p-2.5 text-blue-600 shadow-sm">
+              <CreditCardIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm">
+        <div
+          class="rounded-2xl bg-white px-5 py-4 shadow-sm"
+          :class="isOverallOverBudget ? 'border border-red-100/80' : 'border border-emerald-100/80'"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -334,12 +340,12 @@ onMounted(() => {
               </p>
             </div>
             <span
-              class="rounded-xl px-2.5 py-2 text-xs font-semibold"
+              class="rounded-2xl p-2.5 shadow-sm"
               :class="
                 isOverallOverBudget ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
               "
             >
-              {{ isOverallOverBudget ? 'Alert' : 'On Track' }}
+              <CurrencyDollarIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
@@ -518,9 +524,9 @@ onMounted(() => {
       </section>
 
       <section class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <article class="rounded-3xl border border-blue-100 bg-blue-50/70 p-6">
+        <article class="rounded-3xl border border-blue-100/80 bg-blue-50/70 p-6 shadow-sm">
           <div class="flex items-center gap-3">
-            <span class="rounded-2xl bg-white p-2 text-blue-600 shadow-sm">
+            <span class="rounded-2xl bg-white p-2.5 text-blue-600 shadow-sm">
               <SparklesIcon class="size-5" aria-hidden="true" />
             </span>
             <h3 class="text-lg font-bold text-slate-900">Smart Insights</h3>
@@ -549,10 +555,10 @@ onMounted(() => {
           </button>
         </article>
 
-        <article class="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-6">
+        <article class="rounded-3xl border border-emerald-100/80 bg-emerald-50/70 p-6 shadow-sm">
           <div class="flex items-center gap-3">
-            <span class="rounded-2xl bg-white p-2 text-emerald-600 shadow-sm">
-              <BanknotesIcon class="size-5" aria-hidden="true" />
+            <span class="rounded-2xl bg-white p-2.5 text-emerald-600 shadow-sm">
+              <ArrowTrendingUpIcon class="size-5" aria-hidden="true" />
             </span>
             <h3 class="text-lg font-bold text-slate-900">Savings Potential</h3>
           </div>

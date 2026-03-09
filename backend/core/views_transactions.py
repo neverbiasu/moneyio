@@ -208,15 +208,14 @@ def transactions_summary(request):
             trans_date__year=this_year,
             trans_date__month=this_month
         )
-        transactions = Transaction.objects.filter(user=request.user)
         # Income calculation
         # Aggregate(Sum('amount') return format {'amount__sum': XX}
         # Or 0 ensure total returns 0 ecen if there is no data (when month has no transaction)
-        income_data = transactions.filter(category__category_type='IN').aggregate(Sum('amount'))
+        income_data = current_month_data.filter(category__category_type='IN').aggregate(Sum('amount'))
         total_income = income_data['amount__sum'] or 0.0
 
         # Expense calculation 
-        expense_data = transactions.filter(category__category_type='OUT').aggregate(Sum('amount'))
+        expense_data = current_month_data.filter(category__category_type='OUT').aggregate(Sum('amount'))
         total_expense = expense_data['amount__sum'] or 0.0
 
         # The balance with income and expense

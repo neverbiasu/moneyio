@@ -18,22 +18,6 @@ def _parse_amount(amount_value):
     return amount
 
 
-def apply_transaction_to_account(account, category, amount):
-    if category.category_type == Category.CategoryType.INCOME:
-        account.balance += amount
-    elif category.category_type == Category.CategoryType.EXPENSE:
-        account.balance -= amount
-    account.save()
-
-
-def reverse_transaction_from_account(account, category, amount):
-    if category.category_type == Category.CategoryType.INCOME:
-        account.balance -= amount
-    elif category.category_type == Category.CategoryType.EXPENSE:
-        account.balance += amount
-    account.save()
-
-
 def _parse_trans_date(trans_date_str):
     dt = parse_datetime(trans_date_str)
     if not dt:
@@ -53,6 +37,22 @@ def _get_user_category(user, category_id):
     if not category:
         raise ValidationError("invalid category_id")
     return category
+
+
+def apply_transaction_to_account(account, category, amount):
+    if category.category_type == Category.CategoryType.INCOME:
+        account.balance += amount
+    elif category.category_type == Category.CategoryType.EXPENSE:
+        account.balance -= amount
+    account.save()
+
+
+def reverse_transaction_from_account(account, category, amount):
+    if category.category_type == Category.CategoryType.INCOME:
+        account.balance -= amount
+    elif category.category_type == Category.CategoryType.EXPENSE:
+        account.balance += amount
+    account.save()
 
 
 def create_transaction_for_user(user, payload):
@@ -76,22 +76,25 @@ def create_transaction_for_user(user, payload):
         category=category,
         amount=amount,
         trans_date=trans_date,
-        note=note
+        note=note,
     )
 
-    # 关键：联动更新账户余额
     apply_transaction_to_account(account, category, amount)
-
     return tx
 
 
-def list_transactions_for_user(user):
-    return (
+def list_transactions_for_user(user, account_id=None):
+    qs = (
         Transaction.objects
         .filter(user=user)
         .select_related("account", "category")
         .order_by("-trans_date", "-id")
     )
+
+    if account_id:
+        qs = qs.filter(account_id=account_id, account__user=user)
+
+    return qs
 
 
 def get_transaction_for_user(user, tx_id):
@@ -112,7 +115,6 @@ def update_transaction_for_user(user, tx_id, payload):
     old_category = tx.category
     old_amount = tx.amount
 
-    # 先撤销旧交易对账户余额的影响
     reverse_transaction_from_account(old_account, old_category, old_amount)
 
     if "account_id" in payload:
@@ -132,9 +134,7 @@ def update_transaction_for_user(user, tx_id, payload):
 
     tx.save()
 
-    # 再应用新交易影响
     apply_transaction_to_account(tx.account, tx.category, tx.amount)
-
     return tx
 
 
@@ -143,8 +143,6 @@ def delete_transaction_for_user(user, tx_id):
     if not tx:
         return False
 
-    # 删除前先撤销余额影响
     reverse_transaction_from_account(tx.account, tx.category, tx.amount)
-
     tx.delete()
     return True

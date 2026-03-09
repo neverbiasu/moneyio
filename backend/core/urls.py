@@ -2,7 +2,8 @@ from django.urls import path
 from .views_auth import register, login_view, logout_view, current_user, change_password, test_page
 from .views_transactions import transactions_collection, transactions_item
 from .views_categories import categories_collection, categories_item
-from .views_accounts import accounts_list
+from .views_accounts import accounts_collection, accounts_item
+
 
 urlpatterns = [
 
@@ -13,12 +14,17 @@ urlpatterns = [
     path("auth/logout/", logout_view),
     path("auth/me/", current_user),
     path("auth/change-password/", change_password),
-     # Transactions
-    path("transactions/", transactions_collection),
-    path("transactions/<int:tx_id>/", transactions_item),
-     # Categories / Accounts
+    
+    # Accounts
+    path("accounts/", accounts_collection),
+    path("accounts/<int:account_id>/", accounts_item),
+
+    # Categories
     path("categories/", categories_collection),
     path("categories/<int:category_id>/", categories_item),
-    path("accounts/", accounts_list),
+
+    # Transactions
+    path("transactions/", transactions_collection),
+    path("transactions/<int:tx_id>/", transactions_item),
 ]
 

@@ -28,7 +28,7 @@
 
         input, select {
             display: block;
-            width: 360px;
+            width: 380px;
             padding: 8px;
             margin: 6px 0;
         }
@@ -56,7 +56,7 @@
 
 <h1>MoneyIO Backend Test Page</h1>
 <p class="hint">
-    建议顺序：Register → Login → Get Current User → 自动拉取 Categories / Accounts → 创建父分类/子分类 → Create Transaction → List → Detail → Update → Delete → Logout
+    建议顺序：Register → Login → 自动加载 Categories / Accounts → Account CRUD → Category CRUD → Create Transaction → Filter/List → Update/Delete
 </p>
 
 <div class="section">
@@ -90,35 +90,84 @@
 </div>
 
 <div class="section">
-    <h2>5. Category Management</h2>
+    <h2>5. Account Management</h2>
+
+    <h3>Create Account</h3>
+    <input id="new_account_name" placeholder="account name">
+    <input id="new_account_type" placeholder="account type, e.g. Credit Card">
+    <input id="new_account_balance" placeholder="initial balance, e.g. 100.00">
+    <button onclick="createAccount()">Create Account</button>
+
+    <hr>
+
+    <h3>Get Account Detail</h3>
+    <input id="detail_account_id" placeholder="account id">
+    <button onclick="getAccountDetail()">Get Account Detail</button>
+
+    <hr>
+
+    <h3>Update Account</h3>
+    <input id="update_account_id_detail" placeholder="account id">
+    <input id="update_account_name" placeholder="new account name (optional)">
+    <input id="update_account_type" placeholder="new account type (optional)">
+    <input id="update_account_balance" placeholder="new balance (optional)">
+    <button onclick="updateAccount()">Update Account</button>
+
+    <hr>
+
+    <h3>Delete Account</h3>
+    <input id="delete_account_id" placeholder="account id">
+    <button onclick="deleteAccount()">Delete Account</button>
+</div>
+
+<div class="section">
+    <h2>6. Category Management</h2>
 
     <h3>Create Parent Category</h3>
     <input id="new_parent_category_name" placeholder="parent category name">
-
     <select id="new_parent_category_type">
         <option value="">Select category type</option>
         <option value="OUT">Expense</option>
         <option value="IN">Income</option>
     </select>
-
     <button onclick="createParentCategory()">Create Parent Category</button>
 
     <hr>
 
     <h3>Create Child Category</h3>
     <input id="new_child_category_name" placeholder="child category name">
-
     <select id="new_child_category_type">
         <option value="">Select category type</option>
         <option value="OUT">Expense</option>
         <option value="IN">Income</option>
     </select>
-
     <select id="new_child_parent_id">
         <option value="">Select parent category</option>
     </select>
-
     <button onclick="createChildCategory()">Create Child Category</button>
+
+    <hr>
+
+    <h3>Get Category Detail</h3>
+    <input id="detail_category_id" placeholder="category id">
+    <button onclick="getCategoryDetail()">Get Category Detail</button>
+
+    <hr>
+
+    <h3>Update Category</h3>
+    <input id="update_category_id" placeholder="category id">
+    <input id="update_category_name" placeholder="new category name (optional)">
+    <input id="update_category_icon" placeholder="new icon_id (optional)">
+    <select id="update_category_parent_id">
+        <option value="">No parent / Select new parent</option>
+    </select>
+    <button onclick="updateCategory()">Update Category</button>
+
+    <hr>
+
+    <h3>Delete Category</h3>
+    <input id="delete_category_id" placeholder="category id">
+    <button onclick="deleteCategory()">Delete Category</button>
 
     <hr>
 
@@ -126,7 +175,7 @@
 </div>
 
 <div class="section">
-    <h2>6. Create Transaction</h2>
+    <h2>7. Create Transaction</h2>
 
     <select id="account_id">
         <option value="">Select account</option>
@@ -149,17 +198,22 @@
     <input id="amount" placeholder="amount, e.g. 25.50">
     <input id="trans_date" type="datetime-local">
     <input id="note" placeholder="note">
-
     <button onclick="createTransaction()">Create Transaction</button>
 </div>
 
 <div class="section">
-    <h2>7. List Transactions</h2>
-    <button onclick="listTransactions()">List Transactions</button>
+    <h2>8. List / Filter Transactions</h2>
+
+    <select id="filter_account_id">
+        <option value="">All accounts</option>
+    </select>
+
+    <button onclick="listTransactions()">List All Transactions</button>
+    <button onclick="listTransactionsByAccount()">Filter By Selected Account</button>
 </div>
 
 <div class="section">
-    <h2>8. Transaction Detail / Update / Delete</h2>
+    <h2>9. Transaction Detail / Update / Delete</h2>
     <input id="detail_tx_id" placeholder="transaction id">
     <button onclick="getTransactionDetail()">Get Detail</button>
 
@@ -168,7 +222,7 @@
     <input id="update_amount" placeholder="new amount (optional)">
     <input id="update_note" placeholder="new note (optional)">
 
-    <select id="update_account_id">
+    <select id="update_tx_account_id">
         <option value="">Select new account (optional)</option>
     </select>
 
@@ -178,11 +232,11 @@
         <option value="IN">Income</option>
     </select>
 
-    <select id="update_parent_category_id" onchange="handleUpdateParentCategoryChange()">
+    <select id="update_parent_category_id_tx" onchange="handleUpdateParentCategoryChange()">
         <option value="">Select new parent category (optional)</option>
     </select>
 
-    <select id="update_child_category_id">
+    <select id="update_child_category_id_tx">
         <option value="">Select new child category (optional)</option>
     </select>
 
@@ -240,7 +294,6 @@
 
     function setDefaultDateTime() {
         const now = new Date();
-
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, "0");
         const day = String(now.getDate()).padStart(2, "0");
@@ -268,37 +321,42 @@
     }
 
     function populateAccountSelects() {
-        const createSelect = document.getElementById("account_id");
-        const updateSelect = document.getElementById("update_account_id");
+        const ids = [
+            ["account_id", "Select account"],
+            ["update_tx_account_id", "Select new account (optional)"],
+            ["filter_account_id", "All accounts"]
+        ];
 
-        resetSelect("account_id", "Select account");
-        resetSelect("update_account_id", "Select new account (optional)");
+        ids.forEach(([id, text]) => resetSelect(id, text));
 
         accountList.forEach(account => {
             const label = `${account.name} [${account.account_type}] - balance: ${account.balance}`;
 
-            const option1 = document.createElement("option");
-            option1.value = account.id;
-            option1.textContent = label;
-            createSelect.appendChild(option1);
-
-            const option2 = document.createElement("option");
-            option2.value = account.id;
-            option2.textContent = label;
-            updateSelect.appendChild(option2);
+            ["account_id", "update_tx_account_id", "filter_account_id"].forEach(id => {
+                const option = document.createElement("option");
+                option.value = account.id;
+                option.textContent = label;
+                document.getElementById(id).appendChild(option);
+            });
         });
     }
 
     function populateParentCategoryManagementOptions() {
         resetSelect("new_child_parent_id", "Select parent category");
-
-        const select = document.getElementById("new_child_parent_id");
+        resetSelect("update_category_parent_id", "No parent / Select new parent");
 
         categoryTree.forEach(parent => {
-            const option = document.createElement("option");
-            option.value = parent.id;
-            option.textContent = `${parent.name} (${parent.category_type})`;
-            select.appendChild(option);
+            const label = `${parent.name} (${parent.category_type})`;
+
+            const option1 = document.createElement("option");
+            option1.value = parent.id;
+            option1.textContent = label;
+            document.getElementById("new_child_parent_id").appendChild(option1);
+
+            const option2 = document.createElement("option");
+            option2.value = parent.id;
+            option2.textContent = label;
+            document.getElementById("update_category_parent_id").appendChild(option2);
         });
     }
 
@@ -312,8 +370,8 @@
 
         if (!type) return;
 
-        const select = document.getElementById(parentSelectId);
         const parents = getParentsByType(type);
+        const select = document.getElementById(parentSelectId);
 
         parents.forEach(parent => {
             const option = document.createElement("option");
@@ -325,7 +383,6 @@
 
     function populateChildCategories(parentId, childSelectId, childDefaultText) {
         resetSelect(childSelectId, childDefaultText);
-
         if (!parentId) return;
 
         const parent = categoryTree.find(item => String(item.id) === String(parentId));
@@ -354,31 +411,23 @@
 
     function handleParentCategoryChange() {
         const parentId = document.getElementById("parent_category_id").value;
-        populateChildCategories(
-            parentId,
-            "child_category_id",
-            "Select child category (optional)"
-        );
+        populateChildCategories(parentId, "child_category_id", "Select child category (optional)");
     }
 
     function handleUpdateTransactionTypeChange() {
         const type = document.getElementById("update_transaction_type").value;
         populateParentCategories(
             type,
-            "update_parent_category_id",
-            "update_child_category_id",
+            "update_parent_category_id_tx",
+            "update_child_category_id_tx",
             "Select new parent category (optional)",
             "Select new child category (optional)"
         );
     }
 
     function handleUpdateParentCategoryChange() {
-        const parentId = document.getElementById("update_parent_category_id").value;
-        populateChildCategories(
-            parentId,
-            "update_child_category_id",
-            "Select new child category (optional)"
-        );
+        const parentId = document.getElementById("update_parent_category_id_tx").value;
+        populateChildCategories(parentId, "update_child_category_id_tx", "Select new child category (optional)");
     }
 
     function getSelectedCategoryId(parentSelectId, childSelectId) {
@@ -388,7 +437,6 @@
     }
 
     // ---------- Auth ----------
-
     async function registerUser() {
         const payload = {
             username: document.getElementById("reg_username").value,
@@ -426,18 +474,12 @@
     }
 
     async function getCurrentUser() {
-        const result = await request(`${API_BASE}/auth/me/`, {
-            method: "GET"
-        });
-
+        const result = await request(`${API_BASE}/auth/me/`, { method: "GET" });
         showResult("Current User", result);
     }
 
     async function logoutUser() {
-        const result = await request(`${API_BASE}/auth/logout/`, {
-            method: "POST"
-        });
-
+        const result = await request(`${API_BASE}/auth/logout/`, { method: "POST" });
         showResult("Logout", result);
     }
 
@@ -455,25 +497,9 @@
         showResult("Change Password", result);
     }
 
-    // ---------- Categories / Accounts ----------
-
-    async function loadCategories() {
-        const result = await request(`${API_BASE}/categories/`, {
-            method: "GET"
-        });
-
-        if (result.ok && result.data.results) {
-            categoryTree = result.data.results;
-            populateParentCategoryManagementOptions();
-        }
-
-        showResult("Load Categories", result);
-    }
-
+    // ---------- Accounts ----------
     async function loadAccounts() {
-        const result = await request(`${API_BASE}/accounts/`, {
-            method: "GET"
-        });
+        const result = await request(`${API_BASE}/accounts/`, { method: "GET" });
 
         if (result.ok && result.data.results) {
             accountList = result.data.results;
@@ -483,68 +509,187 @@
         showResult("Load Accounts", result);
     }
 
+    async function createAccount() {
+        const payload = {
+            name: document.getElementById("new_account_name").value,
+            account_type: document.getElementById("new_account_type").value,
+            balance: document.getElementById("new_account_balance").value
+        };
+
+        const result = await request(`${API_BASE}/accounts/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        showResult("Create Account", result);
+
+        if (result.ok) {
+            await loadAccounts();
+        }
+    }
+
+    async function getAccountDetail() {
+        const accountId = document.getElementById("detail_account_id").value;
+        const result = await request(`${API_BASE}/accounts/${accountId}/`, { method: "GET" });
+        showResult("Get Account Detail", result);
+    }
+
+    async function updateAccount() {
+        const accountId = document.getElementById("update_account_id_detail").value;
+        const payload = {};
+
+        const name = document.getElementById("update_account_name").value;
+        const type = document.getElementById("update_account_type").value;
+        const balance = document.getElementById("update_account_balance").value;
+
+        if (name) payload.name = name;
+        if (type) payload.account_type = type;
+        if (balance) payload.balance = balance;
+
+        const result = await request(`${API_BASE}/accounts/${accountId}/`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        showResult("Update Account", result);
+
+        if (result.ok) {
+            await loadAccounts();
+        }
+    }
+
+    async function deleteAccount() {
+        const accountId = document.getElementById("delete_account_id").value;
+        const result = await request(`${API_BASE}/accounts/${accountId}/`, {
+            method: "DELETE"
+        });
+
+        showResult("Delete Account", result);
+
+        if (result.ok) {
+            await loadAccounts();
+        }
+    }
+
+    // ---------- Categories ----------
+    async function loadCategories() {
+        const result = await request(`${API_BASE}/categories/`, { method: "GET" });
+
+        if (result.ok && result.data.results) {
+            categoryTree = result.data.results;
+            populateParentCategoryManagementOptions();
+        }
+
+        showResult("Load Categories", result);
+    }
+
     async function loadAllOptions() {
         await loadCategories();
         await loadAccounts();
     }
 
     async function createParentCategory() {
-    const payload = {
-        name: document.getElementById("new_parent_category_name").value,
-        category_type: document.getElementById("new_parent_category_type").value
-    };
+        const payload = {
+            name: document.getElementById("new_parent_category_name").value,
+            category_type: document.getElementById("new_parent_category_type").value
+        };
 
-    const result = await request(`${API_BASE}/categories/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
+        const result = await request(`${API_BASE}/categories/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-    showResult("Create Parent Category", result);
+        showResult("Create Parent Category", result);
 
-    if (result.ok) {
-        await loadCategories();
-
-        // 刷新交易创建区
-        handleTransactionTypeChange();
-        handleParentCategoryChange();
-
-        // 刷新交易更新区
-        handleUpdateTransactionTypeChange();
-        handleUpdateParentCategoryChange();
+        if (result.ok) {
+            await loadCategories();
+            handleTransactionTypeChange();
+            handleParentCategoryChange();
+            handleUpdateTransactionTypeChange();
+            handleUpdateParentCategoryChange();
+        }
     }
-}
 
     async function createChildCategory() {
-    const payload = {
-        name: document.getElementById("new_child_category_name").value,
-        category_type: document.getElementById("new_child_category_type").value,
-        parent_id: document.getElementById("new_child_parent_id").value
-    };
+        const payload = {
+            name: document.getElementById("new_child_category_name").value,
+            category_type: document.getElementById("new_child_category_type").value,
+            parent_id: document.getElementById("new_child_parent_id").value
+        };
 
-    const result = await request(`${API_BASE}/categories/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
+        const result = await request(`${API_BASE}/categories/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-    showResult("Create Child Category", result);
+        showResult("Create Child Category", result);
 
-    if (result.ok) {
-        await loadCategories();
-
-        // 刷新交易创建区
-        handleTransactionTypeChange();
-        handleParentCategoryChange();
-
-        // 刷新交易更新区
-        handleUpdateTransactionTypeChange();
-        handleUpdateParentCategoryChange();
+        if (result.ok) {
+            await loadCategories();
+            handleTransactionTypeChange();
+            handleParentCategoryChange();
+            handleUpdateTransactionTypeChange();
+            handleUpdateParentCategoryChange();
+        }
     }
-}
+
+    async function getCategoryDetail() {
+        const categoryId = document.getElementById("detail_category_id").value;
+        const result = await request(`${API_BASE}/categories/${categoryId}/`, { method: "GET" });
+        showResult("Get Category Detail", result);
+    }
+
+    async function updateCategory() {
+        const categoryId = document.getElementById("update_category_id").value;
+        const payload = {};
+
+        const name = document.getElementById("update_category_name").value;
+        const icon = document.getElementById("update_category_icon").value;
+        const parentId = document.getElementById("update_category_parent_id").value;
+
+        if (name) payload.name = name;
+        if (icon) payload.icon_id = icon;
+        payload.parent_id = parentId; // 允许置空
+
+        const result = await request(`${API_BASE}/categories/${categoryId}/`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        showResult("Update Category", result);
+
+        if (result.ok) {
+            await loadCategories();
+            handleTransactionTypeChange();
+            handleParentCategoryChange();
+            handleUpdateTransactionTypeChange();
+            handleUpdateParentCategoryChange();
+        }
+    }
+
+    async function deleteCategory() {
+        const categoryId = document.getElementById("delete_category_id").value;
+        const result = await request(`${API_BASE}/categories/${categoryId}/`, {
+            method: "DELETE"
+        });
+
+        showResult("Delete Category", result);
+
+        if (result.ok) {
+            await loadCategories();
+            handleTransactionTypeChange();
+            handleParentCategoryChange();
+            handleUpdateTransactionTypeChange();
+            handleUpdateParentCategoryChange();
+        }
+    }
 
     // ---------- Transactions ----------
-
     async function createTransaction() {
         const selectedCategoryId = getSelectedCategoryId("parent_category_id", "child_category_id");
 
@@ -563,23 +708,30 @@
         });
 
         showResult("Create Transaction", result);
+
+        if (result.ok) {
+            await loadAccounts(); // 看余额变化
+        }
     }
 
     async function listTransactions() {
-        const result = await request(`${API_BASE}/transactions/`, {
-            method: "GET"
-        });
-
+        const result = await request(`${API_BASE}/transactions/`, { method: "GET" });
         showResult("List Transactions", result);
+    }
+
+    async function listTransactionsByAccount() {
+        const accountId = document.getElementById("filter_account_id").value;
+        const url = accountId
+            ? `${API_BASE}/transactions/?account_id=${accountId}`
+            : `${API_BASE}/transactions/`;
+
+        const result = await request(url, { method: "GET" });
+        showResult("Filter Transactions By Account", result);
     }
 
     async function getTransactionDetail() {
         const txId = document.getElementById("detail_tx_id").value;
-
-        const result = await request(`${API_BASE}/transactions/${txId}/`, {
-            method: "GET"
-        });
-
+        const result = await request(`${API_BASE}/transactions/${txId}/`, { method: "GET" });
         showResult("Transaction Detail", result);
     }
 
@@ -589,9 +741,9 @@
 
         const amount = document.getElementById("update_amount").value;
         const note = document.getElementById("update_note").value;
-        const accountId = document.getElementById("update_account_id").value;
+        const accountId = document.getElementById("update_tx_account_id").value;
         const transDate = document.getElementById("update_trans_date").value;
-        const categoryId = getSelectedCategoryId("update_parent_category_id", "update_child_category_id");
+        const categoryId = getSelectedCategoryId("update_parent_category_id_tx", "update_child_category_id_tx");
 
         if (amount) payload.amount = amount;
         if (note) payload.note = note;
@@ -606,16 +758,23 @@
         });
 
         showResult("Update Transaction", result);
+
+        if (result.ok) {
+            await loadAccounts();
+        }
     }
 
     async function deleteTransaction() {
         const txId = document.getElementById("detail_tx_id").value;
-
         const result = await request(`${API_BASE}/transactions/${txId}/`, {
             method: "DELETE"
         });
 
         showResult("Delete Transaction", result);
+
+        if (result.ok) {
+            await loadAccounts();
+        }
     }
 
     window.onload = function () {

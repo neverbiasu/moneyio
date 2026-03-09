@@ -26,10 +26,11 @@ def transactions_collection(request):
         return auth_error
 
     if request.method == "GET":
-        transactions = list_transactions_for_user(request.user)
-        results = []
+        account_id = request.GET.get("account_id")
+        txs = list_transactions_for_user(request.user, account_id=account_id)
 
-        for tx in transactions:
+        results = []
+        for tx in txs:
             results.append({
                 "id": tx.id,
                 "amount": str(tx.amount),
@@ -39,24 +40,21 @@ def transactions_collection(request):
                     "id": tx.account.id,
                     "name": tx.account.name,
                     "account_type": tx.account.account_type,
+                    "balance": str(tx.account.balance),
                 },
                 "category": {
                     "id": tx.category.id,
                     "name": tx.category.name,
                     "category_type": tx.category.category_type,
-                }
+                },
             })
-
         return JsonResponse({"results": results})
 
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             tx = create_transaction_for_user(request.user, data)
-            return JsonResponse({
-                "status": "success",
-                "transaction_id": tx.id
-            })
+            return JsonResponse({"status": "success", "transaction_id": tx.id})
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
         except ValidationError as e:
@@ -82,17 +80,15 @@ def transactions_item(request, tx_id):
             "trans_date": tx.trans_date.isoformat(),
             "note": tx.note,
             "account_id": tx.account.id,
-            "category_id": tx.category.id
+            "category_id": tx.category.id,
         })
 
     if request.method in ("PUT", "PATCH"):
         try:
             data = json.loads(request.body)
             tx = update_transaction_for_user(request.user, tx_id, data)
-
             if not tx:
                 return JsonResponse({"error": "not found"}, status=404)
-
             return JsonResponse({"status": "success"})
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
@@ -101,10 +97,8 @@ def transactions_item(request, tx_id):
 
     if request.method == "DELETE":
         ok = delete_transaction_for_user(request.user, tx_id)
-
         if not ok:
             return JsonResponse({"error": "not found"}, status=404)
-
         return JsonResponse({"status": "deleted"})
 
     return JsonResponse({"error": "method not allowed"}, status=405)

@@ -43,7 +43,7 @@ const pageTitle = computed(() => {
 });
 
 const pageSubtitle = computed(() => {
-  return route.meta.subtitle as string | undefined;
+  return route.meta.subtitle;
 });
 
 watch(
@@ -85,7 +85,7 @@ watch(
         role="banner"
       >
         <div class="flex-1 min-w-0">
-          <div class="flex items-center h-16">
+          <div class="flex items-center min-h-16 py-2">
             <button
               type="button"
               class="md:hidden mr-4 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -110,7 +110,7 @@ watch(
           </div>
         </div>
         <div id="page-actions" class="flex items-center space-x-4 shrink-0">
-          <NotificationBell :unread-count="2" />
+          <NotificationBell />
         </div>
       </header>
 

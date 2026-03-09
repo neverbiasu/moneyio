@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { BellIcon } from '@heroicons/vue/20/solid';
-
-defineProps<{
-  unreadCount?: number;
-}>();
 
 const isOpen = ref(false);
 const notifications = ref<Array<{ id: number; message: string; time: string; read: boolean }>>([
@@ -28,7 +24,9 @@ const notifications = ref<Array<{ id: number; message: string; time: string; rea
   },
 ]);
 
-const unreadNotifications = ref(2);
+const unreadNotifications = computed(() => {
+  return notifications.value.filter((n) => !n.read).length;
+});
 
 function toggleNotifications() {
   isOpen.value = !isOpen.value;
@@ -36,20 +34,20 @@ function toggleNotifications() {
 
 function markAsRead(id: number) {
   const notification = notifications.value.find((n) => n.id === id);
-  if (notification) {
+  if (notification && !notification.read) {
     notification.read = true;
-    unreadNotifications.value = Math.max(0, unreadNotifications.value - 1);
   }
 }
 
 function clearAll() {
   notifications.value = notifications.value.map((n) => ({ ...n, read: true }));
-  unreadNotifications.value = 0;
 }
+
+let handleClickOutside: ((e: MouseEvent) => void) | null = null;
 
 onMounted(() => {
   // Close notifications when clicking outside
-  const handleClickOutside = (e: MouseEvent) => {
+  handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     if (!target.closest('[data-notifications]')) {
       isOpen.value = false;
@@ -57,7 +55,12 @@ onMounted(() => {
   };
 
   document.addEventListener('click', handleClickOutside);
-  return () => document.removeEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  if (handleClickOutside) {
+    document.removeEventListener('click', handleClickOutside);
+  }
 });
 </script>
 
@@ -66,7 +69,10 @@ onMounted(() => {
     <!-- Notification Bell Button -->
     <button
       class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg transition"
-      title="Notifications"
+      aria-label="Notifications"
+      :aria-expanded="isOpen"
+      aria-controls="notifications-dropdown"
+      aria-haspopup="dialog"
       @click="toggleNotifications"
     >
       <BellIcon class="size-6" />
@@ -81,15 +87,14 @@ onMounted(() => {
     <!-- Notification Dropdown -->
     <div
       v-show="isOpen"
+      id="notifications-dropdown"
       class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
       role="dialog"
       aria-labelledby="notifications-title"
     >
       <!-- Header -->
       <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h3 id="notifications-title" class="text-sm font-semibold text-gray-900">
-          Notifications
-        </h3>
+        <h3 id="notifications-title" class="text-sm font-semibold text-gray-900">Notifications</h3>
         <span
           v-if="unreadNotifications > 0"
           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
@@ -114,10 +119,7 @@ onMounted(() => {
           @click="markAsRead(notification.id)"
         >
           <div class="flex items-start gap-3">
-            <div
-              v-if="!notification.read"
-              class="mt-2 h-2 w-2 bg-blue-600 rounded-full shrink-0"
-            />
+            <div v-if="!notification.read" class="mt-2 h-2 w-2 bg-blue-600 rounded-full shrink-0" />
             <div v-else class="mt-2 h-2 w-2 shrink-0" />
             <div class="flex-1 min-w-0">
               <p class="text-sm text-gray-900">{{ notification.message }}</p>

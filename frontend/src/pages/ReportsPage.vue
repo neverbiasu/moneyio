@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
-import { CalendarIcon, ArrowPathIcon } from '@heroicons/vue/20/solid';
+import { ref, onMounted, computed } from 'vue';
+import { CalendarIcon } from '@heroicons/vue/20/solid';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import { mockAPI } from '@/api/mock';
-import type { Transaction, Category, ChartData } from '@/api/mock-data';
+import type { Transaction, Category, ChartDataPoint } from '@/api/mock-data';
 
 defineOptions({ name: 'ReportsPage' });
 
 // ── State ──────────────────────────────────────────────────────────────
-const startDate = ref<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-const endDate = ref<Date>(new Date());
-const transactions = ref<Transaction[]>([]);
+const startDateInput = ref<string>(toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+const endDateInput = ref<string>(toDateInputValue(new Date()));
+const allTransactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
-const chartData = ref<ChartData | null>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
@@ -55,6 +54,17 @@ const datePresets = [
 ];
 
 // ── Computed ───────────────────────────────────────────────────────────
+const startDate = computed(() => parseDateInput(startDateInput.value, false));
+
+const endDate = computed(() => parseDateInput(endDateInput.value, true));
+
+const transactions = computed(() => {
+  return allTransactions.value.filter((transaction) => {
+    const transactionDate = new Date(transaction.transactionDate);
+    return transactionDate >= startDate.value && transactionDate <= endDate.value;
+  });
+});
+
 const categoryData = computed(() => {
   if (!categories.value.length) return [];
 
@@ -88,23 +98,54 @@ const totalExpense = computed(() => {
     .reduce((sum, t) => sum + t.amount, 0);
 });
 
+const chartPoints = computed<ChartDataPoint[]>(() => {
+  const pointsMap = new Map<string, ChartDataPoint>();
+
+  for (
+    let current = new Date(startDate.value);
+    current <= endDate.value;
+    current.setDate(current.getDate() + 1)
+  ) {
+    const key = toDateInputValue(current);
+    pointsMap.set(key, {
+      date: key,
+      income: 0,
+      expense: 0,
+    });
+  }
+
+  for (const transaction of transactions.value) {
+    const key = toDateInputValue(new Date(transaction.transactionDate));
+    const category = categories.value.find((item) => item.id === transaction.categoryId);
+    const point = pointsMap.get(key);
+
+    if (!point || !category) {
+      continue;
+    }
+
+    if (category.type === 'income') {
+      point.income += transaction.amount;
+    } else if (category.type === 'expense') {
+      point.expense += transaction.amount;
+    }
+  }
+
+  return Array.from(pointsMap.values());
+});
+
 // ── Data fetching ──────────────────────────────────────────────────────
 async function fetchReportData() {
   isLoading.value = true;
   error.value = null;
+
   try {
-    // Fetch transactions for the selected period
-    const allTransactions = await mockAPI.transactions.getTransactions();
-    transactions.value = allTransactions.filter((t) => {
-      const tDate = new Date(t.transactionDate);
-      return tDate >= startDate.value && tDate <= endDate.value;
-    });
+    const [transactionsResponse, categoriesResponse] = await Promise.all([
+      mockAPI.transactions.getTransactions(),
+      mockAPI.categories.getCategories(),
+    ]);
 
-    // Fetch chart data
-    chartData.value = await mockAPI.dashboard.getChartData();
-
-    // Fetch categories
-    categories.value = await mockAPI.categories.getCategories();
+    allTransactions.value = transactionsResponse;
+    categories.value = categoriesResponse;
   } catch (err) {
     console.error('Failed to load report data:', err);
     error.value = 'Failed to load report data. Please try again.';
@@ -118,24 +159,31 @@ function formatCurrency(amount: number): string {
   return `$${Math.abs(amount).toFixed(2)}`;
 }
 
+function toDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateInput(value: string, endOfDay: boolean): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) {
+    return new Date();
+  }
+
+  if (endOfDay) {
+    return new Date(year, month - 1, day, 23, 59, 59, 999);
+  }
+
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+}
+
 function setDatePreset(getValue: () => { start: Date; end: Date }) {
   const { start, end } = getValue();
-  startDate.value = start;
-  endDate.value = end;
+  startDateInput.value = toDateInputValue(start);
+  endDateInput.value = toDateInputValue(end);
 }
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-// ── Watchers ───────────────────────────────────────────────────────────
-watch(
-  [startDate, endDate],
-  () => {
-    void fetchReportData();
-  },
-  { deep: true },
-);
 
 // ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
@@ -145,12 +193,6 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-bold text-neutral-900">Analytics & Reports</h1>
-      <p class="text-sm text-neutral-500 mt-1">Analyze your income, expenses, and spending patterns</p>
-    </div>
-
     <!-- Date range controls -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm space-y-3">
       <!-- Presets -->
@@ -178,7 +220,7 @@ onMounted(() => {
             <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
             <input
               id="start-date"
-              v-model="startDate"
+              v-model="startDateInput"
               type="date"
               class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
             />
@@ -192,7 +234,7 @@ onMounted(() => {
             <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
             <input
               id="end-date"
-              v-model="endDate"
+              v-model="endDateInput"
               type="date"
               class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
             />
@@ -228,30 +270,9 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <!-- Trend Chart -->
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Income vs. Expenses Trend</h2>
-        <div v-if="chartData" class="w-full h-80">
-          <TrendChart :data="chartData" />
-        </div>
-        <div v-else class="flex items-center justify-center h-80 text-neutral-400">
-          <div class="flex items-center gap-2">
-            <ArrowPathIcon class="size-4 animate-spin" />
-            <span>Loading chart data...</span>
-          </div>
-        </div>
-      </div>
+      <TrendChart :points="chartPoints" :is-loading="isLoading" />
 
-      <!-- Category Pie Chart -->
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Expense Breakdown by Category</h2>
-        <div v-if="categoryData.length > 0" class="w-full h-80">
-          <CategoryPieChart :items="categoryData" />
-        </div>
-        <div v-else class="flex items-center justify-center h-80 text-neutral-500">
-          <p>No expense data available for the selected period</p>
-        </div>
-      </div>
+      <CategoryPieChart :items="categoryData" :is-loading="isLoading" />
     </template>
   </div>
 </template>

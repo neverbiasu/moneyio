@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, TransitionRoot, TransitionChild, Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/20/solid';
 import { mockAPI } from '@/api/mock';
@@ -61,7 +61,15 @@ const isEditMode = computed(() => props.mode === 'edit');
 function validate(): boolean {
   errors.name = form.name.trim() ? '' : 'Account name is required';
   errors.type = form.type ? '' : 'Account type is required';
-  errors.balance = form.balance && !isNaN(Number(form.balance)) ? '' : 'Please enter a valid balance';
+
+  if (form.balance === '') {
+    errors.balance = '';
+  } else if (isNaN(Number(form.balance))) {
+    errors.balance = 'Please enter a valid balance';
+  } else {
+    errors.balance = '';
+  }
+
   return !hasErrors.value;
 }
 
@@ -99,14 +107,14 @@ async function submitForm(): Promise<void> {
       await mockAPI.accounts.updateAccount(props.account.id, {
         name: form.name.trim(),
         type: form.type,
-        balance: Number(form.balance),
+        balance: form.balance === '' ? 0 : Number(form.balance),
       });
     } else {
       // Create new account
       await mockAPI.accounts.createAccount({
         name: form.name.trim(),
         type: form.type,
-        balance: Number(form.balance),
+        balance: form.balance === '' ? undefined : Number(form.balance),
       });
     }
     emit('saved');
@@ -129,6 +137,13 @@ function handleClose(): void {
 onMounted(() => {
   initializeForm();
 });
+
+watch(
+  () => [props.isOpen, props.mode, props.account],
+  () => {
+    initializeForm();
+  },
+);
 </script>
 
 <template>

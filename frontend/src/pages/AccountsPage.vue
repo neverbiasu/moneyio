@@ -31,7 +31,7 @@ async function fetchAccounts() {
 }
 
 // ── Account type badge colors ──────────────────────────────────────────
-const ACCOUNT_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
+const ACCOUNT_TYPE_CONFIG: Record<Account['type'], { label: string; color: string }> = {
   savings: { label: 'Savings', color: 'bg-green-100 text-green-700' },
   checking: { label: 'Checking', color: 'bg-blue-100 text-blue-700' },
   credit: { label: 'Credit', color: 'bg-orange-100 text-orange-700' },
@@ -75,8 +75,8 @@ function formatCurrency(amount: number): string {
   return `${sign}$${Math.abs(amount).toFixed(2)}`;
 }
 
-function getAccountTypeConfig(type: string) {
-  return ACCOUNT_TYPE_CONFIG[type] || { label: 'Unknown', color: 'bg-gray-100 text-gray-700' };
+function getAccountTypeConfig(type: Account['type']) {
+  return ACCOUNT_TYPE_CONFIG[type];
 }
 
 function handleModalSaved() {
@@ -92,17 +92,14 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
-    <!-- Header with add button -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-neutral-900">Accounts</h1>
-        <p class="text-sm text-neutral-500 mt-1">Manage your bank accounts and financial accounts</p>
-      </div>
+    <!-- Top toolbar with add button (page title handled by GlobalLayout) -->
+    <div class="flex justify-end">
       <button
+        type="button"
         class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
         @click="openCreateModal"
       >
-        <PlusIcon class="size-5" />
+        <PlusIcon class="size-5" aria-hidden="true" />
         Add Account
       </button>
     </div>
@@ -122,14 +119,15 @@ onMounted(() => {
       v-else-if="!isLoading && accounts.length === 0"
       class="py-16 text-center rounded-xl border border-neutral-200 bg-white"
     >
-      <BanknotesIcon class="mx-auto size-12 text-neutral-300 mb-3" />
+      <BanknotesIcon class="mx-auto size-12 text-neutral-300 mb-3" aria-hidden="true" />
       <p class="text-sm font-medium text-neutral-500">No accounts yet</p>
       <p class="text-xs text-neutral-400 mt-1">Create your first account to get started</p>
       <button
+        type="button"
         class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
         @click="openCreateModal"
       >
-        <PlusIcon class="size-4" />
+        <PlusIcon class="size-4" aria-hidden="true" />
         Create Account
       </button>
     </div>
@@ -159,7 +157,7 @@ onMounted(() => {
               :aria-label="`Edit ${account.name}`"
               @click="openEditModal(account)"
             >
-              <PencilIcon class="size-4" />
+              <PencilIcon class="size-4" aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -167,7 +165,7 @@ onMounted(() => {
               :aria-label="`Delete ${account.name}`"
               @click="startDeleteConfirm(account.id)"
             >
-              <TrashIcon class="size-4" />
+              <TrashIcon class="size-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -194,12 +192,14 @@ onMounted(() => {
           <p class="text-sm font-medium text-neutral-700">Delete this account?</p>
           <div class="flex gap-2 w-full">
             <button
+              type="button"
               class="flex-1 px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
               @click="cancelDelete"
             >
               Cancel
             </button>
             <button
+              type="button"
               class="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
               @click="confirmDelete(account.id)"
             >

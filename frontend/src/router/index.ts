@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
+import AccountsPage from '../pages/AccountsPage.vue';
 import ReportsPage from '../pages/ReportsPage.vue';
 import BudgetsPage from '../pages/BudgetsPage.vue';
 import SettingsPage from '../pages/SettingsPage.vue';
@@ -35,6 +36,12 @@ const router = createRouter({
           name: 'transactions',
           component: TransactionsPage,
           meta: { subtitle: 'View and manage all your transactions' },
+        },
+        {
+          path: 'accounts',
+          name: 'accounts',
+          component: AccountsPage,
+          meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',

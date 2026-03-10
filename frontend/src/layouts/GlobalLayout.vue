@@ -32,6 +32,7 @@ onUnmounted(() => {
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/transactions', label: 'Transactions' },
+  { to: '/accounts', label: 'Accounts' },
   { to: '/reports', label: 'Analytics' },
   { to: '/budgets', label: 'Budgets' },
   { to: '/settings', label: 'Settings' },

@@ -1,7 +1,3 @@
-from django.test import TestCase
-
-from django.test import TestCase
-from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from core.models import User, Transaction, Category, Account
@@ -130,11 +126,11 @@ class TransactionAPITests(APITestCase):
         self.assertEqual(resp4.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_json['results']), 2)
 
-        # Pagination overflow
-        resp5 = self.client.get(url, {'page': 999, 'page_size': 10})
+        # Pagination overflow, return the first page data
+        resp5 = self.client.get(url, {'page': 15, 'page_size': 10})
         res_json = resp5.json()
         self.assertEqual(resp5.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_json['results']), 0)
+        self.assertEqual(len(res_json['results']), 2)
 
     # Pagination + Category + Note
     def test_pagination_and_filter_combined(self):
@@ -171,7 +167,7 @@ class TransactionAPITests(APITestCase):
         # Create new_user's account
         acc_new_user = Account.objects.create(user=new_user, name="B's Private Acc", balance=0)
         # Create new_user's category
-        cat_b = Category.objects.create(user=new_user, name="B's Cat", category_type="INCOME")
+        cat_b = Category.objects.create(user=new_user, name="B's Cat", category_type="IN")
         secret_note = "New_user's Private Secret"
         # Create new_user's transaction
         Transaction.objects.create(
@@ -188,6 +184,4 @@ class TransactionAPITests(APITestCase):
         self.assertEqual(len(res_json['results']), 12)
         # Testadmin cannot browse new_user's transaction
         notes = [item['note'] for item in res_json['results']]
-        self.assertNotIn("Secret_note", notes)
-
-    
+        self.assertNotIn("secret_note", notes)

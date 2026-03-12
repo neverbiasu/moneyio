@@ -26,10 +26,7 @@ def register(request):
 
     user = register_user(username, email, password)
 
-    return JsonResponse({
-        "status": "success",
-        "user_id": user.id
-    })
+    return JsonResponse({"status": "success", "user_id": user.id})
 
 
 @csrf_exempt
@@ -52,10 +49,7 @@ def login_view(request):
 
     login(request, user)
 
-    return JsonResponse({
-        "status": "success",
-        "username": user.username
-    })
+    return JsonResponse({"status": "success", "username": user.username})
 
 
 @csrf_exempt
@@ -68,11 +62,13 @@ def current_user(request):
     if not request.user.is_authenticated:
         return JsonResponse({"user": None})
 
-    return JsonResponse({
-        "id": request.user.id,
-        "username": request.user.username,
-        "email": request.user.email
-    })
+    return JsonResponse(
+        {
+            "id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+        }
+    )
 
 
 @csrf_exempt

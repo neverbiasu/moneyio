@@ -1,8 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 
-from .models import User, Category, Account
-
+from .models import Account, Category, User
 
 DEFAULT_CATEGORIES = [
     {"name": "Food", "category_type": Category.CategoryType.EXPENSE},
@@ -40,7 +39,7 @@ def create_default_categories_for_user(user):
                     name=item["name"],
                     category_type=item["category_type"],
                     parent=None,
-                    tree_level=1
+                    tree_level=1,
                 )
             )
 
@@ -61,7 +60,7 @@ def create_default_accounts_for_user(user):
                     user=user,
                     name=item["name"],
                     account_type=item["account_type"],
-                    balance=item["balance"]
+                    balance=item["balance"],
                 )
             )
 
@@ -71,9 +70,7 @@ def create_default_accounts_for_user(user):
 
 def register_user(username, email, password):
     user = User.objects.create(
-        username=username,
-        email=email,
-        password=make_password(password)
+        username=username, email=email, password=make_password(password)
     )
 
     create_default_categories_for_user(user)

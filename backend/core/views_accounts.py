@@ -1,15 +1,15 @@
 import json
 
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ValidationError
 
 from .services_accounts import (
-    list_accounts_for_user,
-    get_account_for_user,
     create_account_for_user,
-    update_account_for_user,
     delete_account_for_user,
+    get_account_for_user,
+    list_accounts_for_user,
+    update_account_for_user,
 )
 
 
@@ -29,19 +29,23 @@ def accounts_collection(request):
         accounts = list_accounts_for_user(request.user)
         results = []
         for account in accounts:
-            results.append({
-                "id": account.id,
-                "name": account.name,
-                "account_type": account.account_type,
-                "balance": str(account.balance),
-            })
+            results.append(
+                {
+                    "id": account.id,
+                    "name": account.name,
+                    "account_type": account.account_type,
+                    "balance": str(account.balance),
+                }
+            )
         return JsonResponse({"results": results})
 
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             account = create_account_for_user(request.user, data)
-            return JsonResponse({"status": "success", "account_id": account.id})
+            return JsonResponse(
+                {"status": "success", "account_id": account.id}
+            )
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
         except ValidationError as e:
@@ -61,12 +65,14 @@ def accounts_item(request, account_id):
         if not account:
             return JsonResponse({"error": "not found"}, status=404)
 
-        return JsonResponse({
-            "id": account.id,
-            "name": account.name,
-            "account_type": account.account_type,
-            "balance": str(account.balance),
-        })
+        return JsonResponse(
+            {
+                "id": account.id,
+                "name": account.name,
+                "account_type": account.account_type,
+                "balance": str(account.balance),
+            }
+        )
 
     if request.method in ("PUT", "PATCH"):
         try:

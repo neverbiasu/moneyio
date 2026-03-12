@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+
 from django.core.exceptions import ValidationError
 
 from .models import Account
@@ -67,7 +68,9 @@ def delete_account_for_user(user, account_id):
         return False
 
     if account.transactions.exists():
-        raise ValidationError("cannot delete account with existing transactions")
+        raise ValidationError(
+            "cannot delete account with existing transactions"
+        )
 
     account.delete()
     return True

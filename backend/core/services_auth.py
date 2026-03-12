@@ -5,7 +5,6 @@ from .models import User, Category, Account
 
 
 DEFAULT_CATEGORIES = [
-    # Expense 一级分类
     {"name": "Food", "category_type": Category.CategoryType.EXPENSE},
     {"name": "Transport", "category_type": Category.CategoryType.EXPENSE},
     {"name": "Shopping", "category_type": Category.CategoryType.EXPENSE},
@@ -14,8 +13,6 @@ DEFAULT_CATEGORIES = [
     {"name": "Health", "category_type": Category.CategoryType.EXPENSE},
     {"name": "Education", "category_type": Category.CategoryType.EXPENSE},
     {"name": "Other Expense", "category_type": Category.CategoryType.EXPENSE},
-
-    # Income 一级分类
     {"name": "Salary", "category_type": Category.CategoryType.INCOME},
     {"name": "Bonus", "category_type": Category.CategoryType.INCOME},
     {"name": "Gift", "category_type": Category.CategoryType.INCOME},

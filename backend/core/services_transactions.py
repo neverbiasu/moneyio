@@ -9,7 +9,7 @@ from .models import Transaction, Account, Category
 def _parse_amount(amount_value):
     try:
         amount = decimal.Decimal(str(amount_value))
-    except Exception:
+    except (decimal.InvalidOperation, TypeError, ValueError):
         raise ValidationError("amount must be a valid decimal number")
 
     if amount <= 0:

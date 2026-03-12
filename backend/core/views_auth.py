@@ -1,26 +1,21 @@
 import json
 
+from django.contrib.auth import login, logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, logout
-from django.shortcuts import render
 
-from .services_auth import register_user, authenticate_user, update_password
+from .services_auth import authenticate_user, register_user, update_password
 
-# 测试视图
-from django.shortcuts import render
 
-def test_page(request):
-    return render(request, "test.html")
-
-# 注册
 @csrf_exempt
 def register(request):
-
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "invalid JSON"}, status=400)
 
     username = data.get("username")
     email = data.get("email")
@@ -37,14 +32,15 @@ def register(request):
     })
 
 
-# 登录
 @csrf_exempt
 def login_view(request):
-
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "invalid JSON"}, status=400)
 
     username = data.get("username")
     password = data.get("password")
@@ -62,20 +58,13 @@ def login_view(request):
     })
 
 
-# 登出
 @csrf_exempt
 def logout_view(request):
-
     logout(request)
-
-    return JsonResponse({
-        "status": "logged out"
-    })
+    return JsonResponse({"status": "logged out"})
 
 
-# 当前用户（权限验证）
 def current_user(request):
-
     if not request.user.is_authenticated:
         return JsonResponse({"user": None})
 
@@ -86,14 +75,15 @@ def current_user(request):
     })
 
 
-# 修改密码
 @csrf_exempt
 def change_password(request):
-
     if not request.user.is_authenticated:
         return JsonResponse({"error": "login required"}, status=401)
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "invalid JSON"}, status=400)
 
     new_password = data.get("password")
 
@@ -102,7 +92,4 @@ def change_password(request):
 
     update_password(request.user, new_password)
 
-    return JsonResponse({
-        "status": "password updated"
-    })
-
+    return JsonResponse({"status": "password updated"})

@@ -139,8 +139,6 @@ def delete_category_for_user(user, category_id):
     if not category:
         return False
 
-    # 删除当前分类时，顺带删除它的二级分类
     Category.objects.filter(parent=category, user=user).delete()
-
     category.delete()
     return True

@@ -1,15 +1,15 @@
 import json
 
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ValidationError
 
 from .services_categories import (
     build_category_tree_for_user,
     create_category_for_user,
+    delete_category_for_user,
     get_category_for_user,
     update_category_for_user,
-    delete_category_for_user,
 )
 
 
@@ -33,10 +33,9 @@ def categories_collection(request):
         try:
             data = json.loads(request.body)
             category = create_category_for_user(request.user, data)
-            return JsonResponse({
-                "status": "success",
-                "category_id": category.id
-            })
+            return JsonResponse(
+                {"status": "success", "category_id": category.id}
+            )
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
         except ValidationError as e:
@@ -56,19 +55,23 @@ def categories_item(request, category_id):
         if not category:
             return JsonResponse({"error": "not found"}, status=404)
 
-        return JsonResponse({
-            "id": category.id,
-            "name": category.name,
-            "category_type": category.category_type,
-            "icon_id": category.icon_id,
-            "tree_level": category.tree_level,
-            "parent_id": category.parent.id if category.parent else None,
-        })
+        return JsonResponse(
+            {
+                "id": category.id,
+                "name": category.name,
+                "category_type": category.category_type,
+                "icon_id": category.icon_id,
+                "tree_level": category.tree_level,
+                "parent_id": category.parent.id if category.parent else None,
+            }
+        )
 
     if request.method in ("PUT", "PATCH"):
         try:
             data = json.loads(request.body)
-            category = update_category_for_user(request.user, category_id, data)
+            category = update_category_for_user(
+                request.user, category_id, data
+            )
 
             if not category:
                 return JsonResponse({"error": "not found"}, status=404)

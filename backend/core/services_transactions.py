@@ -3,13 +3,13 @@ import decimal
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 
-from .models import Transaction, Account, Category
+from .models import Account, Category, Transaction
 
 
 def _parse_amount(amount_value):
     try:
         amount = decimal.Decimal(str(amount_value))
-    except Exception:
+    except (decimal.InvalidOperation, TypeError, ValueError):
         raise ValidationError("amount must be a valid decimal number")
 
     if amount <= 0:
@@ -62,8 +62,15 @@ def create_transaction_for_user(user, payload):
     trans_date_str = payload.get("trans_date")
     note = payload.get("note", "")
 
-    if not account_id or not category_id or amount_value is None or not trans_date_str:
-        raise ValidationError("account_id, category_id, amount and trans_date are required")
+    if (
+        not account_id
+        or not category_id
+        or amount_value is None
+        or not trans_date_str
+    ):
+        raise ValidationError(
+            "account_id, category_id, amount and trans_date are required"
+        )
 
     account = _get_user_account(user, account_id)
     category = _get_user_category(user, category_id)
@@ -85,8 +92,7 @@ def create_transaction_for_user(user, payload):
 
 def list_transactions_for_user(user, account_id=None):
     qs = (
-        Transaction.objects
-        .filter(user=user)
+        Transaction.objects.filter(user=user)
         .select_related("account", "category")
         .order_by("-trans_date", "-id")
     )
@@ -99,8 +105,7 @@ def list_transactions_for_user(user, account_id=None):
 
 def get_transaction_for_user(user, tx_id):
     return (
-        Transaction.objects
-        .filter(id=tx_id, user=user)
+        Transaction.objects.filter(id=tx_id, user=user)
         .select_related("account", "category")
         .first()
     )

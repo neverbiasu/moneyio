@@ -77,7 +77,7 @@ const expenseLine = computed(() =>
 const incomeArea = computed(() => {
   if (!incomeLine.value || chartPoints.value.length === 0) return '';
   const first = chartPoints.value[0];
-  const last = chartPoints.value.at(-1);
+  const last = chartPoints.value[chartPoints.value.length - 1];
   if (!first || !last) return '';
   return `${incomeLine.value} L${last.x},${bottomY} L${first.x},${bottomY} Z`;
 });
@@ -85,7 +85,7 @@ const incomeArea = computed(() => {
 const expenseArea = computed(() => {
   if (!expenseLine.value || chartPoints.value.length === 0) return '';
   const first = chartPoints.value[0];
-  const last = chartPoints.value.at(-1);
+  const last = chartPoints.value[chartPoints.value.length - 1];
   if (!first || !last) return '';
   return `${expenseLine.value} L${last.x},${bottomY} L${first.x},${bottomY} Z`;
 });

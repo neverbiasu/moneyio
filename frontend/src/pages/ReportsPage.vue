@@ -8,15 +8,15 @@ import type { Transaction, Category, ChartDataPoint } from '@/api/mock-data';
 
 defineOptions({ name: 'ReportsPage' });
 
-// ── State ──────────────────────────────────────────────────────────────
-const startDateInput = ref<string>(toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+const startDateInput = ref<string>(
+  toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
+);
 const endDateInput = ref<string>(toDateInputValue(new Date()));
 const allTransactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-// Date presets
 const datePresets = [
   {
     label: 'This Month',
@@ -53,7 +53,6 @@ const datePresets = [
   },
 ];
 
-// ── Computed ───────────────────────────────────────────────────────────
 const startDate = computed(() => parseDateInput(startDateInput.value, false));
 
 const endDate = computed(() => parseDateInput(endDateInput.value, true));
@@ -133,7 +132,6 @@ const chartPoints = computed<ChartDataPoint[]>(() => {
   return Array.from(pointsMap.values());
 });
 
-// ── Data fetching ──────────────────────────────────────────────────────
 async function fetchReportData() {
   isLoading.value = true;
   error.value = null;
@@ -154,7 +152,6 @@ async function fetchReportData() {
   }
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────
 function formatCurrency(amount: number): string {
   return `$${Math.abs(amount).toFixed(2)}`;
 }
@@ -185,7 +182,6 @@ function setDatePreset(getValue: () => { start: Date; end: Date }) {
   endDateInput.value = toDateInputValue(end);
 }
 
-// ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
   void fetchReportData();
 });
@@ -193,9 +189,7 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- Date range controls -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm space-y-3">
-      <!-- Presets -->
       <div>
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-2">Quick Select</p>
         <div class="flex flex-wrap gap-2">
@@ -210,14 +204,18 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Custom date range -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="start-date" class="block text-xs uppercase tracking-wide text-neutral-500 mb-2">
+          <label
+            for="start-date"
+            class="block text-xs uppercase tracking-wide text-neutral-500 mb-2"
+          >
             From
           </label>
           <div class="relative">
-            <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
+            <CalendarIcon
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+            />
             <input
               id="start-date"
               v-model="startDateInput"
@@ -231,7 +229,9 @@ onMounted(() => {
             To
           </label>
           <div class="relative">
-            <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
+            <CalendarIcon
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+            />
             <input
               id="end-date"
               v-model="endDateInput"
@@ -243,27 +243,22 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Error message -->
     <div v-if="error" class="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
       {{ error }}
     </div>
 
-    <!-- Summary cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Total Income -->
       <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">Total Income</p>
         <p class="text-2xl font-bold text-green-600">{{ formatCurrency(totalIncome) }}</p>
       </div>
 
-      <!-- Total Expense -->
       <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">Total Expenses</p>
         <p class="text-2xl font-bold text-red-600">{{ formatCurrency(totalExpense) }}</p>
       </div>
     </div>
 
-    <!-- Charts -->
     <div v-if="isLoading" class="space-y-4">
       <div class="h-96 bg-neutral-100 rounded-xl animate-pulse" />
       <div class="h-80 bg-neutral-100 rounded-xl animate-pulse" />

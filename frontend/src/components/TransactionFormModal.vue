@@ -101,9 +101,7 @@ function validate(): boolean {
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
   // Category is not required for transfers (inter-account movements)
   errors.categoryId =
-    transactionType.value === 'transfer' || form.categoryId
-      ? ''
-      : 'Please select a category';
+    transactionType.value === 'transfer' || form.categoryId ? '' : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
   return !hasErrors.value;
 }
@@ -132,15 +130,26 @@ async function submitForm(): Promise<void> {
   isSaving.value = true;
   submitError.value = '';
   try {
-    const date = form.date || new Date();
-    const transactionDate =
-      date instanceof Date ? date.toISOString() : new Date(date as any).toISOString();
+    const date = form.date ?? new Date();
+    const transactionDate = date.toISOString();
+
+    const accountId = form.accountId;
+    if (accountId === null) {
+      errors.accountId = 'Please select an account';
+      return;
+    }
+
+    const categoryId = transactionType.value === 'transfer' ? null : form.categoryId;
+    if (transactionType.value !== 'transfer' && categoryId === null) {
+      errors.categoryId = 'Please select a category';
+      return;
+    }
 
     const transaction: Omit<Transaction, 'id' | 'userId' | 'crtTime' | 'uptTime'> = {
       amount: Number(form.amount),
-      categoryId: transactionType.value === 'transfer' ? null : form.categoryId!,
-      accountId: form.accountId!,
-      note: form.notes || null,
+      categoryId,
+      accountId,
+      note: form.notes.trim() === '' ? null : form.notes,
       transactionDate,
     };
     await mockAPI.transactions.createTransaction(transaction);
@@ -194,12 +203,7 @@ onMounted(async () => {
 
 <template>
   <TransitionRoot :show="isOpen">
-    <Dialog
-      :open="isOpen"
-      as="div"
-      class="relative z-50"
-      @close="handleClose"
-    >
+    <Dialog :open="isOpen" as="div" class="relative z-50" @close="handleClose">
       <TransitionChild
         as="template"
         enter="ease-out duration-200"
@@ -234,41 +238,47 @@ onMounted(async () => {
               <!-- Transaction Type Selection (Phase 1) -->
               <div class="mb-6 flex gap-2">
                 <button
-                  @click="selectTransactionType('expense')"
                   :class="{
-                    'bg-red-100 border-2 border-red-500 text-red-700': transactionType === 'expense',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'expense',
+                    'bg-red-100 border-2 border-red-500 text-red-700':
+                      transactionType === 'expense',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
+                      transactionType !== 'expense',
                   }"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'expense'"
                   title="Expense Transaction"
+                  @click="selectTransactionType('expense')"
                 >
                   <ArrowUpTrayIcon class="size-5" />
                   <span>Expense</span>
                 </button>
                 <button
                   v-if="accounts.length > 1"
-                  @click="selectTransactionType('transfer')"
                   :class="{
-                    'bg-blue-100 border-2 border-blue-500 text-blue-700': transactionType === 'transfer',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'transfer',
+                    'bg-blue-100 border-2 border-blue-500 text-blue-700':
+                      transactionType === 'transfer',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
+                      transactionType !== 'transfer',
                   }"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'transfer'"
                   title="Transfer Between Accounts"
+                  @click="selectTransactionType('transfer')"
                 >
                   <ArrowPathIcon class="size-5" />
                   <span>Transfer</span>
                 </button>
                 <button
-                  @click="selectTransactionType('income')"
                   :class="{
-                    'bg-green-100 border-2 border-green-500 text-green-700': transactionType === 'income',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600': transactionType !== 'income',
+                    'bg-green-100 border-2 border-green-500 text-green-700':
+                      transactionType === 'income',
+                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
+                      transactionType !== 'income',
                   }"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'income'"
                   title="Income Transaction"
+                  @click="selectTransactionType('income')"
                 >
                   <ArrowDownTrayIcon class="size-5" />
                   <span>Income</span>

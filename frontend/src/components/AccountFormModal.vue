@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted, watch } from 'vue';
-import { Dialog, DialogPanel, TransitionRoot, TransitionChild, Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
+import {
+  Dialog,
+  DialogPanel,
+  TransitionRoot,
+  TransitionChild,
+  Listbox,
+  ListboxButton,
+  ListboxOptions,
+  ListboxOption,
+} from '@headlessui/vue';
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/20/solid';
 import { mockAPI } from '@/api/mock';
 import type { Account } from '@/api/mock-data';
@@ -52,7 +61,7 @@ const hasErrors = computed(() => !!errors.name || !!errors.type || !!errors.bala
 
 const selectedTypeLabel = computed(() => {
   const type = ACCOUNT_TYPES.find((t) => t.value === form.type);
-  return type?.label || 'Select type';
+  return type?.label ?? 'Select type';
 });
 
 const isEditMode = computed(() => props.mode === 'edit');
@@ -148,12 +157,7 @@ watch(
 
 <template>
   <TransitionRoot :show="isOpen">
-    <Dialog
-      :open="isOpen"
-      as="div"
-      class="relative z-50"
-      @close="handleClose"
-    >
+    <Dialog :open="isOpen" as="div" class="relative z-50" @close="handleClose">
       <TransitionChild
         as="template"
         enter="ease-out duration-200"
@@ -183,7 +187,10 @@ watch(
               aria-modal="true"
               :aria-labelledby="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
             >
-              <h2 :id="isEditMode ? 'modal-title-edit' : 'modal-title-create'" class="text-xl font-bold text-gray-900 mb-6">
+              <h2
+                :id="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
+                class="text-xl font-bold text-gray-900 mb-6"
+              >
                 {{ isEditMode ? 'Edit Account' : 'Create New Account' }}
               </h2>
 
@@ -252,7 +259,10 @@ watch(
                     {{ isEditMode ? 'Current Balance' : 'Initial Balance' }}
                   </label>
                   <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">$</span>
+                    <span
+                      class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium"
+                      >$</span
+                    >
                     <input
                       id="balance"
                       v-model="form.balance"
@@ -263,7 +273,9 @@ watch(
                       :aria-invalid="!!errors.balance"
                     />
                   </div>
-                  <p v-if="errors.balance" class="mt-1 text-sm text-red-600">{{ errors.balance }}</p>
+                  <p v-if="errors.balance" class="mt-1 text-sm text-red-600">
+                    {{ errors.balance }}
+                  </p>
                 </div>
 
                 <!-- Buttons -->

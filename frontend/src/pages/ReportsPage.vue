@@ -9,7 +9,9 @@ import type { Transaction, Category, ChartDataPoint } from '@/api/mock-data';
 defineOptions({ name: 'ReportsPage' });
 
 // ── State ──────────────────────────────────────────────────────────────
-const startDateInput = ref<string>(toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+const startDateInput = ref<string>(
+  toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
+);
 const endDateInput = ref<string>(toDateInputValue(new Date()));
 const allTransactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
@@ -213,11 +215,16 @@ onMounted(() => {
       <!-- Custom date range -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="start-date" class="block text-xs uppercase tracking-wide text-neutral-500 mb-2">
+          <label
+            for="start-date"
+            class="block text-xs uppercase tracking-wide text-neutral-500 mb-2"
+          >
             From
           </label>
           <div class="relative">
-            <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
+            <CalendarIcon
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+            />
             <input
               id="start-date"
               v-model="startDateInput"
@@ -231,7 +238,9 @@ onMounted(() => {
             To
           </label>
           <div class="relative">
-            <CalendarIcon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
+            <CalendarIcon
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+            />
             <input
               id="end-date"
               v-model="endDateInput"

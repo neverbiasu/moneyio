@@ -211,10 +211,14 @@ onMounted(() => {
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">Account Actions</h2>
 
         <div class="space-y-3">
-          <button class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left">
+          <button
+            class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left"
+          >
             Export Data
           </button>
-          <button class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left">
+          <button
+            class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left"
+          >
             Delete Account
           </button>
         </div>

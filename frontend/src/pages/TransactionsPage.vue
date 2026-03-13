@@ -17,7 +17,6 @@ import { mockAPI } from '@/api/mock';
 
 defineOptions({ name: 'TransactionsPage' });
 
-// ── State ──────────────────────────────────────────────────────────────
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
 const accounts = ref<Account[]>([]);
@@ -25,14 +24,12 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 const isModalOpen = ref(false);
 
-// Pending filter state (form — not yet applied)
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
 const selectedAccountId = ref<number | null>(null);
 const startDate = ref<Date | null>(null);
 const endDate = ref<Date | null>(null);
 
-// Active filter state (applied — drives the fetch)
 const activeSearch = ref('');
 const activeFilters = reactive({
   categoryId: null as number | null,
@@ -43,7 +40,6 @@ const activeFilters = reactive({
 
 const pagination = reactive({ page: 1, limit: 20, total: 0 });
 
-// ── Option types ──────────────────────────────────────────────────────
 interface CategoryOption {
   id: number | null;
   name: string;
@@ -54,7 +50,6 @@ interface AccountOption {
   name: string;
 }
 
-// ── Computed ───────────────────────────────────────────────────────────
 const ALL_CATEGORY: CategoryOption = { id: null, name: 'All', type: 'expense' };
 const ALL_ACCOUNT: AccountOption = { id: null, name: 'All' };
 
@@ -86,7 +81,6 @@ const hasActiveFilters = computed(
     activeFilters.endDate !== null,
 );
 
-// ── Data fetching ──────────────────────────────────────────────────────
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
@@ -139,7 +133,6 @@ async function fetchMetadata() {
   }
 }
 
-// ── Actions ────────────────────────────────────────────────────────────
 function commitAndFetch() {
   activeSearch.value = searchQuery.value;
   activeFilters.categoryId = selectedCategoryId.value;
@@ -171,7 +164,6 @@ function resetFilters() {
   void fetchTransactions();
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────
 function getCategoryName(id: number | null): string {
   if (id === null) return 'Transfer';
   return categories.value.find((c) => c.id === id)?.name ?? 'Unknown';
@@ -190,23 +182,21 @@ function getCategoryType(id: number | null): 'income' | 'expense' | 'transfer' {
   return categories.value.find((c) => c.id === id)?.type ?? 'expense';
 }
 
-// Badge color per category — extend as categories grow
-const CATEGORY_BADGE: Record<number, string> = {
-  1: 'bg-orange-100 text-orange-700', // Food & Dining
-  2: 'bg-amber-100 text-amber-700', // Breakfast
-  3: 'bg-yellow-100 text-yellow-800', // Lunch
-  4: 'bg-sky-100 text-sky-700', // Transportation
-  5: 'bg-purple-100 text-purple-700', // Entertainment
-  10: 'bg-green-100 text-green-700', // Salary
-  11: 'bg-emerald-100 text-emerald-700', // Bonus
-};
+const CATEGORY_BADGE = new Map<number, string>([
+  [1, 'bg-orange-100 text-orange-700'],
+  [2, 'bg-amber-100 text-amber-700'],
+  [3, 'bg-yellow-100 text-yellow-800'],
+  [4, 'bg-sky-100 text-sky-700'],
+  [5, 'bg-purple-100 text-purple-700'],
+  [10, 'bg-green-100 text-green-700'],
+  [11, 'bg-emerald-100 text-emerald-700'],
+]);
 
 function getCategoryBadgeClass(id: number | null): string {
-  if (id === null) return 'bg-blue-100 text-blue-700'; // Transfer
-  return CATEGORY_BADGE[id] ?? 'bg-neutral-100 text-neutral-700';
+  if (id === null) return 'bg-blue-100 text-blue-700';
+  return CATEGORY_BADGE.get(id) ?? 'bg-neutral-100 text-neutral-700';
 }
 
-// ── Pagination jump ────────────────────────────────────────────────────
 const jumpInput = ref('');
 
 function jumpToPage() {
@@ -240,9 +230,7 @@ async function handleTransactionSaved() {
 
 <template>
   <div class="space-y-4">
-    <!-- Filter panel -->
     <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
-      <!-- Row 1: Search + Add Transaction -->
       <div class="flex gap-2">
         <div class="relative flex-1">
           <MagnifyingGlassIcon
@@ -272,9 +260,7 @@ async function handleTransactionSaved() {
         </button>
       </div>
 
-      <!-- Row 2: Filters -->
       <div class="flex flex-wrap items-end gap-2">
-        <!-- Category -->
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">Category</label>
           <Listbox v-model="selectedCategoryId">
@@ -309,7 +295,6 @@ async function handleTransactionSaved() {
           </Listbox>
         </div>
 
-        <!-- Account -->
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">Account</label>
           <Listbox v-model="selectedAccountId">
@@ -344,7 +329,6 @@ async function handleTransactionSaved() {
           </Listbox>
         </div>
 
-        <!-- From date -->
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">From</label>
           <DatePicker v-model="startDate" locale="en" :max-date="endDate ?? undefined">
@@ -376,7 +360,6 @@ async function handleTransactionSaved() {
           </DatePicker>
         </div>
 
-        <!-- To date -->
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">To</label>
           <DatePicker v-model="endDate" locale="en" :min-date="startDate ?? undefined">
@@ -408,7 +391,6 @@ async function handleTransactionSaved() {
           </DatePicker>
         </div>
 
-        <!-- Action buttons -->
         <div class="flex gap-2 shrink-0">
           <button
             class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 active:bg-blue-200 transition"
@@ -429,17 +411,14 @@ async function handleTransactionSaved() {
       </div>
     </div>
 
-    <!-- Error -->
     <div v-if="error" class="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
       {{ error }}
     </div>
 
-    <!-- Loading skeleton -->
     <div v-if="isLoading" class="space-y-2">
       <div v-for="i in 8" :key="i" class="h-12 bg-neutral-100 rounded-xl animate-pulse" />
     </div>
 
-    <!-- Empty -->
     <div
       v-else-if="!isLoading && transactions.length === 0"
       class="py-16 text-center rounded-xl border border-neutral-200 bg-white"
@@ -449,7 +428,6 @@ async function handleTransactionSaved() {
       <p class="text-xs text-neutral-400 mt-1">Try adjusting your search or filters</p>
     </div>
 
-    <!-- Table -->
     <div v-else class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm">
       <table class="w-full text-sm">
         <thead>
@@ -521,7 +499,6 @@ async function handleTransactionSaved() {
       </table>
     </div>
 
-    <!-- Pagination -->
     <div
       v-if="transactions.length > 0"
       class="flex items-center justify-between px-4 py-3 bg-white border border-neutral-200 rounded-xl shadow-sm"
@@ -539,7 +516,6 @@ async function handleTransactionSaved() {
         >
           ← Previous
         </button>
-        <!-- Jump to page -->
         <div class="flex items-center gap-1 text-sm text-neutral-500">
           <span class="hidden sm:inline">Go to</span>
           <input

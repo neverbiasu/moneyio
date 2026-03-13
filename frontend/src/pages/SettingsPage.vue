@@ -9,7 +9,6 @@ type ThemePreference = 'light' | 'dark' | 'system';
 type CurrencyPreference = 'USD' | 'EUR' | 'GBP' | 'CNY';
 type LanguagePreference = 'en' | 'zh';
 
-// ── State ──────────────────────────────────────────────────────────────
 const activeTab = ref<'profile' | 'preferences'>('profile');
 const authStore = useAuthStore();
 
@@ -25,7 +24,6 @@ const saveSuccess = ref(false);
 const saveError = ref(false);
 const saveMessage = ref('');
 
-// ── Computed ───────────────────────────────────────────────────────────
 const currentUser = computed(() => {
   const user = authStore.user;
   return {
@@ -52,17 +50,14 @@ const languageOptions = [
   { value: 'zh', label: '中文' },
 ];
 
-// ── Actions ────────────────────────────────────────────────────────────
 async function savePreferences() {
   isSaving.value = true;
   saveSuccess.value = false;
   saveError.value = false;
 
   try {
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // Apply theme
     if (preferences.theme === 'system') {
       document.documentElement.removeAttribute('data-theme');
     } else {
@@ -91,9 +86,7 @@ async function savePreferences() {
   }
 }
 
-// ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
-  // Load preferences from localStorage or API
   const saved = localStorage.getItem('userPreferences');
   if (saved) {
     try {
@@ -132,7 +125,6 @@ onMounted(() => {
       <p class="text-sm text-neutral-500 mt-1">Manage your account and preferences</p>
     </div>
 
-    <!-- Tab Navigation -->
     <div class="border-b border-neutral-200">
       <nav class="flex gap-8" aria-label="Settings navigation">
         <button
@@ -162,14 +154,11 @@ onMounted(() => {
       </nav>
     </div>
 
-    <!-- Profile Tab -->
     <section v-if="activeTab === 'profile'" class="space-y-6">
-      <!-- Profile Section -->
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">Profile Information</h2>
 
         <div class="space-y-4">
-          <!-- Username -->
           <div>
             <label for="username" class="block text-sm font-medium text-neutral-700 mb-1">
               Username
@@ -183,7 +172,6 @@ onMounted(() => {
             />
           </div>
 
-          <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-neutral-700 mb-1">
               Email Address
@@ -197,7 +185,6 @@ onMounted(() => {
             />
           </div>
 
-          <!-- Password Change (placeholder) -->
           <div class="pt-4 border-t border-neutral-200">
             <button class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
               Change Password
@@ -206,27 +193,28 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Account Section -->
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">Account Actions</h2>
 
         <div class="space-y-3">
-          <button class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left">
+          <button
+            class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left"
+          >
             Export Data
           </button>
-          <button class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left">
+          <button
+            class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left"
+          >
             Delete Account
           </button>
         </div>
       </div>
     </section>
 
-    <!-- Preferences Tab -->
     <section v-if="activeTab === 'preferences'" class="space-y-6">
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">Preferences</h2>
 
-        <!-- Success message -->
         <div
           v-if="saveSuccess"
           class="mb-4 p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2"
@@ -237,7 +225,6 @@ onMounted(() => {
           {{ saveMessage }}
         </div>
 
-        <!-- Error message -->
         <div
           v-if="saveError"
           class="mb-4 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg"
@@ -248,7 +235,6 @@ onMounted(() => {
         </div>
 
         <form class="space-y-6" @submit.prevent="savePreferences">
-          <!-- Theme Selection -->
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-3">Theme</label>
             <div class="grid grid-cols-3 gap-3">
@@ -269,7 +255,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Currency Selection -->
           <div>
             <label for="currency" class="block text-sm font-medium text-neutral-700 mb-1">
               Currency
@@ -285,7 +270,6 @@ onMounted(() => {
             </select>
           </div>
 
-          <!-- Language Selection -->
           <div>
             <label for="language" class="block text-sm font-medium text-neutral-700 mb-1">
               Language
@@ -301,7 +285,6 @@ onMounted(() => {
             </select>
           </div>
 
-          <!-- Notifications Toggle -->
           <div class="flex items-center justify-between">
             <label for="notifications" class="text-sm font-medium text-neutral-700">
               Email Notifications
@@ -322,7 +305,6 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Save button -->
           <div class="flex gap-2 justify-end pt-4 border-t border-neutral-200">
             <button
               type="submit"

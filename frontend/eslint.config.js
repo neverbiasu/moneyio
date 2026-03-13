@@ -28,6 +28,7 @@ export default tseslint.config(
       globals: {
         window: 'readonly',
         document: 'readonly',
+        localStorage: 'readonly',
         console: 'readonly',
         fetch: 'readonly',
         self: 'readonly',

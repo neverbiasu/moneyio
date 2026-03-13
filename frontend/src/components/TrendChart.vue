@@ -25,7 +25,6 @@ const innerHeight = height - paddingTop - paddingBottom;
 const innerWidth = width - paddingX * 2;
 const bottomY = paddingTop + innerHeight;
 
-// Scoped SVG IDs to prevent collisions when rendering multiple instances
 const uid = Math.random().toString(36).substring(2, 9);
 const incomeGradientId = `income-gradient-${uid}`;
 const expenseGradientId = `expense-gradient-${uid}`;
@@ -49,13 +48,17 @@ const chartPoints = computed(() => {
 
 function smoothCurve(pts: Array<{ x: number; y: number }>): string {
   if (pts.length < 2) return '';
-  // Safe: pts.length >= 2 is guaranteed by the guard above
-  let d = `M${pts[0]!.x},${pts[0]!.y}`;
+  const firstPoint = pts[0];
+  if (!firstPoint) return '';
+
+  let d = `M${firstPoint.x},${firstPoint.y}`;
   for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(0, i - 1)]!;
-    const p1 = pts[i]!;
-    const p2 = pts[i + 1]!;
-    const p3 = pts[Math.min(pts.length - 1, i + 2)]!;
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    if (!p1 || !p2) continue;
+
+    const p0 = pts[Math.max(0, i - 1)] ?? p1;
+    const p3 = pts[Math.min(pts.length - 1, i + 2)] ?? p2;
     const cp1x = p1.x + (p2.x - p0.x) / 6;
     const cp1y = p1.y + (p2.y - p0.y) / 6;
     const cp2x = p2.x - (p3.x - p1.x) / 6;
@@ -74,15 +77,17 @@ const expenseLine = computed(() =>
 
 const incomeArea = computed(() => {
   if (!incomeLine.value || chartPoints.value.length === 0) return '';
-  const first = chartPoints.value[0]!;
-  const last = chartPoints.value[chartPoints.value.length - 1]!;
+  const first = chartPoints.value.at(0);
+  const last = chartPoints.value.at(-1);
+  if (!first || !last) return '';
   return `${incomeLine.value} L${last.x},${bottomY} L${first.x},${bottomY} Z`;
 });
 
 const expenseArea = computed(() => {
   if (!expenseLine.value || chartPoints.value.length === 0) return '';
-  const first = chartPoints.value[0]!;
-  const last = chartPoints.value[chartPoints.value.length - 1]!;
+  const first = chartPoints.value.at(0);
+  const last = chartPoints.value.at(-1);
+  if (!first || !last) return '';
   return `${expenseLine.value} L${last.x},${bottomY} L${first.x},${bottomY} Z`;
 });
 
@@ -143,7 +148,6 @@ const xTicks = computed(() => {
             <stop offset="0%" stop-color="var(--color-red-500)" stop-opacity="0.2" />
             <stop offset="100%" stop-color="var(--color-red-500)" stop-opacity="0" />
           </linearGradient>
-          <!-- Clip to chart area so bezier overshoots never show outside the axes -->
           <clipPath :id="clipPathId">
             <rect
               :x="paddingX"

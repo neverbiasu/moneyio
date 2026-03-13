@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 defineEmits<{
-  'add-click': [];
+  addClick: [];
 }>();
 
 const router = useRouter();
@@ -72,7 +72,6 @@ function goToTransactions() {
     </div>
 
     <div class="divide-y divide-gray-200">
-      <!-- Loading State -->
       <div v-if="isLoading" class="divide-y divide-gray-200">
         <div v-for="i in 5" :key="i" class="px-6 py-4 flex items-center justify-between">
           <div class="flex-1">
@@ -83,12 +82,10 @@ function goToTransactions() {
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="recentTransactions.length === 0" class="px-6 py-12">
         <p class="text-center text-gray-500">No transactions yet. Start by adding one!</p>
       </div>
 
-      <!-- Transactions List -->
       <div v-else>
         <div
           v-for="transaction in recentTransactions"
@@ -113,7 +110,6 @@ function goToTransactions() {
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
       <div class="flex items-center justify-between gap-2">
         <button
@@ -126,7 +122,7 @@ function goToTransactions() {
         <button
           type="button"
           class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
-          @click="$emit('add-click')"
+          @click="$emit('addClick')"
         >
           + Add
         </button>

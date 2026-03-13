@@ -17,7 +17,6 @@ import { mockAPI } from '@/api/mock';
 
 defineOptions({ name: 'TransactionFormModal' });
 
-// ── Props & Emits ──────────────────────────────────────────────────────
 const props = withDefaults(
   defineProps<{
     isOpen: boolean;
@@ -35,7 +34,6 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-// ── State ──────────────────────────────────────────────────────────────
 const transactionType = ref<'expense' | 'income' | 'transfer'>('expense');
 const form = reactive({
   amount: '',
@@ -57,7 +55,6 @@ const localAccounts = ref<Account[]>([]);
 const isSaving = ref(false);
 const isLoading = ref(false);
 
-// ── Computed ───────────────────────────────────────────────────────────
 const categories = computed(() =>
   props.categories && props.categories.length > 0 ? props.categories : localCategories.value,
 );
@@ -74,12 +71,6 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
-/**
- * Filter categories based on transaction type.
- * - Expense: show only expense categories
- * - Income: show only income categories
- * - Transfer: no category required (transfers are inter-account movements)
- */
 const filteredCategories = computed(() => {
   if (transactionType.value === 'transfer') {
     return [];
@@ -96,10 +87,8 @@ const typeConfig = computed(() => {
   return configs[transactionType.value];
 });
 
-// ── Methods ────────────────────────────────────────────────────────────
 function validate(): boolean {
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
-  // Category is not required for transfers (inter-account movements)
   errors.categoryId =
     transactionType.value === 'transfer' || form.categoryId ? '' : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
@@ -169,11 +158,9 @@ function handleClose(): void {
 }
 
 onMounted(async () => {
-  // Determine what needs to be fetched
   const shouldFetchCategories = !props.categories || props.categories.length === 0;
   const shouldFetchAccounts = !props.accounts || props.accounts.length === 0;
 
-  // If both are provided via props, no need to fetch or show loading
   if (!shouldFetchCategories && !shouldFetchAccounts) {
     return;
   }
@@ -235,7 +222,6 @@ onMounted(async () => {
             >
               <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">Add Transaction</h2>
 
-              <!-- Transaction Type Selection (Phase 1) -->
               <div class="mb-6 flex gap-2">
                 <button
                   :class="{
@@ -285,7 +271,6 @@ onMounted(async () => {
                 </button>
               </div>
 
-              <!-- Loading state -->
               <div v-if="isLoading" class="text-center py-8">
                 <div class="inline-block animate-spin">
                   <div
@@ -294,14 +279,11 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <!-- Form -->
               <form v-else class="space-y-4" @submit.prevent="submitForm">
-                <!-- Submit Error -->
                 <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-3">
                   <p class="text-sm text-red-700">{{ submitError }}</p>
                 </div>
 
-                <!-- Amount -->
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ transactionType === 'transfer' ? 'Amount to Transfer' : 'Amount' }}
@@ -319,7 +301,6 @@ onMounted(async () => {
                   <p v-if="errors.amount" class="mt-1 text-sm text-red-600">{{ errors.amount }}</p>
                 </div>
 
-                <!-- Category (hidden for transfers) -->
                 <div v-if="transactionType !== 'transfer'">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <Listbox v-model="form.categoryId">
@@ -360,7 +341,6 @@ onMounted(async () => {
                   </p>
                 </div>
 
-                <!-- Account -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
                   <Listbox v-model="form.accountId">
@@ -401,7 +381,6 @@ onMounted(async () => {
                   </p>
                 </div>
 
-                <!-- Date -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                   <DatePicker v-model="form.date" locale="en">
@@ -424,7 +403,6 @@ onMounted(async () => {
                   </DatePicker>
                 </div>
 
-                <!-- Notes -->
                 <div>
                   <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
                     Notes (optional)
@@ -438,7 +416,6 @@ onMounted(async () => {
                   />
                 </div>
 
-                <!-- Buttons -->
                 <div class="flex gap-2 justify-end pt-4">
                   <button
                     type="button"
@@ -469,6 +446,4 @@ onMounted(async () => {
   </TransitionRoot>
 </template>
 
-<style scoped>
-/* HeadlessUI transition styles */
-</style>
+<style scoped></style>

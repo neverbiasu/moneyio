@@ -25,7 +25,6 @@ const innerHeight = height - paddingTop - paddingBottom;
 const innerWidth = width - paddingX * 2;
 const bottomY = paddingTop + innerHeight;
 
-// Scoped SVG IDs to prevent collisions when rendering multiple instances
 const uid = Math.random().toString(36).substring(2, 9);
 const incomeGradientId = `income-gradient-${uid}`;
 const expenseGradientId = `expense-gradient-${uid}`;
@@ -147,7 +146,6 @@ const xTicks = computed(() => {
             <stop offset="0%" stop-color="var(--color-red-500)" stop-opacity="0.2" />
             <stop offset="100%" stop-color="var(--color-red-500)" stop-opacity="0" />
           </linearGradient>
-          <!-- Clip to chart area so bezier overshoots never show outside the axes -->
           <clipPath :id="clipPathId">
             <rect
               :x="paddingX"

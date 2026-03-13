@@ -16,7 +16,6 @@ import type { Account } from '@/api/mock-data';
 
 defineOptions({ name: 'AccountFormModal' });
 
-// ── Props & Emits ──────────────────────────────────────────────────────
 const props = withDefaults(
   defineProps<{
     isOpen: boolean;
@@ -33,7 +32,6 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-// ── State ──────────────────────────────────────────────────────────────
 const form = reactive({
   name: '',
   type: 'checking' as 'savings' | 'checking' | 'credit',
@@ -49,14 +47,12 @@ const errors = reactive({
 const submitError = ref<string>('');
 const isSaving = ref(false);
 
-// ── Account types ──────────────────────────────────────────────────────
 const ACCOUNT_TYPES: Array<{ value: 'savings' | 'checking' | 'credit'; label: string }> = [
   { value: 'savings', label: 'Savings Account' },
   { value: 'checking', label: 'Checking Account' },
   { value: 'credit', label: 'Credit Card' },
 ];
 
-// ── Computed ───────────────────────────────────────────────────────────
 const hasErrors = computed(() => !!errors.name || !!errors.type || !!errors.balance);
 
 const selectedTypeLabel = computed(() => {
@@ -66,7 +62,6 @@ const selectedTypeLabel = computed(() => {
 
 const isEditMode = computed(() => props.mode === 'edit');
 
-// ── Validation ──────────────────────────────────────────────────────────
 function validate(): boolean {
   errors.name = form.name.trim() ? '' : 'Account name is required';
   errors.type = form.type ? '' : 'Account type is required';
@@ -82,7 +77,6 @@ function validate(): boolean {
   return !hasErrors.value;
 }
 
-// ── Form reset ──────────────────────────────────────────────────────────
 function resetForm(): void {
   form.name = '';
   form.type = 'checking';
@@ -93,7 +87,6 @@ function resetForm(): void {
   submitError.value = '';
 }
 
-// ── Form initialization for edit mode ──────────────────────────────────
 function initializeForm(): void {
   if (isEditMode.value && props.account) {
     form.name = props.account.name;
@@ -104,7 +97,6 @@ function initializeForm(): void {
   }
 }
 
-// ── Submit form ──────────────────────────────────────────────────────────
 async function submitForm(): Promise<void> {
   if (!validate()) return;
 
@@ -112,14 +104,12 @@ async function submitForm(): Promise<void> {
   submitError.value = '';
   try {
     if (isEditMode.value && props.account) {
-      // Update existing account
       await mockAPI.accounts.updateAccount(props.account.id, {
         name: form.name.trim(),
         type: form.type,
         balance: form.balance === '' ? 0 : Number(form.balance),
       });
     } else {
-      // Create new account
       const payload: Omit<Account, 'id' | 'userId' | 'balance'> & { balance?: number } = {
         name: form.name.trim(),
         type: form.type,
@@ -141,13 +131,11 @@ async function submitForm(): Promise<void> {
   }
 }
 
-// ── Close modal ──────────────────────────────────────────────────────────
 function handleClose(): void {
   resetForm();
   emit('close');
 }
 
-// ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
   initializeForm();
 });
@@ -200,12 +188,10 @@ watch(
               </h2>
 
               <form class="space-y-4" @submit.prevent="submitForm">
-                <!-- Submit Error -->
                 <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-3">
                   <p class="text-sm text-red-700">{{ submitError }}</p>
                 </div>
 
-                <!-- Account Name -->
                 <div>
                   <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
                     Account Name
@@ -221,7 +207,6 @@ watch(
                   <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
                 </div>
 
-                <!-- Account Type -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
                   <Listbox v-model="form.type">
@@ -258,7 +243,6 @@ watch(
                   <p v-if="errors.type" class="mt-1 text-sm text-red-600">{{ errors.type }}</p>
                 </div>
 
-                <!-- Initial Balance -->
                 <div>
                   <label for="balance" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ isEditMode ? 'Current Balance' : 'Initial Balance' }}
@@ -283,7 +267,6 @@ watch(
                   </p>
                 </div>
 
-                <!-- Buttons -->
                 <div class="flex gap-2 justify-end pt-4">
                   <button
                     type="button"

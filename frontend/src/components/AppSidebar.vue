@@ -9,7 +9,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
 
@@ -20,6 +20,7 @@ defineProps<{
 const emit = defineEmits<(e: 'close') => void>();
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 
 const navItems = [
@@ -53,8 +54,20 @@ function toggleUserMenu() {
   userMenuOpen.value = !userMenuOpen.value;
 }
 
-function handleUserAction(_key: string) {
+async function handleUserAction(key: string) {
   userMenuOpen.value = false;
+
+  if (key === 'logout') {
+    await authStore.logout();
+    emit('close');
+    await router.push('/login');
+    return;
+  }
+
+  if (key === 'profile' || key === 'security') {
+    emit('close');
+    await router.push('/settings');
+  }
 }
 
 function onMqChange(e: MediaQueryListEvent) {

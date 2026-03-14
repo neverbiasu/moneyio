@@ -54,11 +54,17 @@ def login_view(request):
 
 @csrf_exempt
 def logout_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     logout(request)
     return JsonResponse({"status": "logged out"})
 
 
 def current_user(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     if not request.user.is_authenticated:
         return JsonResponse({"user": None})
 
@@ -73,6 +79,9 @@ def current_user(request):
 
 @csrf_exempt
 def change_password(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     if not request.user.is_authenticated:
         return JsonResponse({"error": "login required"}, status=401)
 

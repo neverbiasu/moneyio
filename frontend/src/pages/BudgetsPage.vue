@@ -12,7 +12,7 @@ import {
   TrashIcon,
 } from '@heroicons/vue/20/solid';
 import BudgetFormModal from '@/components/BudgetFormModal.vue';
-import { mockAPI } from '@/api/mock';
+import apiService from '@/api/services';
 import type { Budget } from '@/api/mock-data';
 
 defineOptions({ name: 'BudgetsPage' });
@@ -33,7 +33,7 @@ async function fetchBudgets() {
   error.value = null;
 
   try {
-    budgets.value = await mockAPI.budgets.getBudgets();
+    budgets.value = await apiService.budgets.getBudgets();
   } catch (err) {
     console.error('Failed to load budgets:', err);
     error.value = 'Failed to load budgets. Please try again.';
@@ -210,12 +210,12 @@ function cancelDelete() {
 
 async function confirmDelete(id: number) {
   try {
-    await mockAPI.budgets.deleteBudget(id);
+    await apiService.budgets.deleteBudget(id);
     deleteConfirmId.value = null;
     await fetchBudgets();
   } catch (err) {
     console.error('Failed to delete budget:', err);
-    error.value = 'Failed to delete budget. Please try again.';
+    error.value = err instanceof Error ? err.message : 'Failed to delete budget. Please try again.';
   }
 }
 

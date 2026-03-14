@@ -13,7 +13,7 @@ import {
 } from '@heroicons/vue/20/solid';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/mock-data';
-import { mockAPI } from '@/api/mock';
+import apiService from '@/api/services';
 
 defineOptions({ name: 'TransactionsPage' });
 
@@ -85,7 +85,7 @@ async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
   try {
-    let filtered = await mockAPI.transactions.getTransactions();
+    let filtered = await apiService.transactions.getTransactions();
 
     if (activeSearch.value) {
       const sl = activeSearch.value.toLowerCase();
@@ -123,8 +123,8 @@ async function fetchTransactions() {
 async function fetchMetadata() {
   try {
     const [cres, ares] = await Promise.all([
-      mockAPI.categories.getCategories(),
-      mockAPI.accounts.getAccounts(),
+      apiService.categories.getCategories(),
+      apiService.accounts.getAccounts(),
     ]);
     categories.value = cres;
     accounts.value = ares;

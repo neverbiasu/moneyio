@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { CheckIcon } from '@heroicons/vue/20/solid';
+import axios from 'axios';
 
 defineOptions({ name: 'SettingsPage' });
 
@@ -141,7 +142,18 @@ async function changePassword() {
     passwordForm.confirmPassword = '';
   } catch (err) {
     console.error('Failed to update password:', err);
-    passwordError.value = err instanceof Error ? err.message : 'Failed to update password.';
+    if (axios.isAxiosError(err)) {
+      const backendError = (err.response?.data as { error?: unknown } | undefined)?.error;
+      if (typeof backendError === 'string' && backendError.trim() !== '') {
+        passwordError.value = backendError;
+        return;
+      }
+    }
+
+    passwordError.value =
+      err instanceof Error && err.message.trim() !== ''
+        ? err.message
+        : 'Failed to update password.';
   }
 }
 

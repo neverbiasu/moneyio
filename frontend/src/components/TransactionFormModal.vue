@@ -76,6 +76,9 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
 const isEditMode = computed(() => props.mode === 'edit' && !!props.transaction);
+const isTransferEdit = computed(
+  () => isEditMode.value && props.transaction !== null && props.transaction.categoryId === null,
+);
 
 const filteredCategories = computed(() => {
   return categories.value.filter((c) => c.type === transactionType.value);
@@ -90,6 +93,14 @@ const typeConfig = computed(() => {
 });
 
 function validate(): boolean {
+  if (isTransferEdit.value) {
+    errors.amount = '';
+    errors.categoryId = 'Transfer transactions are not supported in this form.';
+    errors.accountId = '';
+    submitError.value = 'Transfer transactions are not supported in this form.';
+    return false;
+  }
+
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
   errors.categoryId = form.categoryId ? '' : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
@@ -139,7 +150,9 @@ function initializeEditForm(): void {
   errors.amount = '';
   errors.categoryId = '';
   errors.accountId = '';
-  submitError.value = '';
+  submitError.value = isTransferEdit.value
+    ? 'Transfer transactions are not supported in this form.'
+    : '';
 }
 
 async function submitForm(): Promise<void> {
@@ -148,6 +161,11 @@ async function submitForm(): Promise<void> {
   isSaving.value = true;
   submitError.value = '';
   try {
+    if (isTransferEdit.value) {
+      submitError.value = 'Transfer transactions are not supported in this form.';
+      return;
+    }
+
     const date = form.date ?? new Date();
     const transactionDate = date.toISOString();
 
@@ -475,7 +493,7 @@ watch(
                   </button>
                   <button
                     type="submit"
-                    :disabled="isSaving"
+                    :disabled="isSaving || isTransferEdit"
                     :class="{
                       'bg-red-600 hover:bg-red-700': transactionType === 'expense',
                       'bg-green-600 hover:bg-green-700': transactionType === 'income',

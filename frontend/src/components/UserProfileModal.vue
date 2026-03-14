@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue';
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 
 defineOptions({ name: 'UserProfileModal' });
 
@@ -44,16 +44,19 @@ function onFileChange(event: Event) {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) {
+    target.value = '';
     return;
   }
 
   if (!file.type.startsWith('image/')) {
     fileError.value = 'Please select an image file.';
+    target.value = '';
     return;
   }
 
   if (file.size > 2 * 1024 * 1024) {
     fileError.value = 'Image size must be less than 2MB.';
+    target.value = '';
     return;
   }
 
@@ -62,6 +65,7 @@ function onFileChange(event: Event) {
     if (typeof reader.result === 'string') {
       previewAvatar.value = reader.result;
     }
+    target.value = '';
   };
   reader.readAsDataURL(file);
 }
@@ -99,7 +103,9 @@ function saveProfile() {
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">Personal Profile</h2>
+              <DialogTitle as="h2" class="text-xl font-bold text-gray-900 mb-6">
+                Personal Profile
+              </DialogTitle>
 
               <div class="space-y-4">
                 <div class="flex items-center gap-4">

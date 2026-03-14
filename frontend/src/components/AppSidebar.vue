@@ -33,6 +33,8 @@ const navItems = [
   { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
 ];
 
+const avatarUrl = ref('/avatar.png');
+
 const currentUser = computed(() => {
   const user = authStore.user as { username?: string; email?: string } | null;
   return {
@@ -44,7 +46,6 @@ const currentUser = computed(() => {
 
 const userMenuOpen = ref(false);
 const profileModalOpen = ref(false);
-const avatarUrl = ref('/avatar.png');
 
 const mq = typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)') : null;
 const isDesktop = ref(mq?.matches ?? true);

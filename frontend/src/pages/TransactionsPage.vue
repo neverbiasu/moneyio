@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
+import axios from 'axios';
 import {
   ChevronDownIcon,
   CheckIcon,
@@ -84,6 +85,21 @@ const hasActiveFilters = computed(
     activeFilters.endDate !== null,
 );
 
+function getApiErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    const backendError = (err.response?.data as { error?: unknown } | undefined)?.error;
+    if (typeof backendError === 'string' && backendError.trim() !== '') {
+      return backendError;
+    }
+  }
+
+  if (err instanceof Error && err.message.trim() !== '') {
+    return err.message;
+  }
+
+  return fallback;
+}
+
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
@@ -122,8 +138,7 @@ async function fetchTransactions() {
     pagination.total = filtered.length;
   } catch (err) {
     console.error('Failed to load transactions:', err);
-    error.value =
-      err instanceof Error ? err.message : 'Failed to load transactions. Please try again.';
+    error.value = getApiErrorMessage(err, 'Failed to load transactions. Please try again.');
   } finally {
     isLoading.value = false;
   }
@@ -265,8 +280,7 @@ async function deleteTransaction(transaction: Transaction) {
     await fetchTransactions();
   } catch (err) {
     console.error('Failed to delete transaction:', err);
-    error.value =
-      err instanceof Error ? err.message : 'Failed to delete transaction. Please try again.';
+    error.value = getApiErrorMessage(err, 'Failed to delete transaction. Please try again.');
   }
 }
 
@@ -519,7 +533,11 @@ async function handleTransactionSaved() {
             v-for="t in paginatedTransactions"
             :key="t.id"
             class="hover:bg-neutral-50 transition-colors cursor-pointer"
+            role="button"
+            tabindex="0"
             @click="openEditModal(t)"
+            @keydown.enter.prevent="openEditModal(t)"
+            @keydown.space.prevent="openEditModal(t)"
           >
             <td class="px-4 py-3 text-xs text-neutral-500 tabular-nums">
               {{ t.transactionDate.slice(0, 10) }}

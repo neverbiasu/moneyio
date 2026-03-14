@@ -263,28 +263,14 @@ function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
   isModalOpen.value = true;
 }
-
-async function deleteTransaction(transaction: Transaction) {
-  const confirmed = window.confirm('Delete this transaction? This action cannot be undone.');
-  if (!confirmed) {
-    return;
-  }
-
-  error.value = null;
-  try {
-    await apiService.transactions.deleteTransaction(transaction.id);
-    if (selectedTransaction.value?.id === transaction.id) {
-      isModalOpen.value = false;
-      selectedTransaction.value = null;
-    }
-    await fetchTransactions();
-  } catch (err) {
-    console.error('Failed to delete transaction:', err);
-    error.value = getApiErrorMessage(err, 'Failed to delete transaction. Please try again.');
-  }
+async function handleTransactionSaved() {
+  isModalOpen.value = false;
+  selectedTransaction.value = null;
+  pagination.page = 1;
+  await fetchTransactions();
 }
 
-async function handleTransactionSaved() {
+async function handleTransactionDeleted() {
   isModalOpen.value = false;
   selectedTransaction.value = null;
   pagination.page = 1;
@@ -521,11 +507,6 @@ async function handleTransactionSaved() {
             >
               Amount
             </th>
-            <th
-              class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500"
-            >
-              Actions
-            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-100">
@@ -567,24 +548,6 @@ async function handleTransactionSaved() {
                   ? '+'
                   : '-'
               }}{{ formatCurrency(t.amount) }}
-            </td>
-            <td class="px-4 py-3 text-right">
-              <div class="inline-flex items-center gap-2" @click.stop>
-                <button
-                  type="button"
-                  class="rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-                  @click="openEditModal(t)"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  class="rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                  @click="deleteTransaction(t)"
-                >
-                  Delete
-                </button>
-              </div>
             </td>
           </tr>
         </tbody>
@@ -653,6 +616,7 @@ async function handleTransactionSaved() {
       :accounts="accounts"
       @close="isModalOpen = false"
       @saved="handleTransactionSaved"
+      @deleted="handleTransactionDeleted"
     />
   </div>
 </template>

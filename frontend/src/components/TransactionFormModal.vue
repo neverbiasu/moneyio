@@ -36,6 +36,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   close: [];
   saved: [];
+  deleted: [];
 }>();
 
 const transactionType = ref<'expense' | 'income'>('expense');
@@ -57,6 +58,7 @@ const submitError = ref<string>('');
 const localCategories = ref<Category[]>([]);
 const localAccounts = ref<Account[]>([]);
 const isSaving = ref(false);
+const isDeleting = ref(false);
 const isLoading = ref(false);
 
 const categories = computed(() =>
@@ -120,6 +122,10 @@ function resetForm(): void {
 }
 
 function selectTransactionType(type: 'expense' | 'income'): void {
+  if (isEditMode.value) {
+    return;
+  }
+
   transactionType.value = type;
   form.categoryId = null;
   errors.categoryId = '';
@@ -210,6 +216,38 @@ async function submitForm(): Promise<void> {
     }
   } finally {
     isSaving.value = false;
+  }
+}
+
+async function deleteCurrentTransaction(): Promise<void> {
+  if (!isEditMode.value || !props.transaction) {
+    return;
+  }
+
+  const confirmed = window.confirm('Delete this transaction? This action cannot be undone.');
+  if (!confirmed) {
+    return;
+  }
+
+  isDeleting.value = true;
+  submitError.value = '';
+  try {
+    await apiService.transactions.deleteTransaction(props.transaction.id);
+    emit('deleted');
+    handleClose();
+  } catch (err) {
+    console.error('Failed to delete transaction', err);
+    if (axios.isAxiosError(err)) {
+      submitError.value =
+        (err.response?.data as { error?: string } | undefined)?.error ??
+        'Failed to delete transaction. Please try again.';
+    } else if (err instanceof Error) {
+      submitError.value = err.message;
+    } else {
+      submitError.value = 'Failed to delete transaction. Please try again.';
+    }
+  } finally {
+    isDeleting.value = false;
   }
 }
 
@@ -307,36 +345,44 @@ watch(
 
               <div class="mb-6 flex gap-2">
                 <button
-                  :class="{
-                    'bg-red-100 border-2 border-red-500 text-red-700':
-                      transactionType === 'expense',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'expense',
-                  }"
+                  :class="[
+                    transactionType === 'expense'
+                      ? 'bg-red-100 border-2 border-red-500 text-red-700'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-600',
+                    isEditMode ? 'cursor-not-allowed opacity-60' : '',
+                  ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'expense'"
                   title="Expense Transaction"
+                  :disabled="isEditMode"
+                  :aria-disabled="isEditMode"
                   @click="selectTransactionType('expense')"
                 >
                   <ArrowUpTrayIcon class="size-5" />
                   <span>Expense</span>
                 </button>
                 <button
-                  :class="{
-                    'bg-green-100 border-2 border-green-500 text-green-700':
-                      transactionType === 'income',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'income',
-                  }"
+                  :class="[
+                    transactionType === 'income'
+                      ? 'bg-green-100 border-2 border-green-500 text-green-700'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-600',
+                    isEditMode ? 'cursor-not-allowed opacity-60' : '',
+                  ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'income'"
                   title="Income Transaction"
+                  :disabled="isEditMode"
+                  :aria-disabled="isEditMode"
                   @click="selectTransactionType('income')"
                 >
                   <ArrowDownTrayIcon class="size-5" />
                   <span>Income</span>
                 </button>
               </div>
+
+              <p v-if="isEditMode" class="mb-4 text-xs text-neutral-500">
+                Transaction type is fixed in edit mode.
+              </p>
 
               <div v-if="isLoading" class="text-center py-8">
                 <div class="inline-block animate-spin">
@@ -485,6 +531,15 @@ watch(
 
                 <div class="flex gap-2 justify-end pt-4">
                   <button
+                    v-if="isEditMode"
+                    type="button"
+                    :disabled="isSaving || isDeleting"
+                    class="mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    @click="deleteCurrentTransaction"
+                  >
+                    {{ isDeleting ? 'Deleting...' : 'Delete' }}
+                  </button>
+                  <button
                     type="button"
                     class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
                     @click="handleClose"
@@ -493,7 +548,7 @@ watch(
                   </button>
                   <button
                     type="submit"
-                    :disabled="isSaving || isTransferEdit"
+                    :disabled="isSaving || isDeleting || isTransferEdit"
                     :class="{
                       'bg-red-600 hover:bg-red-700': transactionType === 'expense',
                       'bg-green-600 hover:bg-green-700': transactionType === 'income',
@@ -504,7 +559,7 @@ watch(
                       isSaving
                         ? 'Saving...'
                         : isEditMode
-                          ? `Update ${typeConfig.label}`
+                          ? 'Update Transaction'
                           : `Add ${typeConfig.label}`
                     }}
                   </button>

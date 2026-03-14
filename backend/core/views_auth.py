@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth import login, logout
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 from .services_auth import authenticate_user, register_user, update_password
 
@@ -54,11 +54,18 @@ def login_view(request):
 
 @csrf_exempt
 def logout_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     logout(request)
     return JsonResponse({"status": "logged out"})
 
 
+@ensure_csrf_cookie
 def current_user(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     if not request.user.is_authenticated:
         return JsonResponse({"user": None})
 
@@ -71,8 +78,10 @@ def current_user(request):
     )
 
 
-@csrf_exempt
 def change_password(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "method not allowed"}, status=405)
+
     if not request.user.is_authenticated:
         return JsonResponse({"error": "login required"}, status=401)
 

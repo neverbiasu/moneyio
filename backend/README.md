@@ -24,3 +24,12 @@ Ruff is used for linting and enforcing code style rules in the backend. Follow t
 
 4. **Configuration**:
    Ruff is configured in the `pyproject.toml` file located in the `backend` directory. You can modify the configuration as needed.
+
+## Integration Seed Data
+
+1. Run integration seed data command before frontend-backend test execution:
+   ```bash
+   python manage.py seed_integration_data --reset
+   ```
+2. This command creates deterministic data for account `tomori`.
+3. Seed credentials are printed in terminal output after command execution.

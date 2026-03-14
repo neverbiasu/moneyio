@@ -190,3 +190,28 @@ class TransactionAPITests(APITestCase):
         self.assertEqual(len(res_json["results"]), 12)
         notes = [item["note"] for item in res_json["results"]]
         self.assertNotIn(secret_note, notes)
+
+
+class AuthMethodConstraintTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="auth_tester",
+            password="password123",
+            email="auth_tester@test.com",
+        )
+
+    def test_logout_only_allows_post(self):
+        response = self.client.get("/api/auth/logout/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.json()["error"], "method not allowed")
+
+    def test_me_only_allows_get(self):
+        response = self.client.post("/api/auth/me/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.json()["error"], "method not allowed")
+
+    def test_change_password_only_allows_post(self):
+        self.client.login(username="auth_tester", password="password123")
+        response = self.client.get("/api/auth/change-password/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.json()["error"], "method not allowed")

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { ChartDataPoint } from '@/api/mock-data';
+import type { ChartDataPoint } from '@/api/types';
 
 defineOptions({ name: 'TrendChart' });
 

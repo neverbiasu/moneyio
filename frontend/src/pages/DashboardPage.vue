@@ -6,8 +6,8 @@ import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
-import { mockAPI } from '@/api/mock';
-import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/mock-data';
+import apiService from '@/api/services';
+import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 
 defineOptions({ name: 'DashboardPage' });
 
@@ -53,11 +53,11 @@ async function fetchDashboardData() {
 
   try {
     const [summary, transactions, categoriesData, trendData, budgetsData] = await Promise.all([
-      mockAPI.dashboard.getSummary(),
-      mockAPI.transactions.getTransactions(),
-      mockAPI.categories.getCategories(),
-      mockAPI.dashboard.getChartData(),
-      mockAPI.budgets.getBudgets(),
+      apiService.dashboard.getSummary(),
+      apiService.transactions.getTransactions(),
+      apiService.categories.getCategories(),
+      apiService.dashboard.getChartData(),
+      apiService.budgets.getBudgets(),
     ]);
 
     summaryData.value = summary;

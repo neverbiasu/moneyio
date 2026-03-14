@@ -12,8 +12,8 @@ import {
   ArrowUpTrayIcon,
   ArrowPathIcon,
 } from '@heroicons/vue/20/solid';
-import type { Category, Account, Transaction } from '@/api/mock-data';
-import { mockAPI } from '@/api/mock';
+import type { Category, Account, Transaction } from '@/api/types';
+import apiService from '@/api/services';
 
 defineOptions({ name: 'TransactionFormModal' });
 
@@ -141,7 +141,7 @@ async function submitForm(): Promise<void> {
       note: form.notes.trim() === '' ? null : form.notes,
       transactionDate,
     };
-    await mockAPI.transactions.createTransaction(transaction);
+    await apiService.transactions.createTransaction(transaction);
     emit('saved');
     handleClose();
   } catch (err) {
@@ -169,7 +169,7 @@ onMounted(async () => {
   try {
     if (shouldFetchCategories) {
       try {
-        localCategories.value = await mockAPI.categories.getCategories();
+        localCategories.value = await apiService.categories.getCategories();
       } catch (err) {
         console.error('Failed to load categories', err);
       }
@@ -177,7 +177,7 @@ onMounted(async () => {
 
     if (shouldFetchAccounts) {
       try {
-        localAccounts.value = await mockAPI.accounts.getAccounts();
+        localAccounts.value = await apiService.accounts.getAccounts();
       } catch (err) {
         console.error('Failed to load accounts', err);
       }

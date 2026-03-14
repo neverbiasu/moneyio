@@ -3,8 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { CalendarIcon } from '@heroicons/vue/20/solid';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
-import { mockAPI } from '@/api/mock';
-import type { Transaction, Category, ChartDataPoint } from '@/api/mock-data';
+import apiService from '@/api/services';
+import type { Transaction, Category, ChartDataPoint } from '@/api/types';
 
 defineOptions({ name: 'ReportsPage' });
 
@@ -138,8 +138,8 @@ async function fetchReportData() {
 
   try {
     const [transactionsResponse, categoriesResponse] = await Promise.all([
-      mockAPI.transactions.getTransactions(),
-      mockAPI.categories.getCategories(),
+      apiService.transactions.getTransactions(),
+      apiService.categories.getCategories(),
     ]);
 
     allTransactions.value = transactionsResponse;

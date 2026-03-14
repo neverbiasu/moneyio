@@ -32,20 +32,20 @@ const currentUser = computed(() => {
   };
 });
 
-const currencyOptions = [
+const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'USD', label: 'US Dollar ($)' },
   { value: 'EUR', label: 'Euro (€)' },
   { value: 'GBP', label: 'British Pound (£)' },
   { value: 'CNY', label: 'Chinese Yuan (¥)' },
 ];
 
-const themeOptions = [
+const themeOptions: Array<{ value: ThemePreference; label: string }> = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
   { value: 'system', label: 'System' },
 ];
 
-const languageOptions = [
+const languageOptions: Array<{ value: LanguagePreference; label: string }> = [
   { value: 'en', label: 'English' },
   { value: 'zh', label: '中文' },
 ];
@@ -92,25 +92,29 @@ onMounted(() => {
     try {
       const parsed = JSON.parse(saved) as Record<string, unknown>;
 
-      if (parsed.theme === 'light' || parsed.theme === 'dark' || parsed.theme === 'system') {
-        preferences.theme = parsed.theme;
+      if (
+        parsed['theme'] === 'light' ||
+        parsed['theme'] === 'dark' ||
+        parsed['theme'] === 'system'
+      ) {
+        preferences.theme = parsed['theme'];
       }
 
       if (
-        parsed.currency === 'USD' ||
-        parsed.currency === 'EUR' ||
-        parsed.currency === 'GBP' ||
-        parsed.currency === 'CNY'
+        parsed['currency'] === 'USD' ||
+        parsed['currency'] === 'EUR' ||
+        parsed['currency'] === 'GBP' ||
+        parsed['currency'] === 'CNY'
       ) {
-        preferences.currency = parsed.currency;
+        preferences.currency = parsed['currency'];
       }
 
-      if (parsed.language === 'en' || parsed.language === 'zh') {
-        preferences.language = parsed.language;
+      if (parsed['language'] === 'en' || parsed['language'] === 'zh') {
+        preferences.language = parsed['language'];
       }
 
-      if (typeof parsed.notifications === 'boolean') {
-        preferences.notifications = parsed.notifications;
+      if (typeof parsed['notifications'] === 'boolean') {
+        preferences.notifications = parsed['notifications'];
       }
     } catch (err) {
       console.warn('Ignoring invalid userPreferences in localStorage', err);
@@ -293,7 +297,7 @@ onMounted(() => {
               id="notifications"
               type="button"
               role="switch"
-              :aria-checked="preferences.notifications.toString()"
+              :aria-checked="preferences.notifications"
               :class="preferences.notifications ? 'bg-blue-600' : 'bg-neutral-300'"
               class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors"
               @click="preferences.notifications = !preferences.notifications"

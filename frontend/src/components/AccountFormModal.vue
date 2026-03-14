@@ -11,8 +11,8 @@ import {
   ListboxOption,
 } from '@headlessui/vue';
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/20/solid';
-import { mockAPI } from '@/api/mock';
-import type { Account } from '@/api/mock-data';
+import apiService from '@/api/services';
+import type { Account } from '@/api/types';
 
 defineOptions({ name: 'AccountFormModal' });
 
@@ -104,7 +104,7 @@ async function submitForm(): Promise<void> {
   submitError.value = '';
   try {
     if (isEditMode.value && props.account) {
-      await mockAPI.accounts.updateAccount(props.account.id, {
+      await apiService.accounts.updateAccount(props.account.id, {
         name: form.name.trim(),
         type: form.type,
         balance: form.balance === '' ? 0 : Number(form.balance),
@@ -119,7 +119,7 @@ async function submitForm(): Promise<void> {
         payload.balance = Number(form.balance);
       }
 
-      await mockAPI.accounts.createAccount(payload);
+      await apiService.accounts.createAccount(payload);
     }
     emit('saved');
     handleClose();

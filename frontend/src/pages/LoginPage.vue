@@ -27,8 +27,13 @@ async function handleSubmit() {
     await authStore.login(form.username, form.password);
     await router.push('/dashboard');
   } catch (err) {
-    const e = err as { response?: { data?: { message?: string } } };
-    apiError.value = e.response?.data?.message ?? 'Login failed';
+    const e = err as {
+      response?: { status?: number; data?: { message?: string; error?: string } };
+    };
+    apiError.value =
+      e.response?.data?.error ??
+      e.response?.data?.message ??
+      (e.response?.status ? `Login failed (HTTP ${e.response.status})` : 'Login failed');
     await nextTick(() => document.getElementById('login-error')?.focus());
   } finally {
     isLoading.value = false;

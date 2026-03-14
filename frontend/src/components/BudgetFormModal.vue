@@ -11,8 +11,8 @@ import {
   SwitchGroup,
   SwitchLabel,
 } from '@headlessui/vue';
-import { mockAPI } from '@/api/mock';
-import type { Budget } from '@/api/mock-data';
+import apiService from '@/api/services';
+import type { Budget } from '@/api/types';
 
 defineOptions({ name: 'BudgetFormModal' });
 
@@ -109,16 +109,14 @@ async function submitForm(): Promise<void> {
   submitError.value = '';
   try {
     if (isEditMode.value && props.budget) {
-      // Update existing budget
-      await mockAPI.budgets.updateBudget(props.budget.id, {
+      await apiService.budgets.updateBudget(props.budget.id, {
         name: form.name.trim(),
         amountLimit: Number(form.amountLimit),
         isRecurring: form.isRecurring,
         budgetMonth: form.budgetMonth,
       });
     } else {
-      // Create new budget
-      await mockAPI.budgets.createBudget({
+      await apiService.budgets.createBudget({
         name: form.name.trim(),
         amountLimit: Number(form.amountLimit),
         isRecurring: form.isRecurring,
@@ -130,7 +128,8 @@ async function submitForm(): Promise<void> {
     handleClose();
   } catch (err) {
     console.error('Failed to save budget', err);
-    submitError.value = 'Failed to save budget. Please try again.';
+    submitError.value =
+      err instanceof Error ? err.message : 'Failed to save budget. Please try again.';
   } finally {
     isSaving.value = false;
   }

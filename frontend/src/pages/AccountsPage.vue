@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue';
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/vue/20/solid';
 import AccountFormModal from '@/components/AccountFormModal.vue';
-import { mockAPI } from '@/api/mock';
-import type { Account } from '@/api/mock-data';
+import apiService from '@/api/services';
+import type { Account } from '@/api/types';
 
 defineOptions({ name: 'AccountsPage' });
 
@@ -21,7 +21,7 @@ async function fetchAccounts() {
   isLoading.value = true;
   error.value = null;
   try {
-    accounts.value = await mockAPI.accounts.getAccounts();
+    accounts.value = await apiService.accounts.getAccounts();
   } catch (err) {
     console.error('Failed to load accounts:', err);
     error.value = 'Failed to load accounts. Please try again.';
@@ -60,7 +60,7 @@ function cancelDelete() {
 
 async function confirmDelete(id: number) {
   try {
-    await mockAPI.accounts.deleteAccount(id);
+    await apiService.accounts.deleteAccount(id);
     deleteConfirmId.value = null;
     await fetchAccounts();
   } catch (err) {

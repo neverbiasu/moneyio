@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import type { Transaction, Category } from '@/api/mock-data';
+import type { Transaction, Category } from '@/api/types';
 
 defineOptions({ name: 'RecentTransactionsList' });
 

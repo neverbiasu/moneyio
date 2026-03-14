@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/vue/20/solid';
 import AccountFormModal from '@/components/AccountFormModal.vue';
 import apiService from '@/api/services';
-import type { Account } from '@/api/mock-data';
+import type { Account } from '@/api/types';
 
 defineOptions({ name: 'AccountsPage' });
 

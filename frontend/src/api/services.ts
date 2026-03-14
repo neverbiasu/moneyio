@@ -9,7 +9,7 @@ import type {
   ChartDataPoint,
   Summary,
   Transaction,
-} from '@/api/mock-data';
+} from '@/api/types';
 
 interface BackendAccount {
   id: number;
@@ -368,8 +368,18 @@ export const apiService = {
     },
 
     async getChartData(): Promise<ChartData> {
+      const endDate = new Date();
+      endDate.setHours(0, 0, 0, 0);
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - 29);
+      const startDateStr = startDate.toISOString().slice(0, 10);
+      const endDateStr = endDate.toISOString().slice(0, 10);
+
       const [transactions, categories] = await Promise.all([
-        apiService.transactions.getTransactions(),
+        apiService.transactions.getTransactions({
+          startDate: startDateStr,
+          endDate: endDateStr,
+        }),
         apiService.categories.getCategories(),
       ]);
 
@@ -378,8 +388,6 @@ export const apiService = {
         categoryTypeById.set(category.id, category.type);
       }
 
-      const endDate = new Date();
-      endDate.setHours(0, 0, 0, 0);
       const pointsMap = new Map<string, ChartDataPoint>();
 
       for (let i = 29; i >= 0; i -= 1) {

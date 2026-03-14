@@ -7,6 +7,6 @@ Learn more about the recommended Project Setup and IDE Support in the [Vue Docs 
 ## Local API Integration
 
 1. Start backend server at `http://127.0.0.1:8000`.
-2. Start frontend dev server with `npm run dev`.
+2. Start frontend dev server with `bun dev` (or `npm run dev` if using npm).
 3. Frontend dev server proxies `/api/*` to backend via `vite.config.ts`.
 4. If you override `VITE_API_BASE_URL`, ensure it points to a reachable backend `/api` path.

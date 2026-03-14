@@ -1,8 +1,9 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -18,9 +19,23 @@ class Command(BaseCommand):
             action="store_true",
             help="Delete existing integration seed user data before seeding.",
         )
+        parser.add_argument(
+            "--i-understand",
+            action="store_true",
+            help=(
+                "Acknowledge deterministic credentials for local/integration testing. "
+                "Required when DEBUG is False."
+            ),
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if not settings.DEBUG and not options["i_understand"]:
+            raise CommandError(
+                "Refusing to seed deterministic credentials while DEBUG is False. "
+                "Re-run with --i-understand to continue."
+            )
+
         username = "tomori"
         email = "tomori@mygo.bandream"
         password = "MyGO!!!!!No.1"

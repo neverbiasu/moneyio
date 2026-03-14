@@ -12,7 +12,7 @@ import {
   SwitchLabel,
 } from '@headlessui/vue';
 import apiService from '@/api/services';
-import type { Budget } from '@/api/mock-data';
+import type { Budget } from '@/api/types';
 
 defineOptions({ name: 'BudgetFormModal' });
 

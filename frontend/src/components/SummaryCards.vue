@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Summary } from '@/api/mock-data';
+import type { Summary } from '@/api/types';
 
 defineOptions({ name: 'SummaryCards' });
 

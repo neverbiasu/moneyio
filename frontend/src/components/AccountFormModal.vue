@@ -12,7 +12,7 @@ import {
 } from '@headlessui/vue';
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/20/solid';
 import apiService from '@/api/services';
-import type { Account } from '@/api/mock-data';
+import type { Account } from '@/api/types';
 
 defineOptions({ name: 'AccountFormModal' });
 

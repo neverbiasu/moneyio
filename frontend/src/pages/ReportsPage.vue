@@ -4,7 +4,7 @@ import { CalendarIcon } from '@heroicons/vue/20/solid';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import apiService from '@/api/services';
-import type { Transaction, Category, ChartDataPoint } from '@/api/mock-data';
+import type { Transaction, Category, ChartDataPoint } from '@/api/types';
 
 defineOptions({ name: 'ReportsPage' });
 

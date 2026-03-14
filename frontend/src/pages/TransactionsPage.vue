@@ -12,7 +12,7 @@ import {
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
-import type { Transaction, Category, Account } from '@/api/mock-data';
+import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
 
 defineOptions({ name: 'TransactionsPage' });

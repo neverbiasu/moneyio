@@ -13,7 +13,7 @@ import {
 } from '@heroicons/vue/20/solid';
 import BudgetFormModal from '@/components/BudgetFormModal.vue';
 import apiService from '@/api/services';
-import type { Budget } from '@/api/mock-data';
+import type { Budget } from '@/api/types';
 
 defineOptions({ name: 'BudgetsPage' });
 
@@ -27,6 +27,7 @@ const modalMode = ref<'create' | 'edit'>('create');
 const selectedBudget = ref<Budget | null>(null);
 const deleteConfirmId = ref<number | null>(null);
 const selectedView = ref<'monthly' | 'yearly'>('monthly');
+const budgetMutationsSupported = false;
 
 async function fetchBudgets() {
   isLoading.value = true;
@@ -189,18 +190,33 @@ function getBudgetInitial(budget: Budget): string {
 }
 
 function openCreateModal() {
+  if (!budgetMutationsSupported) {
+    error.value = 'Budget create and update are not supported by backend API yet.';
+    return;
+  }
+
   modalMode.value = 'create';
   selectedBudget.value = null;
   isModalOpen.value = true;
 }
 
 function openEditModal(budget: Budget) {
+  if (!budgetMutationsSupported) {
+    error.value = 'Budget create and update are not supported by backend API yet.';
+    return;
+  }
+
   modalMode.value = 'edit';
   selectedBudget.value = budget;
   isModalOpen.value = true;
 }
 
 function startDeleteConfirm(id: number) {
+  if (!budgetMutationsSupported) {
+    error.value = 'Budget deletion is not supported by backend API yet.';
+    return;
+  }
+
   deleteConfirmId.value = id;
 }
 
@@ -209,6 +225,12 @@ function cancelDelete() {
 }
 
 async function confirmDelete(id: number) {
+  if (!budgetMutationsSupported) {
+    deleteConfirmId.value = null;
+    error.value = 'Budget deletion is not supported by backend API yet.';
+    return;
+  }
+
   try {
     await apiService.budgets.deleteBudget(id);
     deleteConfirmId.value = null;
@@ -276,7 +298,8 @@ onMounted(() => {
 
           <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+            :disabled="!budgetMutationsSupported"
+            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             @click="openCreateModal"
           >
             <PlusIcon class="size-4" aria-hidden="true" />
@@ -378,7 +401,8 @@ onMounted(() => {
       </p>
       <button
         type="button"
-        class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+        :disabled="!budgetMutationsSupported"
+        class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         @click="openCreateModal"
       >
         <PlusIcon class="size-4" aria-hidden="true" />
@@ -441,7 +465,8 @@ onMounted(() => {
                     <div class="flex shrink-0 gap-1">
                       <button
                         type="button"
-                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                        :disabled="!budgetMutationsSupported"
+                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                         :aria-label="`Edit ${budget.name}`"
                         @click="openEditModal(budget)"
                       >
@@ -449,7 +474,8 @@ onMounted(() => {
                       </button>
                       <button
                         type="button"
-                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                        :disabled="!budgetMutationsSupported"
+                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                         :aria-label="`Delete ${budget.name}`"
                         @click="startDeleteConfirm(budget.id)"
                       >

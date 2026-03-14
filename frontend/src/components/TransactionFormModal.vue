@@ -12,7 +12,7 @@ import {
   ArrowUpTrayIcon,
   ArrowPathIcon,
 } from '@heroicons/vue/20/solid';
-import type { Category, Account, Transaction } from '@/api/mock-data';
+import type { Category, Account, Transaction } from '@/api/types';
 import apiService from '@/api/services';
 
 defineOptions({ name: 'TransactionFormModal' });

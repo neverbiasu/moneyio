@@ -7,7 +7,7 @@ import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
 import apiService from '@/api/services';
-import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/mock-data';
+import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 
 defineOptions({ name: 'DashboardPage' });
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
@@ -10,20 +10,24 @@ import {
   CalendarIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
-  ArrowPathIcon,
 } from '@heroicons/vue/20/solid';
 import type { Category, Account, Transaction } from '@/api/types';
 import apiService from '@/api/services';
+import axios from 'axios';
 
 defineOptions({ name: 'TransactionFormModal' });
 
 const props = withDefaults(
   defineProps<{
     isOpen: boolean;
+    mode?: 'create' | 'edit';
+    transaction?: Transaction | null;
     categories?: Category[];
     accounts?: Account[];
   }>(),
   {
+    mode: 'create',
+    transaction: null,
     categories: () => [],
     accounts: () => [],
   },
@@ -34,7 +38,7 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const transactionType = ref<'expense' | 'income' | 'transfer'>('expense');
+const transactionType = ref<'expense' | 'income'>('expense');
 const form = reactive({
   amount: '',
   categoryId: null as number | null,
@@ -71,10 +75,9 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
+const isEditMode = computed(() => props.mode === 'edit' && !!props.transaction);
+
 const filteredCategories = computed(() => {
-  if (transactionType.value === 'transfer') {
-    return [];
-  }
   return categories.value.filter((c) => c.type === transactionType.value);
 });
 
@@ -82,15 +85,13 @@ const typeConfig = computed(() => {
   const configs = {
     expense: { label: 'Expense', color: 'red', icon: ArrowUpTrayIcon },
     income: { label: 'Income', color: 'green', icon: ArrowDownTrayIcon },
-    transfer: { label: 'Transfer', color: 'blue', icon: ArrowPathIcon },
   };
   return configs[transactionType.value];
 });
 
 function validate(): boolean {
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
-  errors.categoryId =
-    transactionType.value === 'transfer' || form.categoryId ? '' : 'Please select a category';
+  errors.categoryId = form.categoryId ? '' : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
   return !hasErrors.value;
 }
@@ -107,10 +108,38 @@ function resetForm(): void {
   submitError.value = '';
 }
 
-function selectTransactionType(type: 'expense' | 'income' | 'transfer'): void {
+function selectTransactionType(type: 'expense' | 'income'): void {
   transactionType.value = type;
   form.categoryId = null;
   errors.categoryId = '';
+}
+
+function detectTransactionType(categoryId: number | null): 'expense' | 'income' {
+  if (categoryId === null) {
+    return 'expense';
+  }
+
+  const target = categories.value.find((item) => item.id === categoryId);
+  return target?.type === 'income' ? 'income' : 'expense';
+}
+
+function initializeEditForm(): void {
+  if (!props.transaction) {
+    resetForm();
+    transactionType.value = 'expense';
+    return;
+  }
+
+  form.amount = String(props.transaction.amount);
+  form.categoryId = props.transaction.categoryId;
+  form.accountId = props.transaction.accountId;
+  form.notes = props.transaction.note ?? '';
+  form.date = new Date(props.transaction.transactionDate);
+  transactionType.value = detectTransactionType(props.transaction.categoryId);
+  errors.amount = '';
+  errors.categoryId = '';
+  errors.accountId = '';
+  submitError.value = '';
 }
 
 async function submitForm(): Promise<void> {
@@ -128,8 +157,8 @@ async function submitForm(): Promise<void> {
       return;
     }
 
-    const categoryId = transactionType.value === 'transfer' ? null : form.categoryId;
-    if (transactionType.value !== 'transfer' && categoryId === null) {
+    const categoryId = form.categoryId;
+    if (categoryId === null) {
       errors.categoryId = 'Please select a category';
       return;
     }
@@ -141,12 +170,26 @@ async function submitForm(): Promise<void> {
       note: form.notes.trim() === '' ? null : form.notes,
       transactionDate,
     };
-    await apiService.transactions.createTransaction(transaction);
+
+    if (isEditMode.value && props.transaction) {
+      await apiService.transactions.updateTransaction(props.transaction.id, transaction);
+    } else {
+      await apiService.transactions.createTransaction(transaction);
+    }
+
     emit('saved');
     handleClose();
   } catch (err) {
     console.error('Failed to save transaction', err);
-    submitError.value = 'Failed to save transaction. Please try again.';
+    if (axios.isAxiosError(err)) {
+      submitError.value =
+        (err.response?.data as { error?: string } | undefined)?.error ??
+        'Failed to save transaction. Please try again.';
+    } else if (err instanceof Error) {
+      submitError.value = err.message;
+    } else {
+      submitError.value = 'Failed to save transaction. Please try again.';
+    }
   } finally {
     isSaving.value = false;
   }
@@ -184,8 +227,28 @@ onMounted(async () => {
     }
   } finally {
     isLoading.value = false;
+    if (isEditMode.value) {
+      initializeEditForm();
+    }
   }
 });
+
+watch(
+  () => [props.isOpen, props.mode, props.transaction?.id, categories.value.length],
+  () => {
+    if (!props.isOpen) {
+      return;
+    }
+
+    if (isEditMode.value) {
+      initializeEditForm();
+      return;
+    }
+
+    resetForm();
+    transactionType.value = 'expense';
+  },
+);
 </script>
 
 <template>
@@ -220,7 +283,9 @@ onMounted(async () => {
               aria-modal="true"
               aria-labelledby="modal-title"
             >
-              <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">Add Transaction</h2>
+              <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">
+                {{ isEditMode ? 'Edit Transaction' : 'Add Transaction' }}
+              </h2>
 
               <div class="mb-6 flex gap-2">
                 <button
@@ -237,22 +302,6 @@ onMounted(async () => {
                 >
                   <ArrowUpTrayIcon class="size-5" />
                   <span>Expense</span>
-                </button>
-                <button
-                  v-if="accounts.length > 1"
-                  :class="{
-                    'bg-blue-100 border-2 border-blue-500 text-blue-700':
-                      transactionType === 'transfer',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'transfer',
-                  }"
-                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
-                  :aria-pressed="transactionType === 'transfer'"
-                  title="Transfer Between Accounts"
-                  @click="selectTransactionType('transfer')"
-                >
-                  <ArrowPathIcon class="size-5" />
-                  <span>Transfer</span>
                 </button>
                 <button
                   :class="{
@@ -286,7 +335,7 @@ onMounted(async () => {
 
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                    {{ transactionType === 'transfer' ? 'Amount to Transfer' : 'Amount' }}
+                    Amount
                   </label>
                   <input
                     id="amount"
@@ -301,7 +350,7 @@ onMounted(async () => {
                   <p v-if="errors.amount" class="mt-1 text-sm text-red-600">{{ errors.amount }}</p>
                 </div>
 
-                <div v-if="transactionType !== 'transfer'">
+                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <Listbox v-model="form.categoryId">
                     <div class="relative">
@@ -430,11 +479,16 @@ onMounted(async () => {
                     :class="{
                       'bg-red-600 hover:bg-red-700': transactionType === 'expense',
                       'bg-green-600 hover:bg-green-700': transactionType === 'income',
-                      'bg-blue-600 hover:bg-blue-700': transactionType === 'transfer',
                     }"
                     class="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {{ isSaving ? 'Saving...' : `Add ${typeConfig.label}` }}
+                    {{
+                      isSaving
+                        ? 'Saving...'
+                        : isEditMode
+                          ? `Update ${typeConfig.label}`
+                          : `Add ${typeConfig.label}`
+                    }}
                   </button>
                 </div>
               </form>

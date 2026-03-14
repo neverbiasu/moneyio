@@ -12,6 +12,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
+import UserProfileModal from './UserProfileModal.vue';
 
 defineProps<{
   isOpen: boolean;
@@ -32,16 +33,19 @@ const navItems = [
   { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
 ];
 
+const avatarUrl = ref('/avatar.png');
+
 const currentUser = computed(() => {
   const user = authStore.user as { username?: string; email?: string } | null;
   return {
     name: user?.username ?? 'User',
     email: user?.email ?? 'user@example.com',
-    avatar: '/avatar.png',
+    avatar: avatarUrl.value,
   };
 });
 
 const userMenuOpen = ref(false);
+const profileModalOpen = ref(false);
 
 const mq = typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)') : null;
 const isDesktop = ref(mq?.matches ?? true);
@@ -64,10 +68,20 @@ async function handleUserAction(key: string) {
     return;
   }
 
-  if (key === 'profile' || key === 'security') {
+  if (key === 'profile') {
+    profileModalOpen.value = true;
+    return;
+  }
+
+  if (key === 'security') {
     emit('close');
     await router.push('/settings');
   }
+}
+
+function handleProfileSaved(newAvatar: string) {
+  avatarUrl.value = newAvatar;
+  localStorage.setItem('userAvatarDataUrl', newAvatar);
 }
 
 function onMqChange(e: MediaQueryListEvent) {
@@ -76,6 +90,10 @@ function onMqChange(e: MediaQueryListEvent) {
 
 onMounted(() => {
   mq?.addEventListener('change', onMqChange);
+  const savedAvatar = localStorage.getItem('userAvatarDataUrl');
+  if (savedAvatar) {
+    avatarUrl.value = savedAvatar;
+  }
 });
 
 onBeforeUnmount(() => {
@@ -121,6 +139,15 @@ onBeforeUnmount(() => {
     </nav>
 
     <div class="relative border-t border-gray-200 p-4">
+      <UserProfileModal
+        :is-open="profileModalOpen"
+        :name="currentUser.name"
+        :email="currentUser.email"
+        :avatar="currentUser.avatar"
+        @close="profileModalOpen = false"
+        @saved="handleProfileSaved"
+      />
+
       <UserMenuPopup v-if="userMenuOpen" @action="handleUserAction" @close="userMenuOpen = false" />
 
       <button

@@ -11,6 +11,10 @@ interface LoginPayload {
   password: string;
 }
 
+interface ChangePasswordPayload {
+  password: string;
+}
+
 interface CurrentUserResponse {
   id?: number;
   username?: string;
@@ -33,4 +37,8 @@ export async function logout(): Promise<void> {
 export async function getCurrentUser(): Promise<CurrentUserResponse> {
   const response = await api.get<CurrentUserResponse>('/auth/me/');
   return response.data;
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  await api.post('/auth/change-password/', payload);
 }

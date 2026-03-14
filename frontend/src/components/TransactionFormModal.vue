@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
@@ -10,20 +10,24 @@ import {
   CalendarIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
-  ArrowPathIcon,
 } from '@heroicons/vue/20/solid';
 import type { Category, Account, Transaction } from '@/api/types';
 import apiService from '@/api/services';
+import axios from 'axios';
 
 defineOptions({ name: 'TransactionFormModal' });
 
 const props = withDefaults(
   defineProps<{
     isOpen: boolean;
+    mode?: 'create' | 'edit';
+    transaction?: Transaction | null;
     categories?: Category[];
     accounts?: Account[];
   }>(),
   {
+    mode: 'create',
+    transaction: null,
     categories: () => [],
     accounts: () => [],
   },
@@ -32,9 +36,10 @@ const props = withDefaults(
 const emit = defineEmits<{
   close: [];
   saved: [];
+  deleted: [];
 }>();
 
-const transactionType = ref<'expense' | 'income' | 'transfer'>('expense');
+const transactionType = ref<'expense' | 'income'>('expense');
 const form = reactive({
   amount: '',
   categoryId: null as number | null,
@@ -53,6 +58,7 @@ const submitError = ref<string>('');
 const localCategories = ref<Category[]>([]);
 const localAccounts = ref<Account[]>([]);
 const isSaving = ref(false);
+const isDeleting = ref(false);
 const isLoading = ref(false);
 
 const categories = computed(() =>
@@ -71,10 +77,12 @@ const selectedAccount = computed(() => accounts.value.find((a) => a.id === form.
 
 const hasErrors = computed(() => !!errors.amount || !!errors.categoryId || !!errors.accountId);
 
+const isEditMode = computed(() => props.mode === 'edit' && !!props.transaction);
+const isTransferEdit = computed(
+  () => isEditMode.value && props.transaction !== null && props.transaction.categoryId === null,
+);
+
 const filteredCategories = computed(() => {
-  if (transactionType.value === 'transfer') {
-    return [];
-  }
   return categories.value.filter((c) => c.type === transactionType.value);
 });
 
@@ -82,15 +90,21 @@ const typeConfig = computed(() => {
   const configs = {
     expense: { label: 'Expense', color: 'red', icon: ArrowUpTrayIcon },
     income: { label: 'Income', color: 'green', icon: ArrowDownTrayIcon },
-    transfer: { label: 'Transfer', color: 'blue', icon: ArrowPathIcon },
   };
   return configs[transactionType.value];
 });
 
 function validate(): boolean {
+  if (isTransferEdit.value) {
+    errors.amount = '';
+    errors.categoryId = 'Transfer transactions are not supported in this form.';
+    errors.accountId = '';
+    submitError.value = 'Transfer transactions are not supported in this form.';
+    return false;
+  }
+
   errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
-  errors.categoryId =
-    transactionType.value === 'transfer' || form.categoryId ? '' : 'Please select a category';
+  errors.categoryId = form.categoryId ? '' : 'Please select a category';
   errors.accountId = form.accountId ? '' : 'Please select an account';
   return !hasErrors.value;
 }
@@ -107,10 +121,44 @@ function resetForm(): void {
   submitError.value = '';
 }
 
-function selectTransactionType(type: 'expense' | 'income' | 'transfer'): void {
+function selectTransactionType(type: 'expense' | 'income'): void {
+  if (isEditMode.value) {
+    return;
+  }
+
   transactionType.value = type;
   form.categoryId = null;
   errors.categoryId = '';
+}
+
+function detectTransactionType(categoryId: number | null): 'expense' | 'income' {
+  if (categoryId === null) {
+    return 'expense';
+  }
+
+  const target = categories.value.find((item) => item.id === categoryId);
+  return target?.type === 'income' ? 'income' : 'expense';
+}
+
+function initializeEditForm(): void {
+  if (!props.transaction) {
+    resetForm();
+    transactionType.value = 'expense';
+    return;
+  }
+
+  form.amount = String(props.transaction.amount);
+  form.categoryId = props.transaction.categoryId;
+  form.accountId = props.transaction.accountId;
+  form.notes = props.transaction.note ?? '';
+  form.date = new Date(props.transaction.transactionDate);
+  transactionType.value = detectTransactionType(props.transaction.categoryId);
+  errors.amount = '';
+  errors.categoryId = '';
+  errors.accountId = '';
+  submitError.value = isTransferEdit.value
+    ? 'Transfer transactions are not supported in this form.'
+    : '';
 }
 
 async function submitForm(): Promise<void> {
@@ -119,6 +167,11 @@ async function submitForm(): Promise<void> {
   isSaving.value = true;
   submitError.value = '';
   try {
+    if (isTransferEdit.value) {
+      submitError.value = 'Transfer transactions are not supported in this form.';
+      return;
+    }
+
     const date = form.date ?? new Date();
     const transactionDate = date.toISOString();
 
@@ -128,8 +181,8 @@ async function submitForm(): Promise<void> {
       return;
     }
 
-    const categoryId = transactionType.value === 'transfer' ? null : form.categoryId;
-    if (transactionType.value !== 'transfer' && categoryId === null) {
+    const categoryId = form.categoryId;
+    if (categoryId === null) {
       errors.categoryId = 'Please select a category';
       return;
     }
@@ -141,14 +194,60 @@ async function submitForm(): Promise<void> {
       note: form.notes.trim() === '' ? null : form.notes,
       transactionDate,
     };
-    await apiService.transactions.createTransaction(transaction);
+
+    if (isEditMode.value && props.transaction) {
+      await apiService.transactions.updateTransaction(props.transaction.id, transaction);
+    } else {
+      await apiService.transactions.createTransaction(transaction);
+    }
+
     emit('saved');
     handleClose();
   } catch (err) {
     console.error('Failed to save transaction', err);
-    submitError.value = 'Failed to save transaction. Please try again.';
+    if (axios.isAxiosError(err)) {
+      submitError.value =
+        (err.response?.data as { error?: string } | undefined)?.error ??
+        'Failed to save transaction. Please try again.';
+    } else if (err instanceof Error) {
+      submitError.value = err.message;
+    } else {
+      submitError.value = 'Failed to save transaction. Please try again.';
+    }
   } finally {
     isSaving.value = false;
+  }
+}
+
+async function deleteCurrentTransaction(): Promise<void> {
+  if (!isEditMode.value || !props.transaction) {
+    return;
+  }
+
+  const confirmed = window.confirm('Delete this transaction? This action cannot be undone.');
+  if (!confirmed) {
+    return;
+  }
+
+  isDeleting.value = true;
+  submitError.value = '';
+  try {
+    await apiService.transactions.deleteTransaction(props.transaction.id);
+    emit('deleted');
+    handleClose();
+  } catch (err) {
+    console.error('Failed to delete transaction', err);
+    if (axios.isAxiosError(err)) {
+      submitError.value =
+        (err.response?.data as { error?: string } | undefined)?.error ??
+        'Failed to delete transaction. Please try again.';
+    } else if (err instanceof Error) {
+      submitError.value = err.message;
+    } else {
+      submitError.value = 'Failed to delete transaction. Please try again.';
+    }
+  } finally {
+    isDeleting.value = false;
   }
 }
 
@@ -184,8 +283,28 @@ onMounted(async () => {
     }
   } finally {
     isLoading.value = false;
+    if (isEditMode.value) {
+      initializeEditForm();
+    }
   }
 });
+
+watch(
+  () => [props.isOpen, props.mode, props.transaction?.id, categories.value.length],
+  () => {
+    if (!props.isOpen) {
+      return;
+    }
+
+    if (isEditMode.value) {
+      initializeEditForm();
+      return;
+    }
+
+    resetForm();
+    transactionType.value = 'expense';
+  },
+);
 </script>
 
 <template>
@@ -220,56 +339,50 @@ onMounted(async () => {
               aria-modal="true"
               aria-labelledby="modal-title"
             >
-              <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">Add Transaction</h2>
+              <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">
+                {{ isEditMode ? 'Edit Transaction' : 'Add Transaction' }}
+              </h2>
 
               <div class="mb-6 flex gap-2">
                 <button
-                  :class="{
-                    'bg-red-100 border-2 border-red-500 text-red-700':
-                      transactionType === 'expense',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'expense',
-                  }"
+                  :class="[
+                    transactionType === 'expense'
+                      ? 'bg-red-100 border-2 border-red-500 text-red-700'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-600',
+                    isEditMode ? 'cursor-not-allowed opacity-60' : '',
+                  ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'expense'"
                   title="Expense Transaction"
+                  :disabled="isEditMode"
+                  :aria-disabled="isEditMode"
                   @click="selectTransactionType('expense')"
                 >
                   <ArrowUpTrayIcon class="size-5" />
                   <span>Expense</span>
                 </button>
                 <button
-                  v-if="accounts.length > 1"
-                  :class="{
-                    'bg-blue-100 border-2 border-blue-500 text-blue-700':
-                      transactionType === 'transfer',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'transfer',
-                  }"
-                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
-                  :aria-pressed="transactionType === 'transfer'"
-                  title="Transfer Between Accounts"
-                  @click="selectTransactionType('transfer')"
-                >
-                  <ArrowPathIcon class="size-5" />
-                  <span>Transfer</span>
-                </button>
-                <button
-                  :class="{
-                    'bg-green-100 border-2 border-green-500 text-green-700':
-                      transactionType === 'income',
-                    'bg-gray-100 border-2 border-gray-300 text-gray-600':
-                      transactionType !== 'income',
-                  }"
+                  :class="[
+                    transactionType === 'income'
+                      ? 'bg-green-100 border-2 border-green-500 text-green-700'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-600',
+                    isEditMode ? 'cursor-not-allowed opacity-60' : '',
+                  ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'income'"
                   title="Income Transaction"
+                  :disabled="isEditMode"
+                  :aria-disabled="isEditMode"
                   @click="selectTransactionType('income')"
                 >
                   <ArrowDownTrayIcon class="size-5" />
                   <span>Income</span>
                 </button>
               </div>
+
+              <p v-if="isEditMode" class="mb-4 text-xs text-neutral-500">
+                Transaction type is fixed in edit mode.
+              </p>
 
               <div v-if="isLoading" class="text-center py-8">
                 <div class="inline-block animate-spin">
@@ -286,7 +399,7 @@ onMounted(async () => {
 
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                    {{ transactionType === 'transfer' ? 'Amount to Transfer' : 'Amount' }}
+                    Amount
                   </label>
                   <input
                     id="amount"
@@ -301,7 +414,7 @@ onMounted(async () => {
                   <p v-if="errors.amount" class="mt-1 text-sm text-red-600">{{ errors.amount }}</p>
                 </div>
 
-                <div v-if="transactionType !== 'transfer'">
+                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <Listbox v-model="form.categoryId">
                     <div class="relative">
@@ -418,6 +531,15 @@ onMounted(async () => {
 
                 <div class="flex gap-2 justify-end pt-4">
                   <button
+                    v-if="isEditMode"
+                    type="button"
+                    :disabled="isSaving || isDeleting"
+                    class="mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    @click="deleteCurrentTransaction"
+                  >
+                    {{ isDeleting ? 'Deleting...' : 'Delete' }}
+                  </button>
+                  <button
                     type="button"
                     class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
                     @click="handleClose"
@@ -426,15 +548,20 @@ onMounted(async () => {
                   </button>
                   <button
                     type="submit"
-                    :disabled="isSaving"
+                    :disabled="isSaving || isDeleting || isTransferEdit"
                     :class="{
                       'bg-red-600 hover:bg-red-700': transactionType === 'expense',
                       'bg-green-600 hover:bg-green-700': transactionType === 'income',
-                      'bg-blue-600 hover:bg-blue-700': transactionType === 'transfer',
                     }"
                     class="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {{ isSaving ? 'Saving...' : `Add ${typeConfig.label}` }}
+                    {{
+                      isSaving
+                        ? 'Saving...'
+                        : isEditMode
+                          ? 'Update Transaction'
+                          : `Add ${typeConfig.label}`
+                    }}
                   </button>
                 </div>
               </form>

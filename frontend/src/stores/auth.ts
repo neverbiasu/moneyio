@@ -60,6 +60,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function changePassword(password: string) {
+    await authApi.changePassword({ password });
+  }
+
   function clearLocalAuthState() {
     user.value = null;
     isLoaded.value = true;
@@ -75,5 +79,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    changePassword,
   };
 });

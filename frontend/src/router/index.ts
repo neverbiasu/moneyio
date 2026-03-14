@@ -59,7 +59,6 @@ const router = createRouter({
           path: 'settings',
           name: 'settings',
           component: SettingsPage,
-          meta: { subtitle: 'Manage your account and preferences' },
         },
       ],
     },

@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
+import axios from 'axios';
 import {
   ChevronDownIcon,
   CheckIcon,
@@ -23,6 +24,8 @@ const accounts = ref<Account[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const isModalOpen = ref(false);
+const modalMode = ref<'create' | 'edit'>('create');
+const selectedTransaction = ref<Transaction | null>(null);
 
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
@@ -39,6 +42,7 @@ const activeFilters = reactive({
 });
 
 const pagination = reactive({ page: 1, limit: 20, total: 0 });
+const pageSizeOptions = [10, 20, 50];
 
 interface CategoryOption {
   id: number | null;
@@ -81,6 +85,21 @@ const hasActiveFilters = computed(
     activeFilters.endDate !== null,
 );
 
+function getApiErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    const backendError = (err.response?.data as { error?: unknown } | undefined)?.error;
+    if (typeof backendError === 'string' && backendError.trim() !== '') {
+      return backendError;
+    }
+  }
+
+  if (err instanceof Error && err.message.trim() !== '') {
+    return err.message;
+  }
+
+  return fallback;
+}
+
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
@@ -107,14 +126,19 @@ async function fetchTransactions() {
       filtered = filtered.filter((t) => new Date(t.transactionDate) <= ed);
     }
 
-    filtered.sort(
-      (a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime(),
-    );
+    filtered.sort((a, b) => {
+      const dateDiff =
+        new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return b.id - a.id;
+    });
     transactions.value = filtered;
     pagination.total = filtered.length;
   } catch (err) {
     console.error('Failed to load transactions:', err);
-    error.value = 'Failed to load transactions. Please try again.';
+    error.value = getApiErrorMessage(err, 'Failed to load transactions. Please try again.');
   } finally {
     isLoading.value = false;
   }
@@ -217,12 +241,38 @@ watch(
   () => window.scrollTo(0, 0),
 );
 
+watch(
+  () => pagination.limit,
+  () => {
+    pagination.page = 1;
+  },
+);
+
 onMounted(() => {
   void Promise.all([fetchMetadata(), fetchTransactions()]);
 });
 
+function openCreateModal() {
+  modalMode.value = 'create';
+  selectedTransaction.value = null;
+  isModalOpen.value = true;
+}
+
+function openEditModal(transaction: Transaction) {
+  modalMode.value = 'edit';
+  selectedTransaction.value = transaction;
+  isModalOpen.value = true;
+}
 async function handleTransactionSaved() {
   isModalOpen.value = false;
+  selectedTransaction.value = null;
+  pagination.page = 1;
+  await fetchTransactions();
+}
+
+async function handleTransactionDeleted() {
+  isModalOpen.value = false;
+  selectedTransaction.value = null;
   pagination.page = 1;
   await fetchTransactions();
 }
@@ -254,7 +304,7 @@ async function handleTransactionSaved() {
         </button>
         <button
           class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
-          @click="isModalOpen = true"
+          @click="openCreateModal"
         >
           + Add
         </button>
@@ -463,7 +513,12 @@ async function handleTransactionSaved() {
           <tr
             v-for="t in paginatedTransactions"
             :key="t.id"
-            class="hover:bg-neutral-50 transition-colors"
+            class="hover:bg-neutral-50 transition-colors cursor-pointer"
+            role="button"
+            tabindex="0"
+            @click="openEditModal(t)"
+            @keydown.enter.prevent="openEditModal(t)"
+            @keydown.space.prevent="openEditModal(t)"
           >
             <td class="px-4 py-3 text-xs text-neutral-500 tabular-nums">
               {{ t.transactionDate.slice(0, 10) }}
@@ -509,6 +564,14 @@ async function handleTransactionSaved() {
         · {{ pagination.total }} total
       </p>
       <div class="flex items-center gap-2">
+        <label class="text-sm text-neutral-500" for="page-size">Per page</label>
+        <select
+          id="page-size"
+          v-model.number="pagination.limit"
+          class="rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-700"
+        >
+          <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
+        </select>
         <button
           :disabled="!canPrevious"
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
@@ -547,10 +610,13 @@ async function handleTransactionSaved() {
     <TransactionFormModal
       v-if="isModalOpen"
       :is-open="isModalOpen"
+      :mode="modalMode"
+      :transaction="selectedTransaction"
       :categories="categories"
       :accounts="accounts"
       @close="isModalOpen = false"
       @saved="handleTransactionSaved"
+      @deleted="handleTransactionDeleted"
     />
   </div>
 </template>

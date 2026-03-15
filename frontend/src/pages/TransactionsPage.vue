@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
@@ -15,8 +16,11 @@ import {
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'TransactionsPage' });
+
+const { t } = useI18n();
 
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
@@ -54,8 +58,8 @@ interface AccountOption {
   name: string;
 }
 
-const ALL_CATEGORY: CategoryOption = { id: null, name: 'All', type: 'expense' };
-const ALL_ACCOUNT: AccountOption = { id: null, name: 'All' };
+const ALL_CATEGORY: CategoryOption = { id: null, name: '__all__', type: 'expense' };
+const ALL_ACCOUNT: AccountOption = { id: null, name: '__all__' };
 
 const categoryOptions = computed<CategoryOption[]>(() => [ALL_CATEGORY, ...categories.value]);
 const accountOptions = computed<AccountOption[]>(() => [ALL_ACCOUNT, ...accounts.value]);
@@ -138,7 +142,7 @@ async function fetchTransactions() {
     pagination.total = filtered.length;
   } catch (err) {
     console.error('Failed to load transactions:', err);
-    error.value = getApiErrorMessage(err, 'Failed to load transactions. Please try again.');
+    error.value = getApiErrorMessage(err, t('transactions.loadFailed'));
   } finally {
     isLoading.value = false;
   }
@@ -189,16 +193,16 @@ function resetFilters() {
 }
 
 function getCategoryName(id: number | null): string {
-  if (id === null) return 'Transfer';
-  return categories.value.find((c) => c.id === id)?.name ?? 'Unknown';
+  if (id === null) return t('common.transfer');
+  return categories.value.find((c) => c.id === id)?.name ?? t('common.unknown');
 }
 
 function getAccountName(id: number): string {
-  return accounts.value.find((a) => a.id === id)?.name ?? 'Unknown';
+  return accounts.value.find((a) => a.id === id)?.name ?? t('common.unknown');
 }
 
 function formatCurrency(amount: number): string {
-  return `$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount, { absolute: true });
 }
 
 function getCategoryType(id: number | null): 'income' | 'expense' | 'transfer' {
@@ -290,7 +294,7 @@ async function handleTransactionDeleted() {
             v-model="searchQuery"
             type="text"
             aria-label="Search transactions by notes"
-            placeholder="Search by notes..."
+            :placeholder="t('transactions.searchPlaceholder')"
             class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
             @keydown="handleSearchKeydown"
           />
@@ -300,25 +304,29 @@ async function handleTransactionDeleted() {
           @click="commitAndFetch"
         >
           <MagnifyingGlassIcon class="size-4" />
-          Search
+          {{ t('transactions.search') }}
         </button>
         <button
           class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
           @click="openCreateModal"
         >
-          + Add
+          {{ t('transactions.add') }}
         </button>
       </div>
 
       <div class="flex flex-wrap items-end gap-2">
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">Category</label>
+          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+            t('transactions.category')
+          }}</label>
           <Listbox v-model="selectedCategoryId">
             <div class="relative">
               <ListboxButton
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
               >
-                <span class="truncate text-neutral-800">{{ selectedCategory.name }}</span>
+                <span class="truncate text-neutral-800">{{
+                  selectedCategory.name === '__all__' ? t('common.all') : selectedCategory.name
+                }}</span>
                 <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
               </ListboxButton>
               <ListboxOptions
@@ -336,7 +344,7 @@ async function handleTransactionDeleted() {
                       active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
                     ]"
                   >
-                    <span>{{ opt.name }}</span>
+                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
                     <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
                   </li>
                 </ListboxOption>
@@ -346,13 +354,17 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">Account</label>
+          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+            t('transactions.account')
+          }}</label>
           <Listbox v-model="selectedAccountId">
             <div class="relative">
               <ListboxButton
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
               >
-                <span class="truncate text-neutral-800">{{ selectedAccount.name }}</span>
+                <span class="truncate text-neutral-800">{{
+                  selectedAccount.name === '__all__' ? t('common.all') : selectedAccount.name
+                }}</span>
                 <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
               </ListboxButton>
               <ListboxOptions
@@ -370,7 +382,7 @@ async function handleTransactionDeleted() {
                       active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
                     ]"
                   >
-                    <span>{{ opt.name }}</span>
+                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
                     <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
                   </li>
                 </ListboxOption>
@@ -380,7 +392,9 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">From</label>
+          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+            t('transactions.from')
+          }}</label>
           <DatePicker v-model="startDate" locale="en" :max-date="endDate ?? undefined">
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
@@ -391,7 +405,7 @@ async function handleTransactionDeleted() {
                   v-bind="inputEvents"
                   :value="inputValue"
                   type="text"
-                  placeholder="Start date"
+                  :placeholder="t('transactions.startDate')"
                   readonly
                   class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
                   @click="togglePopover"
@@ -411,7 +425,9 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">To</label>
+          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+            t('transactions.to')
+          }}</label>
           <DatePicker v-model="endDate" locale="en" :min-date="startDate ?? undefined">
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
@@ -422,7 +438,7 @@ async function handleTransactionDeleted() {
                   v-bind="inputEvents"
                   :value="inputValue"
                   type="text"
-                  placeholder="End date"
+                  :placeholder="t('transactions.endDate')"
                   readonly
                   class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
                   @click="togglePopover"
@@ -447,7 +463,7 @@ async function handleTransactionDeleted() {
             @click="commitAndFetch"
           >
             <FunnelIcon class="size-4" />
-            Apply
+            {{ t('transactions.apply') }}
           </button>
           <button
             v-if="hasActiveFilters"
@@ -455,7 +471,7 @@ async function handleTransactionDeleted() {
             @click="resetFilters"
           >
             <XMarkIcon class="size-4" />
-            Reset
+            {{ t('transactions.reset') }}
           </button>
         </div>
       </div>
@@ -474,8 +490,8 @@ async function handleTransactionDeleted() {
       class="py-16 text-center rounded-xl border border-neutral-200 bg-white"
     >
       <MagnifyingGlassIcon class="mx-auto size-8 text-neutral-300 mb-3" />
-      <p class="text-sm font-medium text-neutral-500">No transactions found</p>
-      <p class="text-xs text-neutral-400 mt-1">Try adjusting your search or filters</p>
+      <p class="text-sm font-medium text-neutral-500">{{ t('transactions.noTransactions') }}</p>
+      <p class="text-xs text-neutral-400 mt-1">{{ t('transactions.noTransactionsHint') }}</p>
     </div>
 
     <div v-else class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm">
@@ -485,69 +501,71 @@ async function handleTransactionDeleted() {
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
             >
-              Date
+              {{ t('transactions.dateCol') }}
             </th>
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
             >
-              Category
+              {{ t('transactions.categoryCol') }}
             </th>
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
             >
-              Account
+              {{ t('transactions.accountCol') }}
             </th>
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500"
             >
-              Notes
+              {{ t('transactions.notesCol') }}
             </th>
             <th
               class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500"
             >
-              Amount
+              {{ t('transactions.amountCol') }}
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-100">
           <tr
-            v-for="t in paginatedTransactions"
-            :key="t.id"
+            v-for="transaction in paginatedTransactions"
+            :key="transaction.id"
             class="hover:bg-neutral-50 transition-colors cursor-pointer"
             role="button"
             tabindex="0"
-            @click="openEditModal(t)"
-            @keydown.enter.prevent="openEditModal(t)"
-            @keydown.space.prevent="openEditModal(t)"
+            @click="openEditModal(transaction)"
+            @keydown.enter.prevent="openEditModal(transaction)"
+            @keydown.space.prevent="openEditModal(transaction)"
           >
             <td class="px-4 py-3 text-xs text-neutral-500 tabular-nums">
-              {{ t.transactionDate.slice(0, 10) }}
+              {{ transaction.transactionDate.slice(0, 10) }}
             </td>
             <td class="px-4 py-3">
               <span
                 class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md"
-                :class="getCategoryBadgeClass(t.categoryId)"
+                :class="getCategoryBadgeClass(transaction.categoryId)"
               >
-                {{ getCategoryName(t.categoryId) }}
+                {{ getCategoryName(transaction.categoryId) }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-neutral-600">{{ getAccountName(t.accountId) }}</td>
-            <td class="px-4 py-3 text-sm text-neutral-500">{{ t.note ?? '—' }}</td>
+            <td class="px-4 py-3 text-sm text-neutral-600">
+              {{ getAccountName(transaction.accountId) }}
+            </td>
+            <td class="px-4 py-3 text-sm text-neutral-500">{{ transaction.note ?? '—' }}</td>
             <td
               class="px-4 py-3 text-right text-sm font-semibold tabular-nums"
               :class="
-                getCategoryType(t.categoryId) === 'income' ||
-                (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0)
+                getCategoryType(transaction.categoryId) === 'income' ||
+                (getCategoryType(transaction.categoryId) === 'transfer' && transaction.amount > 0)
                   ? 'text-green-600'
                   : 'text-red-600'
               "
             >
               {{
-                getCategoryType(t.categoryId) === 'income' ||
-                (getCategoryType(t.categoryId) === 'transfer' && t.amount > 0)
+                getCategoryType(transaction.categoryId) === 'income' ||
+                (getCategoryType(transaction.categoryId) === 'transfer' && transaction.amount > 0)
                   ? '+'
                   : '-'
-              }}{{ formatCurrency(t.amount) }}
+              }}{{ formatCurrency(transaction.amount) }}
             </td>
           </tr>
         </tbody>
@@ -559,12 +577,18 @@ async function handleTransactionDeleted() {
       class="flex items-center justify-between px-4 py-3 bg-white border border-neutral-200 rounded-xl shadow-sm"
     >
       <p class="text-sm text-neutral-500">
-        Page <span class="font-medium text-neutral-800">{{ pagination.page }}</span> of
-        <span class="font-medium text-neutral-800">{{ totalPages }}</span>
-        · {{ pagination.total }} total
+        {{
+          t('transactions.pageInfo', {
+            page: pagination.page,
+            total: totalPages,
+            count: pagination.total,
+          })
+        }}
       </p>
       <div class="flex items-center gap-2">
-        <label class="text-sm text-neutral-500" for="page-size">Per page</label>
+        <label class="text-sm text-neutral-500" for="page-size">{{
+          t('transactions.perPage')
+        }}</label>
         <select
           id="page-size"
           v-model.number="pagination.limit"
@@ -577,10 +601,10 @@ async function handleTransactionDeleted() {
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           @click="prevPage"
         >
-          ← Previous
+          {{ t('transactions.previous') }}
         </button>
         <div class="flex items-center gap-1 text-sm text-neutral-500">
-          <span class="hidden sm:inline">Go to</span>
+          <span class="hidden sm:inline">{{ t('transactions.goTo') }}</span>
           <input
             v-model="jumpInput"
             type="number"
@@ -594,7 +618,7 @@ async function handleTransactionDeleted() {
             class="px-2.5 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
             @click="jumpToPage"
           >
-            Go
+            {{ t('transactions.go') }}
           </button>
         </div>
         <button
@@ -602,7 +626,7 @@ async function handleTransactionDeleted() {
           class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           @click="nextPage"
         >
-          Next →
+          {{ t('transactions.next') }}
         </button>
       </div>
     </div>

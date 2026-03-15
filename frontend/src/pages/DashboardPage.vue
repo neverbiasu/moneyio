@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SummaryCards from '@/components/SummaryCards.vue';
 import RecentTransactionsList from '@/components/RecentTransactionsList.vue';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
@@ -10,6 +11,8 @@ import apiService from '@/api/services';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 
 defineOptions({ name: 'DashboardPage' });
+
+const { t } = useI18n();
 
 const summaryData = ref<Summary | null>(null);
 const recentTransactions = ref<Transaction[]>([]);
@@ -67,7 +70,7 @@ async function fetchDashboardData() {
     budgets.value = budgetsData;
   } catch (err) {
     console.error('Failed to load dashboard data:', err);
-    error.value = 'Unable to load dashboard. Please try again.';
+    error.value = t('dashboard.loadFailed');
   } finally {
     isLoading.value = false;
   }

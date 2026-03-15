@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 import { CheckIcon } from '@heroicons/vue/20/solid';
 import axios from 'axios';
 import {
   DEFAULT_USER_PREFERENCES,
+  applyUserPreferencesToDocument,
   type CurrencyPreference,
   type FontSizePreference,
   type LanguagePreference,
   type ThemePreference,
   loadUserPreferences,
+  saveUserPreferences,
 } from '@/utils/userPreferences';
+import { syncI18nLocale } from '@/i18n';
 
 defineOptions({ name: 'SettingsPage' });
+
+const { t, locale } = useI18n();
 
 const activeTab = ref<'security' | 'preferences'>('security');
 const authStore = useAuthStore();
@@ -59,20 +65,9 @@ const fontSizeOptions: Array<{ value: FontSizePreference; label: string }> = [
 ];
 
 function applyPreferencesToDocument() {
-  if (preferences.theme === 'system') {
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme', preferences.theme);
-  }
-
-  document.documentElement.lang = preferences.language;
-
-  const fontSizeMap: Record<FontSizePreference, string> = {
-    small: '14px',
-    medium: '16px',
-    large: '18px',
-  };
-  document.documentElement.style.fontSize = fontSizeMap[preferences.fontSize];
+  applyUserPreferencesToDocument(preferences);
+  locale.value = preferences.language;
+  syncI18nLocale(preferences.language);
 }
 
 async function savePreferences() {
@@ -85,10 +80,10 @@ async function savePreferences() {
 
     applyPreferencesToDocument();
 
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    saveUserPreferences(preferences);
 
     saveSuccess.value = true;
-    saveMessage.value = 'Preferences saved successfully!';
+    saveMessage.value = t('settings.preferencesSaved');
 
     setTimeout(() => {
       saveSuccess.value = false;
@@ -97,7 +92,7 @@ async function savePreferences() {
     console.error('Failed to save preferences:', err);
     saveSuccess.value = false;
     saveError.value = true;
-    saveMessage.value = 'Failed to save preferences. Please try again.';
+    saveMessage.value = t('settings.preferencesFailed');
 
     setTimeout(() => {
       saveError.value = false;
@@ -117,18 +112,18 @@ async function changePassword() {
   }
 
   if (passwordForm.password.length < 8) {
-    passwordError.value = 'Password must be at least 8 characters.';
+    passwordError.value = t('settings.passwordMinLength');
     return;
   }
 
   if (passwordForm.password !== passwordForm.confirmPassword) {
-    passwordError.value = 'Passwords do not match.';
+    passwordError.value = t('auth.passwordsNotMatch');
     return;
   }
 
   try {
     await authStore.changePassword(passwordForm.password);
-    passwordSuccess.value = 'Password updated successfully.';
+    passwordSuccess.value = t('settings.passwordUpdated');
     passwordForm.password = '';
     passwordForm.confirmPassword = '';
   } catch (err) {
@@ -169,7 +164,7 @@ onMounted(() => {
           :aria-current="activeTab === 'security' ? 'page' : undefined"
           @click="activeTab = 'security'"
         >
-          Security
+          {{ t('settings.security') }}
         </button>
         <button
           :class="[
@@ -181,22 +176,26 @@ onMounted(() => {
           :aria-current="activeTab === 'preferences' ? 'page' : undefined"
           @click="activeTab = 'preferences'"
         >
-          Preferences
+          {{ t('settings.preferences') }}
         </button>
       </nav>
     </div>
 
     <section v-if="activeTab === 'security'" class="space-y-6">
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Security</h2>
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
+          {{ t('settings.securityTitle') }}
+        </h2>
 
         <div class="space-y-4">
           <div class="space-y-3">
-            <h3 class="text-sm font-semibold text-neutral-800">Change Password</h3>
+            <h3 class="text-sm font-semibold text-neutral-800">
+              {{ t('settings.changePassword') }}
+            </h3>
 
             <div>
               <label for="new-password" class="block text-sm font-medium text-neutral-700 mb-1">
-                New Password
+                {{ t('settings.newPassword') }}
               </label>
               <input
                 id="new-password"
@@ -209,7 +208,7 @@ onMounted(() => {
 
             <div>
               <label for="confirm-password" class="block text-sm font-medium text-neutral-700 mb-1">
-                Confirm Password
+                {{ t('settings.confirmPassword') }}
               </label>
               <input
                 id="confirm-password"
@@ -228,25 +227,27 @@ onMounted(() => {
               class="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
               @click="changePassword"
             >
-              Update Password
+              {{ t('settings.updatePassword') }}
             </button>
           </div>
         </div>
       </div>
 
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Account Actions</h2>
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
+          {{ t('settings.accountActions') }}
+        </h2>
 
         <div class="space-y-3">
           <button
             class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left"
           >
-            Export Data
+            {{ t('settings.exportData') }}
           </button>
           <button
             class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left"
           >
-            Delete Account
+            {{ t('settings.deleteAccount') }}
           </button>
         </div>
       </div>
@@ -254,7 +255,9 @@ onMounted(() => {
 
     <section v-if="activeTab === 'preferences'" class="space-y-6">
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Preferences</h2>
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
+          {{ t('settings.preferencesTitle') }}
+        </h2>
 
         <div
           v-if="saveSuccess"
@@ -277,7 +280,9 @@ onMounted(() => {
 
         <form class="space-y-6" @submit.prevent="savePreferences">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-3">Theme</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-3">{{
+              t('settings.theme')
+            }}</label>
             <div class="grid grid-cols-3 gap-3">
               <button
                 v-for="option in themeOptions"
@@ -291,14 +296,14 @@ onMounted(() => {
                 ]"
                 @click="preferences.theme = option.value"
               >
-                {{ option.label }}
+                {{ t(`settings.${String(option.label).toLowerCase()}`) }}
               </button>
             </div>
           </div>
 
           <div>
             <label for="currency" class="block text-sm font-medium text-neutral-700 mb-1">
-              Currency
+              {{ t('settings.currency') }}
             </label>
             <select
               id="currency"
@@ -313,7 +318,7 @@ onMounted(() => {
 
           <div>
             <label for="language" class="block text-sm font-medium text-neutral-700 mb-1">
-              Language
+              {{ t('settings.language') }}
             </label>
             <select
               id="language"
@@ -328,7 +333,7 @@ onMounted(() => {
 
           <div>
             <label for="font-size" class="block text-sm font-medium text-neutral-700 mb-1">
-              Font Size
+              {{ t('settings.fontSize') }}
             </label>
             <select
               id="font-size"
@@ -343,7 +348,7 @@ onMounted(() => {
 
           <div class="flex items-center justify-between">
             <label for="notifications" class="text-sm font-medium text-neutral-700">
-              Email Notifications
+              {{ t('settings.emailNotifications') }}
             </label>
             <button
               id="notifications"
@@ -367,7 +372,7 @@ onMounted(() => {
               :disabled="isSaving"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              {{ isSaving ? 'Saving...' : 'Save Preferences' }}
+              {{ isSaving ? t('settings.saving') : t('settings.savePreferences') }}
             </button>
           </div>
         </form>

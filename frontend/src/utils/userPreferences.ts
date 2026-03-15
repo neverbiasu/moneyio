@@ -69,8 +69,50 @@ export function loadUserPreferences(): UserPreferences {
   }
 }
 
+export function saveUserPreferences(preferences: UserPreferences): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem('userPreferences', JSON.stringify(preferences));
+}
+
 export function getPreferredLocale(language?: LanguagePreference): string {
   return language === 'zh' ? 'zh-CN' : 'en-US';
+}
+
+export function resolveThemePreference(theme: ThemePreference): 'light' | 'dark' {
+  if (theme === 'system') {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
+      return 'dark';
+    }
+
+    return 'light';
+  }
+
+  return theme;
+}
+
+export function applyUserPreferencesToDocument(preferences: UserPreferences): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const resolvedTheme = resolveThemePreference(preferences.theme);
+  document.documentElement.setAttribute('data-theme', preferences.theme);
+  document.documentElement.setAttribute('data-theme-mode', resolvedTheme);
+  document.documentElement.lang = preferences.language;
+
+  const fontSizeMap: Record<FontSizePreference, string> = {
+    small: '14px',
+    medium: '16px',
+    large: '18px',
+  };
+
+  document.documentElement.style.fontSize = fontSizeMap[preferences.fontSize];
 }
 
 export function formatCurrencyWithPreference(

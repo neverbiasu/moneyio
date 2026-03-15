@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
@@ -23,14 +24,15 @@ const emit = defineEmits<(e: 'close') => void>();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: Squares2X2Icon },
-  { to: '/transactions', label: 'Transactions', icon: ArrowsUpDownIcon },
-  { to: '/accounts', label: 'Accounts', icon: BanknotesIcon },
-  { to: '/reports', label: 'Analytics', icon: ChartBarIcon },
-  { to: '/budgets', label: 'Budgets', icon: SparklesIcon },
-  { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: Squares2X2Icon },
+  { to: '/transactions', labelKey: 'nav.transactions', icon: ArrowsUpDownIcon },
+  { to: '/accounts', labelKey: 'nav.accounts', icon: BanknotesIcon },
+  { to: '/reports', labelKey: 'nav.reports', icon: ChartBarIcon },
+  { to: '/budgets', labelKey: 'nav.budgets', icon: SparklesIcon },
+  { to: '/settings', labelKey: 'nav.settings', icon: Cog6ToothIcon },
 ];
 
 const avatarUrl = ref('/avatar.png');
@@ -115,7 +117,7 @@ onBeforeUnmount(() => {
   >
     <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">
       <img src="/logo.svg" alt="MoneyIO Logo" class="w-8 h-8 mr-2" />
-      <h1 class="text-xl font-bold text-gray-800">MoneyIO</h1>
+      <h1 class="text-xl font-bold text-gray-800">{{ t('common.moneyio') }}</h1>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-4">
@@ -132,7 +134,7 @@ onBeforeUnmount(() => {
             @click="handleNavClick"
           >
             <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
-            {{ item.label }}
+            {{ t(item.labelKey) }}
           </RouterLink>
         </li>
       </ul>

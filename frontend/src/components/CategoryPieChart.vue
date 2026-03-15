@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'CategoryPieChart' });
 
@@ -17,6 +20,8 @@ const props = withDefaults(defineProps<Props>(), {
   items: () => [],
   isLoading: false,
 });
+
+const { t } = useI18n();
 
 const colorClasses = [
   'fill-blue-600',
@@ -44,8 +49,7 @@ const cy = 50;
 const total = computed(() => props.items.reduce((sum, item) => sum + item.value, 0));
 
 const totalLabel = computed(() => {
-  if (total.value >= 1000) return `$${(total.value / 1000).toFixed(1)}k`;
-  return `$${total.value}`;
+  return formatCurrencyWithPreference(total.value, { absolute: true });
 });
 
 const slices = computed(() => {
@@ -90,20 +94,20 @@ const slices = computed(() => {
 <template>
   <section
     class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
-    aria-label="Expense category pie chart"
+    :aria-label="t('categoryChart.sectionAria')"
   >
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Category Spending</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('categoryChart.title') }}</h2>
 
     <div v-if="isLoading" class="h-64 bg-gray-100 rounded-md animate-pulse"></div>
     <p v-else-if="items.length === 0" class="text-sm text-gray-500 py-10 text-center">
-      No category expense data available.
+      {{ t('categoryChart.empty') }}
     </p>
     <div v-else class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 items-center">
       <svg
         viewBox="0 0 100 100"
         class="w-56 h-56 mx-auto"
         role="img"
-        aria-label="Donut chart for expense categories"
+        :aria-label="t('categoryChart.chartAria')"
       >
         <path
           v-for="slice in slices"
@@ -114,7 +118,7 @@ const slices = computed(() => {
           stroke-width="0.8"
         />
         <text x="50" y="47" text-anchor="middle" class="fill-gray-900 font-semibold text-[8px]">
-          Total
+          {{ t('categoryChart.total') }}
         </text>
         <text x="50" y="56" text-anchor="middle" class="fill-gray-900 font-bold text-[7px]">
           {{ totalLabel }}

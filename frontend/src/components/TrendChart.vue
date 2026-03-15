@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { ChartDataPoint } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'TrendChart' });
 
@@ -14,6 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
   points: () => [],
   isLoading: false,
 });
+
+const { t } = useI18n();
 
 const width = 680;
 const height = 240;
@@ -92,10 +96,7 @@ const expenseArea = computed(() => {
 const yTicks = computed(() =>
   [0, 0.25, 0.5, 0.75, 1].map((t) => ({
     y: paddingTop + (1 - t) * innerHeight,
-    label:
-      maxValue.value >= 1000
-        ? `$${Math.round((t * maxValue.value) / 1000)}k`
-        : `$${Math.round(t * maxValue.value)}`,
+    label: formatCurrencyWithPreference(Math.round(t * maxValue.value), { absolute: true }),
   })),
 );
 
@@ -109,33 +110,33 @@ const xTicks = computed(() => {
 <template>
   <section
     class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
-    aria-label="Income and expense trend chart"
+    :aria-label="t('trend.sectionAria')"
   >
     <header class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-lg font-semibold text-gray-900">Income vs Expense Trend</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Last 30 Days</p>
+        <h2 class="text-lg font-semibold text-gray-900">{{ t('trend.title') }}</h2>
+        <p class="text-sm text-gray-500 mt-0.5">{{ t('trend.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-4 text-sm text-gray-600">
         <span class="flex items-center gap-2"
-          ><span class="w-3 h-3 rounded-full bg-green-600"></span>Income</span
+          ><span class="w-3 h-3 rounded-full bg-green-600"></span>{{ t('trend.income') }}</span
         >
         <span class="flex items-center gap-2"
-          ><span class="w-3 h-3 rounded-full bg-red-500"></span>Expense</span
+          ><span class="w-3 h-3 rounded-full bg-red-500"></span>{{ t('trend.expense') }}</span
         >
       </div>
     </header>
 
     <div v-if="isLoading" class="h-60 bg-gray-100 rounded-md animate-pulse"></div>
     <p v-else-if="points.length === 0" class="text-sm text-gray-500 py-10 text-center">
-      No trend data available.
+      {{ t('trend.empty') }}
     </p>
     <div v-else class="w-full overflow-x-auto">
       <svg
         :viewBox="`0 0 ${width} ${height}`"
         class="min-w-[680px] w-full h-60"
         role="img"
-        aria-label="Line chart showing income and expense over 30 days"
+        :aria-label="t('trend.chartAria')"
       >
         <defs>
           <linearGradient :id="incomeGradientId" x1="0" y1="0" x2="0" y2="1">

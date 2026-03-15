@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/vue/20/solid';
 import AccountFormModal from '@/components/AccountFormModal.vue';
 import apiService from '@/api/services';
 import type { Account } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'AccountsPage' });
+
+const { t } = useI18n();
 
 // ── State ──────────────────────────────────────────────────────────────
 const accounts = ref<Account[]>([]);
@@ -24,7 +28,7 @@ async function fetchAccounts() {
     accounts.value = await apiService.accounts.getAccounts();
   } catch (err) {
     console.error('Failed to load accounts:', err);
-    error.value = 'Failed to load accounts. Please try again.';
+    error.value = t('accounts.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -32,9 +36,9 @@ async function fetchAccounts() {
 
 // ── Account type badge colors ──────────────────────────────────────────
 const ACCOUNT_TYPE_CONFIG: Record<Account['type'], { label: string; color: string }> = {
-  savings: { label: 'Savings', color: 'bg-green-100 text-green-700' },
-  checking: { label: 'Checking', color: 'bg-blue-100 text-blue-700' },
-  credit: { label: 'Credit', color: 'bg-orange-100 text-orange-700' },
+  savings: { label: 'accounts.typeSavings', color: 'bg-green-100 text-green-700' },
+  checking: { label: 'accounts.typeChecking', color: 'bg-blue-100 text-blue-700' },
+  credit: { label: 'accounts.typeCredit', color: 'bg-orange-100 text-orange-700' },
 };
 
 // ── Actions ────────────────────────────────────────────────────────────
@@ -65,14 +69,13 @@ async function confirmDelete(id: number) {
     await fetchAccounts();
   } catch (err) {
     console.error('Failed to delete account:', err);
-    error.value = 'Failed to delete account. Please try again.';
+    error.value = t('accounts.deleteFailed');
   }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function formatCurrency(amount: number): string {
-  const sign = amount < 0 ? '-' : '';
-  return `${sign}$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount);
 }
 
 function getAccountTypeConfig(type: Account['type']) {
@@ -100,7 +103,7 @@ onMounted(() => {
         @click="openCreateModal"
       >
         <PlusIcon class="size-5" aria-hidden="true" />
-        Add Account
+        {{ t('accounts.addAccount') }}
       </button>
     </div>
 
@@ -120,15 +123,15 @@ onMounted(() => {
       class="py-16 text-center rounded-xl border border-neutral-200 bg-white"
     >
       <BanknotesIcon class="mx-auto size-12 text-neutral-300 mb-3" aria-hidden="true" />
-      <p class="text-sm font-medium text-neutral-500">No accounts yet</p>
-      <p class="text-xs text-neutral-400 mt-1">Create your first account to get started</p>
+      <p class="text-sm font-medium text-neutral-500">{{ t('accounts.noAccounts') }}</p>
+      <p class="text-xs text-neutral-400 mt-1">{{ t('accounts.noAccountsHint') }}</p>
       <button
         type="button"
         class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
         @click="openCreateModal"
       >
         <PlusIcon class="size-4" aria-hidden="true" />
-        Create Account
+        {{ t('accounts.createAccount') }}
       </button>
     </div>
 
@@ -146,7 +149,7 @@ onMounted(() => {
               :class="getAccountTypeConfig(account.type).color"
               class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full"
             >
-              {{ getAccountTypeConfig(account.type).label }}
+              {{ t(getAccountTypeConfig(account.type).label) }}
             </span>
           </div>
           <!-- Action buttons -->
@@ -175,7 +178,9 @@ onMounted(() => {
 
         <!-- Account balance -->
         <div class="mb-4 pt-4 border-t border-neutral-100">
-          <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">Balance</p>
+          <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">
+            {{ t('accounts.balance') }}
+          </p>
           <p
             class="text-2xl font-bold tabular-nums"
             :class="account.balance >= 0 ? 'text-green-600' : 'text-red-600'"
@@ -189,21 +194,21 @@ onMounted(() => {
           v-if="deleteConfirmId === account.id"
           class="absolute inset-0 rounded-xl bg-white border-2 border-red-300 p-5 flex flex-col items-center justify-center gap-3 backdrop-blur-sm bg-opacity-95"
         >
-          <p class="text-sm font-medium text-neutral-700">Delete this account?</p>
+          <p class="text-sm font-medium text-neutral-700">{{ t('accounts.deleteConfirm') }}</p>
           <div class="flex gap-2 w-full">
             <button
               type="button"
               class="flex-1 px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
               @click="cancelDelete"
             >
-              Cancel
+              {{ t('common.cancel') }}
             </button>
             <button
               type="button"
               class="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
               @click="confirmDelete(account.id)"
             >
-              Delete
+              {{ t('common.delete') }}
             </button>
           </div>
         </div>

@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { BellIcon } from '@heroicons/vue/20/solid';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const isOpen = ref(false);
 const notifications = ref<Array<{ id: number; message: string; time: string; read: boolean }>>([
   {
     id: 1,
-    message: 'Your monthly budget for Groceries is running low',
-    time: '2 hours ago',
+    message: 'notifications.items.budgetLow',
+    time: 'notifications.items.twoHoursAgo',
     read: false,
   },
   {
     id: 2,
-    message: 'Transaction over $100 detected',
-    time: 'Yesterday',
+    message: 'notifications.items.transactionDetected',
+    time: 'notifications.items.yesterday',
     read: false,
   },
   {
     id: 3,
-    message: 'Weekly spending report is ready',
-    time: '3 days ago',
+    message: 'notifications.items.reportReady',
+    time: 'notifications.items.threeDaysAgo',
     read: true,
   },
 ]);
@@ -71,7 +74,9 @@ onBeforeUnmount(() => {
       type="button"
       class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg transition"
       :aria-label="
-        unreadNotifications > 0 ? `Notifications (${unreadNotifications} unread)` : 'Notifications'
+        unreadNotifications > 0
+          ? `${t('notifications.title')} (${t('notifications.unread', { count: unreadNotifications })})`
+          : t('notifications.title')
       "
       :aria-expanded="isOpen"
       aria-controls="notifications-dropdown"
@@ -97,19 +102,21 @@ onBeforeUnmount(() => {
     >
       <!-- Header -->
       <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h3 id="notifications-title" class="text-sm font-semibold text-gray-900">Notifications</h3>
+        <h3 id="notifications-title" class="text-sm font-semibold text-gray-900">
+          {{ t('notifications.title') }}
+        </h3>
         <span
           v-if="unreadNotifications > 0"
           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
         >
-          {{ unreadNotifications }} new
+          {{ t('notifications.new', { count: unreadNotifications }) }}
         </span>
       </div>
 
       <!-- Notification List -->
       <div class="max-h-96 overflow-y-auto">
         <div v-if="notifications.length === 0" class="px-4 py-8 text-center text-gray-500">
-          <p class="text-sm">No notifications</p>
+          <p class="text-sm">{{ t('notifications.empty') }}</p>
         </div>
 
         <button
@@ -127,8 +134,8 @@ onBeforeUnmount(() => {
             <div v-if="!notification.read" class="mt-2 h-2 w-2 bg-blue-600 rounded-full shrink-0" />
             <div v-else class="mt-2 h-2 w-2 shrink-0" />
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-gray-900">{{ notification.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ notification.time }}</p>
+              <p class="text-sm text-gray-900">{{ t(notification.message) }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ t(notification.time) }}</p>
             </div>
           </div>
         </button>
@@ -142,7 +149,7 @@ onBeforeUnmount(() => {
           class="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
           @click="clearAll"
         >
-          Mark all as read
+          {{ t('notifications.clearAll') }}
         </button>
       </div>
     </div>

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import AppSidebar from '../components/AppSidebar.vue';
 import NotificationBell from '../components/NotificationBell.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const sidebarOpen = ref(false);
 const isDesktop = ref(false);
 let mq: MediaQueryList | null = null;
@@ -29,22 +31,32 @@ onUnmounted(() => {
   }
 });
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/accounts', label: 'Accounts' },
-  { to: '/reports', label: 'Analytics' },
-  { to: '/budgets', label: 'Budgets' },
-  { to: '/settings', label: 'Settings' },
-];
-
 const pageTitle = computed(() => {
-  const matchedItem = navItems.find((item) => route.path.startsWith(item.to));
-  return matchedItem?.label ?? 'MoneyIO';
+  const key = String(route.name ?? '');
+  const titleMap: Record<string, string> = {
+    dashboard: 'nav.dashboard',
+    transactions: 'nav.transactions',
+    accounts: 'nav.accounts',
+    reports: 'nav.reports',
+    budgets: 'nav.budgets',
+    settings: 'nav.settings',
+  };
+
+  return titleMap[key] ? t(titleMap[key]) : t('common.moneyio');
 });
 
 const pageSubtitle = computed(() => {
-  return route.meta.subtitle;
+  const key = String(route.name ?? '');
+  const subtitleMap: Record<string, string> = {
+    dashboard: 'subtitle.dashboard',
+    transactions: 'subtitle.transactions',
+    accounts: 'subtitle.accounts',
+    reports: 'subtitle.reports',
+    budgets: 'subtitle.budgets',
+    settings: 'subtitle.settings',
+  };
+
+  return subtitleMap[key] ? t(subtitleMap[key]) : '';
 });
 
 watch(

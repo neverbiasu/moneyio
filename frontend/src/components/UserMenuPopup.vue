@@ -50,7 +50,7 @@ onBeforeUnmount(() => {
   <div
     ref="rootRef"
     class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-    :aria-label="t('menu.profile')"
+    :aria-label="t('menu.userMenu')"
   >
     <hr class="border-gray-100" />
 

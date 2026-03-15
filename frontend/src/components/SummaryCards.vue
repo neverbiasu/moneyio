@@ -17,17 +17,18 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
+const fallbackCurrency = formatCurrencyWithPreference(0);
 
 const formattedBalance = computed(() => {
-  return props.data ? formatCurrencyWithPreference(props.data.totalBalance) : '$0.00';
+  return props.data ? formatCurrencyWithPreference(props.data.totalBalance) : fallbackCurrency;
 });
 
 const formattedIncome = computed(() => {
-  return props.data ? formatCurrencyWithPreference(props.data.monthlyIncome) : '$0.00';
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyIncome) : fallbackCurrency;
 });
 
 const formattedExpense = computed(() => {
-  return props.data ? formatCurrencyWithPreference(props.data.monthlyExpense) : '$0.00';
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyExpense) : fallbackCurrency;
 });
 </script>
 

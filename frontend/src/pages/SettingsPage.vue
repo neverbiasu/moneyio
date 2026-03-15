@@ -47,10 +47,10 @@ const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'CNY', label: 'Chinese Yuan (¥)' },
 ];
 
-const themeOptions: Array<{ value: ThemePreference; label: string }> = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
+const themeOptions: Array<{ value: ThemePreference; labelKey: string }> = [
+  { value: 'light', labelKey: 'settings.light' },
+  { value: 'dark', labelKey: 'settings.dark' },
+  { value: 'system', labelKey: 'settings.system' },
 ];
 
 const languageOptions: Array<{ value: LanguagePreference; label: string }> = [
@@ -296,7 +296,7 @@ onMounted(() => {
                 ]"
                 @click="preferences.theme = option.value"
               >
-                {{ t(`settings.${String(option.label).toLowerCase()}`) }}
+                {{ t(option.labelKey) }}
               </button>
             </div>
           </div>

@@ -108,6 +108,8 @@ class Budget(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="budgets"
     )
+    name = models.CharField(max_length=128, default="General Budget")
+    description = models.CharField(max_length=254, blank=True, default="")
     amount_limit = models.DecimalField(max_digits=12, decimal_places=2)
     actual_spending = models.DecimalField(
         max_digits=12, decimal_places=2, default=0.00
@@ -125,4 +127,4 @@ class Budget(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.budget_month} Budget"
+        return f"{self.name} ({self.budget_month})"

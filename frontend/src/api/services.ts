@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import api from '@/api/index';
 import type {
   Account,
@@ -67,6 +65,26 @@ interface BackendSummaryResponse {
   income: string;
   expense: string;
   net_balance: string;
+}
+
+interface BackendBudget {
+  id: number;
+  name: string;
+  description: string;
+  amount_limit: string;
+  actual_spending: string;
+  budget_month: string;
+  is_recurring: boolean;
+  updated_at: string;
+}
+
+interface BackendBudgetCollectionResponse {
+  results: BackendBudget[];
+}
+
+interface BackendBudgetMutationResponse {
+  budget_id?: number;
+  budget?: BackendBudget;
 }
 
 function mapCategoryType(value: 'IN' | 'OUT'): 'income' | 'expense' {
@@ -178,26 +196,50 @@ async function fetchAllTransactions(params?: {
   return all;
 }
 
-async function getBudgetsOrEmpty(): Promise<Budget[]> {
-  try {
-    const response = await api.get<{ results?: Budget[] } | Budget[]>('/budgets/');
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-    return response.data.results ?? [];
-  } catch (error) {
-    if (
-      axios.isAxiosError(error) &&
-      (error.response?.status === 404 || error.response?.status === 405)
-    ) {
-      return [];
-    }
-    throw error;
-  }
+function mapBudget(item: BackendBudget): Budget {
+  const description = item.description?.trim();
+
+  return {
+    id: item.id,
+    userId: 0,
+    name: item.name,
+    ...(description ? { description } : {}),
+    amountLimit: Number(item.amount_limit),
+    actualSpending: Number(item.actual_spending),
+    budgetMonth: item.budget_month,
+    isRecurring: item.is_recurring,
+    updatedAt: item.updated_at,
+  };
 }
 
-function unsupportedBudgetError(): Error {
-  return new Error('Budget APIs are not implemented on backend yet.');
+function toBudgetPayload(data: Partial<Budget>): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  if (data.name !== undefined) {
+    payload['name'] = data.name;
+  }
+
+  if (data.description !== undefined) {
+    payload['description'] = data.description ?? '';
+  }
+
+  if (data.amountLimit !== undefined) {
+    payload['amount_limit'] = data.amountLimit;
+  }
+
+  if (data.actualSpending !== undefined) {
+    payload['actual_spending'] = data.actualSpending;
+  }
+
+  if (data.budgetMonth !== undefined) {
+    payload['budget_month'] = data.budgetMonth;
+  }
+
+  if (data.isRecurring !== undefined) {
+    payload['is_recurring'] = data.isRecurring;
+  }
+
+  return payload;
 }
 
 export const apiService = {
@@ -328,19 +370,45 @@ export const apiService = {
 
   budgets: {
     async getBudgets(): Promise<Budget[]> {
-      return getBudgetsOrEmpty();
+      const response = await api.get<BackendBudgetCollectionResponse>('/budgets/');
+      return response.data.results.map(mapBudget);
     },
 
-    async createBudget(_data: Omit<Budget, 'id' | 'userId' | 'updatedAt'>): Promise<Budget> {
-      return Promise.reject(unsupportedBudgetError());
+    async createBudget(data: Omit<Budget, 'id' | 'userId' | 'updatedAt'>): Promise<Budget> {
+      const response = await api.post<BackendBudgetMutationResponse>(
+        '/budgets/',
+        toBudgetPayload(data),
+      );
+
+      if (response.data.budget) {
+        return mapBudget(response.data.budget);
+      }
+
+      if (!response.data.budget_id) {
+        throw new Error('Invalid budget create response');
+      }
+
+      const detail = await api.get<BackendBudget>(`/budgets/${response.data.budget_id}/`);
+      return mapBudget(detail.data);
     },
 
-    async updateBudget(_id: number, _data: Partial<Budget>): Promise<Budget> {
-      return Promise.reject(unsupportedBudgetError());
+    async updateBudget(id: number, data: Partial<Budget>): Promise<Budget> {
+      const response = await api.patch<BackendBudgetMutationResponse>(
+        `/budgets/${id}/`,
+        toBudgetPayload(data),
+      );
+
+      if (response.data.budget) {
+        return mapBudget(response.data.budget);
+      }
+
+      const detail = await api.get<BackendBudget>(`/budgets/${id}/`);
+      return mapBudget(detail.data);
     },
 
-    async deleteBudget(_id: number): Promise<{ message: string }> {
-      return Promise.reject(unsupportedBudgetError());
+    async deleteBudget(id: number): Promise<{ message: string }> {
+      await api.delete(`/budgets/${id}/`);
+      return { message: 'Budget deleted' };
     },
   },
 

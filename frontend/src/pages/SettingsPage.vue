@@ -11,7 +11,7 @@ type CurrencyPreference = 'USD' | 'EUR' | 'GBP' | 'CNY';
 type LanguagePreference = 'en' | 'zh';
 type FontSizePreference = 'small' | 'medium' | 'large';
 
-const activeTab = ref<'profile' | 'preferences'>('profile');
+const activeTab = ref<'security' | 'preferences'>('security');
 const authStore = useAuthStore();
 
 const preferences = reactive({
@@ -34,14 +34,6 @@ const isSaving = ref(false);
 const saveSuccess = ref(false);
 const saveError = ref(false);
 const saveMessage = ref('');
-
-const currentUser = computed(() => {
-  const user = authStore.user;
-  return {
-    name: user?.username ?? 'User',
-    email: user?.email ?? 'user@example.com',
-  };
-});
 
 const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'USD', label: 'US Dollar ($)' },
@@ -206,23 +198,19 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div>
-      <p class="text-sm text-neutral-500 mt-1">Manage your account and preferences</p>
-    </div>
-
     <div class="border-b border-neutral-200">
       <nav class="flex gap-8" aria-label="Settings navigation">
         <button
           :class="[
             'px-1 py-3 text-sm font-medium border-b-2 transition',
-            activeTab === 'profile'
+            activeTab === 'security'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-neutral-600 hover:text-neutral-900',
           ]"
-          :aria-current="activeTab === 'profile' ? 'page' : undefined"
-          @click="activeTab = 'profile'"
+          :aria-current="activeTab === 'security' ? 'page' : undefined"
+          @click="activeTab = 'security'"
         >
-          Profile
+          Security
         </button>
         <button
           :class="[
@@ -239,38 +227,12 @@ onMounted(() => {
       </nav>
     </div>
 
-    <section v-if="activeTab === 'profile'" class="space-y-6">
+    <section v-if="activeTab === 'security'" class="space-y-6">
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Profile Information</h2>
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Security</h2>
 
         <div class="space-y-4">
-          <div>
-            <label for="username" class="block text-sm font-medium text-neutral-700 mb-1">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              :value="currentUser.name"
-              disabled
-              class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-600"
-            />
-          </div>
-
-          <div>
-            <label for="email" class="block text-sm font-medium text-neutral-700 mb-1">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              :value="currentUser.email"
-              disabled
-              class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-600"
-            />
-          </div>
-
-          <div class="pt-4 border-t border-neutral-200 space-y-3">
+          <div class="space-y-3">
             <h3 class="text-sm font-semibold text-neutral-800">Change Password</h3>
 
             <div>

@@ -9,7 +9,6 @@ from .views_auth import (
     register,
 )
 from .views_categories import categories_collection, categories_item
-from .views_budgets import budgets_collection, budgets_item
 from .views_transactions import (
     transactions_collection,
     transactions_item,
@@ -29,9 +28,6 @@ urlpatterns = [
     # Categories
     path("categories/", categories_collection),
     path("categories/<int:category_id>/", categories_item),
-    # Budgets
-    path("budgets/", budgets_collection),
-    path("budgets/<int:budget_id>/", budgets_item),
     # Transactions
     path("transactions/summary/", transactions_summary),
     path("transactions/", transactions_collection),

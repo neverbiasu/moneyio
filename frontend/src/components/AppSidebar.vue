@@ -4,7 +4,7 @@ import {
   ArrowsUpDownIcon,
   ChartBarIcon,
   BanknotesIcon,
-  WalletIcon,
+  SparklesIcon,
   Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
@@ -29,9 +29,9 @@ const { t } = useI18n();
 const navItems = [
   { to: '/dashboard', labelKey: 'nav.dashboard', icon: Squares2X2Icon },
   { to: '/transactions', labelKey: 'nav.transactions', icon: ArrowsUpDownIcon },
-  { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
+  { to: '/accounts', labelKey: 'nav.accounts', icon: BanknotesIcon },
   { to: '/reports', labelKey: 'nav.reports', icon: ChartBarIcon },
-  { to: '/budgets', labelKey: 'nav.budgets', icon: BanknotesIcon },
+  { to: '/budgets', labelKey: 'nav.budgets', icon: SparklesIcon },
   { to: '/settings', labelKey: 'nav.settings', icon: Cog6ToothIcon },
 ];
 

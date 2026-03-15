@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { CalendarIcon } from '@heroicons/vue/20/solid';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
@@ -8,6 +9,8 @@ import type { Transaction, Category, ChartDataPoint } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'ReportsPage' });
+
+const { t } = useI18n();
 
 const startDateInput = ref<string>(
   toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
@@ -20,14 +23,14 @@ const error = ref<string | null>(null);
 
 const datePresets = [
   {
-    label: 'This Month',
+    labelKey: 'reports.thisMonth',
     getValue: () => ({
       start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       end: new Date(),
     }),
   },
   {
-    label: 'Last Month',
+    labelKey: 'reports.lastMonth',
     getValue: () => {
       const now = new Date();
       return {
@@ -37,7 +40,7 @@ const datePresets = [
     },
   },
   {
-    label: 'Last 3 Months',
+    labelKey: 'reports.last3Months',
     getValue: () => {
       const end = new Date();
       const start = new Date(end);
@@ -46,7 +49,7 @@ const datePresets = [
     },
   },
   {
-    label: 'This Year',
+    labelKey: 'reports.thisYear',
     getValue: () => ({
       start: new Date(new Date().getFullYear(), 0, 1),
       end: new Date(),
@@ -147,7 +150,7 @@ async function fetchReportData() {
     categories.value = categoriesResponse;
   } catch (err) {
     console.error('Failed to load report data:', err);
-    error.value = 'Failed to load report data. Please try again.';
+    error.value = t('reports.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -192,15 +195,17 @@ onMounted(() => {
   <div class="space-y-6">
     <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm space-y-3">
       <div>
-        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-2">Quick Select</p>
+        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-2">
+          {{ t('reports.quickSelect') }}
+        </p>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="preset in datePresets"
-            :key="preset.label"
+            :key="preset.labelKey"
             class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition"
             @click="setDatePreset(preset.getValue)"
           >
-            {{ preset.label }}
+            {{ t(preset.labelKey) }}
           </button>
         </div>
       </div>
@@ -211,7 +216,7 @@ onMounted(() => {
             for="start-date"
             class="block text-xs uppercase tracking-wide text-neutral-500 mb-2"
           >
-            From
+            {{ t('reports.from') }}
           </label>
           <div class="relative">
             <CalendarIcon
@@ -227,7 +232,7 @@ onMounted(() => {
         </div>
         <div>
           <label for="end-date" class="block text-xs uppercase tracking-wide text-neutral-500 mb-2">
-            To
+            {{ t('reports.to') }}
           </label>
           <div class="relative">
             <CalendarIcon
@@ -250,12 +255,16 @@ onMounted(() => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">Total Income</p>
+        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">
+          {{ t('reports.totalIncome') }}
+        </p>
         <p class="text-2xl font-bold text-green-600">{{ formatCurrency(totalIncome) }}</p>
       </div>
 
       <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">Total Expenses</p>
+        <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">
+          {{ t('reports.totalExpenses') }}
+        </p>
         <p class="text-2xl font-bold text-red-600">{{ formatCurrency(totalExpense) }}</p>
       </div>
     </div>

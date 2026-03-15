@@ -20,7 +20,7 @@ defineOptions({ name: 'SettingsPage' });
 
 const { t, locale } = useI18n();
 
-const activeTab = ref<'security' | 'preferences'>('security');
+const activeTab = ref<'profile' | 'security' | 'preferences'>('profile');
 const authStore = useAuthStore();
 
 const preferences = reactive({
@@ -34,11 +34,19 @@ const passwordForm = reactive({
 
 const passwordError = ref('');
 const passwordSuccess = ref('');
+const profileError = ref('');
+const profileSuccess = ref('');
 
 const isSaving = ref(false);
 const saveSuccess = ref(false);
 const saveError = ref(false);
 const saveMessage = ref('');
+
+const profileForm = reactive({
+  username: '',
+  email: '',
+  avatar: '/avatar.png',
+});
 
 const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'USD', label: 'US Dollar ($)' },
@@ -68,6 +76,68 @@ function applyPreferencesToDocument() {
   applyUserPreferencesToDocument(preferences);
   locale.value = preferences.language;
   syncI18nLocale(preferences.language);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^\S+@\S+\.\S+$/.test(email);
+}
+
+function handleAvatarFileChange(event: Event): void {
+  profileError.value = '';
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) {
+    target.value = '';
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    profileError.value = 'Please select an image file.';
+    target.value = '';
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    profileError.value = 'Image size must be less than 2MB.';
+    target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (typeof reader.result === 'string') {
+      profileForm.avatar = reader.result;
+    }
+    target.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProfile(): void {
+  profileError.value = '';
+  profileSuccess.value = '';
+
+  if (!isValidEmail(profileForm.email)) {
+    profileError.value = t('settings.invalidEmail');
+    return;
+  }
+
+  try {
+    window.localStorage.setItem('userAvatarDataUrl', profileForm.avatar);
+
+    if (authStore.user) {
+      authStore.user = {
+        ...authStore.user,
+        email: profileForm.email,
+      };
+    }
+
+    profileSuccess.value = `${t('settings.profileSaved')} ${t('settings.profileBackendNote')}`;
+  } catch (err) {
+    console.error('Failed to update profile:', err);
+    profileError.value = t('settings.profileUpdateFailed');
+  }
 }
 
 async function savePreferences() {
@@ -146,6 +216,10 @@ async function changePassword() {
 onMounted(() => {
   Object.assign(preferences, loadUserPreferences());
 
+  profileForm.username = authStore.user?.username ?? '';
+  profileForm.email = authStore.user?.email ?? '';
+  profileForm.avatar = window.localStorage.getItem('userAvatarDataUrl') ?? '/avatar.png';
+
   applyPreferencesToDocument();
 });
 </script>
@@ -154,6 +228,18 @@ onMounted(() => {
   <div class="space-y-6">
     <div class="border-b border-neutral-200">
       <nav class="flex gap-8" aria-label="Settings navigation">
+        <button
+          :class="[
+            'px-1 py-3 text-sm font-medium border-b-2 transition',
+            activeTab === 'profile'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-neutral-600 hover:text-neutral-900',
+          ]"
+          :aria-current="activeTab === 'profile' ? 'page' : undefined"
+          @click="activeTab = 'profile'"
+        >
+          {{ t('settings.profile') }}
+        </button>
         <button
           :class="[
             'px-1 py-3 text-sm font-medium border-b-2 transition',
@@ -180,6 +266,75 @@ onMounted(() => {
         </button>
       </nav>
     </div>
+
+    <section v-if="activeTab === 'profile'" class="space-y-6">
+      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-neutral-900 mb-1">
+          {{ t('settings.profileTitle') }}
+        </h2>
+        <p class="text-sm text-neutral-500 mb-5">{{ t('settings.profileDescription') }}</p>
+
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <img
+              :src="profileForm.avatar"
+              alt="Profile avatar"
+              class="size-20 rounded-full object-cover border border-gray-200"
+            />
+            <div class="flex-1">
+              <label class="block text-sm font-medium text-neutral-700 mb-1" for="profile-avatar">
+                {{ t('settings.avatar') }}
+              </label>
+              <input
+                id="profile-avatar"
+                type="file"
+                accept="image/*"
+                class="w-full text-sm text-gray-700"
+                @change="handleAvatarFileChange"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="profile-username" class="block text-sm font-medium text-neutral-700 mb-1">
+              {{ t('settings.username') }}
+            </label>
+            <input
+              id="profile-username"
+              v-model="profileForm.username"
+              type="text"
+              disabled
+              class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-100 text-neutral-500"
+            />
+          </div>
+
+          <div>
+            <label for="profile-email" class="block text-sm font-medium text-neutral-700 mb-1">
+              {{ t('settings.email') }}
+            </label>
+            <input
+              id="profile-email"
+              v-model="profileForm.email"
+              type="email"
+              class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            />
+          </div>
+
+          <p v-if="profileError" class="text-sm text-red-600">{{ profileError }}</p>
+          <p v-if="profileSuccess" class="text-sm text-green-600">{{ profileSuccess }}</p>
+
+          <div class="flex justify-end pt-2">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+              @click="saveProfile"
+            >
+              {{ t('settings.saveProfile') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section v-if="activeTab === 'security'" class="space-y-6">
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">

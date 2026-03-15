@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import type { Transaction, Category } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
@@ -22,6 +23,7 @@ defineEmits<{
   addClick: [];
 }>();
 
+const { t } = useI18n();
 const router = useRouter();
 
 const recentTransactions = computed(() => {
@@ -31,8 +33,8 @@ const recentTransactions = computed(() => {
 });
 
 const getCategoryName = (categoryId: number | null) => {
-  if (categoryId === null) return 'Transfer';
-  return props.categories.find((c) => c.id === categoryId)?.name ?? 'Unknown';
+  if (categoryId === null) return t('common.transfer');
+  return props.categories.find((c) => c.id === categoryId)?.name ?? t('common.unknown');
 };
 
 const getCategoryType = (categoryId: number | null) => {
@@ -66,7 +68,7 @@ function goToTransactions() {
 <template>
   <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+      <h2 class="text-lg font-semibold text-gray-900">{{ t('recentTx.title') }}</h2>
     </div>
 
     <div class="divide-y divide-gray-200">
@@ -81,7 +83,7 @@ function goToTransactions() {
       </div>
 
       <div v-else-if="recentTransactions.length === 0" class="px-6 py-12">
-        <p class="text-center text-gray-500">No transactions yet. Start by adding one!</p>
+        <p class="text-center text-gray-500">{{ t('recentTx.empty') }}</p>
       </div>
 
       <div v-else>
@@ -115,14 +117,14 @@ function goToTransactions() {
           class="text-sm font-medium text-blue-600 hover:text-blue-700 py-2 px-2 rounded-md hover:bg-blue-50 transition-colors"
           @click="goToTransactions"
         >
-          View All Transactions
+          {{ t('recentTx.viewAll') }}
         </button>
         <button
           type="button"
           class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
           @click="$emit('addClick')"
         >
-          + Add
+          {{ t('recentTx.add') }}
         </button>
       </div>
     </div>

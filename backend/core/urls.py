@@ -8,8 +8,8 @@ from .views_auth import (
     logout_view,
     register,
 )
-from .views_categories import categories_collection, categories_item
 from .views_budgets import budgets_collection, budgets_item
+from .views_categories import categories_collection, categories_item
 from .views_transactions import (
     transactions_collection,
     transactions_item,

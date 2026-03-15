@@ -5,6 +5,7 @@ import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import apiService from '@/api/services';
 import type { Transaction, Category, ChartDataPoint } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'ReportsPage' });
 
@@ -153,7 +154,7 @@ async function fetchReportData() {
 }
 
 function formatCurrency(amount: number): string {
-  return `$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount, { absolute: true });
 }
 
 function toDateInputValue(date: Date): string {

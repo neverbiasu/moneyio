@@ -15,6 +15,7 @@ import {
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'TransactionsPage' });
 
@@ -198,7 +199,7 @@ function getAccountName(id: number): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount, { absolute: true });
 }
 
 function getCategoryType(id: number | null): 'income' | 'expense' | 'transfer' {

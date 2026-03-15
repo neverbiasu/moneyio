@@ -14,6 +14,7 @@ import {
 import BudgetFormModal from '@/components/BudgetFormModal.vue';
 import apiService from '@/api/services';
 import type { Budget } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'BudgetsPage' });
 
@@ -77,7 +78,7 @@ const currentPeriodLabel = computed(() => {
 });
 
 function formatCurrency(amount: number): string {
-  return `$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount, { absolute: true });
 }
 
 function progressPercent(budget: Budget): number {

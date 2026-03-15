@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { CheckIcon } from '@heroicons/vue/20/solid';
 import axios from 'axios';
+import {
+  DEFAULT_USER_PREFERENCES,
+  type CurrencyPreference,
+  type FontSizePreference,
+  type LanguagePreference,
+  type ThemePreference,
+  loadUserPreferences,
+} from '@/utils/userPreferences';
 
 defineOptions({ name: 'SettingsPage' });
-
-type ThemePreference = 'light' | 'dark' | 'system';
-type CurrencyPreference = 'USD' | 'EUR' | 'GBP' | 'CNY';
-type LanguagePreference = 'en' | 'zh';
-type FontSizePreference = 'small' | 'medium' | 'large';
 
 const activeTab = ref<'security' | 'preferences'>('security');
 const authStore = useAuthStore();
 
 const preferences = reactive({
-  theme: 'light' as ThemePreference,
-  currency: 'USD' as CurrencyPreference,
-  language: 'en' as LanguagePreference,
-  fontSize: 'medium' as FontSizePreference,
-  notifications: true,
+  ...DEFAULT_USER_PREFERENCES,
 });
 
 const passwordForm = reactive({
@@ -150,47 +149,7 @@ async function changePassword() {
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem('userPreferences');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved) as Record<string, unknown>;
-
-      if (
-        parsed['theme'] === 'light' ||
-        parsed['theme'] === 'dark' ||
-        parsed['theme'] === 'system'
-      ) {
-        preferences.theme = parsed['theme'];
-      }
-
-      if (
-        parsed['currency'] === 'USD' ||
-        parsed['currency'] === 'EUR' ||
-        parsed['currency'] === 'GBP' ||
-        parsed['currency'] === 'CNY'
-      ) {
-        preferences.currency = parsed['currency'];
-      }
-
-      if (parsed['language'] === 'en' || parsed['language'] === 'zh') {
-        preferences.language = parsed['language'];
-      }
-
-      if (
-        parsed['fontSize'] === 'small' ||
-        parsed['fontSize'] === 'medium' ||
-        parsed['fontSize'] === 'large'
-      ) {
-        preferences.fontSize = parsed['fontSize'];
-      }
-
-      if (typeof parsed['notifications'] === 'boolean') {
-        preferences.notifications = parsed['notifications'];
-      }
-    } catch (err) {
-      console.warn('Ignoring invalid userPreferences in localStorage', err);
-    }
-  }
+  Object.assign(preferences, loadUserPreferences());
 
   applyPreferencesToDocument();
 });

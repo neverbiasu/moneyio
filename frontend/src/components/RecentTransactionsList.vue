@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Transaction, Category } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'RecentTransactionsList' });
 
@@ -45,10 +46,7 @@ const formatDate = (dateString: string) => {
 };
 
 const formatAmount = (amount: number, type: string) => {
-  const formatted = amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
+  const formatted = formatCurrencyWithPreference(amount);
   if (type === 'income') return `+${formatted}`;
   if (type === 'transfer') return amount > 0 ? `+${formatted}` : `-${formatted}`;
   return `-${formatted}`;

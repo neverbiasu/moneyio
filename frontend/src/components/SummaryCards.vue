@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Summary } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'SummaryCards' });
 
@@ -15,30 +16,15 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const formattedBalance = computed(() => {
-  return (
-    props.data?.totalBalance.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.totalBalance) : '$0.00';
 });
 
 const formattedIncome = computed(() => {
-  return (
-    props.data?.monthlyIncome.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyIncome) : '$0.00';
 });
 
 const formattedExpense = computed(() => {
-  return (
-    props.data?.monthlyExpense.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyExpense) : '$0.00';
 });
 </script>
 

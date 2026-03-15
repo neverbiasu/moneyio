@@ -4,6 +4,7 @@ import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/vue/2
 import AccountFormModal from '@/components/AccountFormModal.vue';
 import apiService from '@/api/services';
 import type { Account } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'AccountsPage' });
 
@@ -71,8 +72,7 @@ async function confirmDelete(id: number) {
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function formatCurrency(amount: number): string {
-  const sign = amount < 0 ? '-' : '';
-  return `${sign}$${Math.abs(amount).toFixed(2)}`;
+  return formatCurrencyWithPreference(amount);
 }
 
 function getAccountTypeConfig(type: Account['type']) {

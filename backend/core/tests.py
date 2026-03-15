@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from core.models import Account, Category, Transaction, User
+from core.models import Account, Budget, Category, Transaction, User
 
 
 class TransactionAPITests(APITestCase):
@@ -215,3 +215,122 @@ class AuthMethodConstraintTests(APITestCase):
         response = self.client.get("/api/auth/change-password/")
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response.json()["error"], "method not allowed")
+
+
+class BudgetAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="budget_user",
+            password="password123",
+            email="budget_user@test.com",
+        )
+        self.other_user = User.objects.create_user(
+            username="budget_other",
+            password="password123",
+            email="budget_other@test.com",
+        )
+
+        self.user_budget = Budget.objects.create(
+            user=self.user,
+            name="Food",
+            description="Food budget",
+            amount_limit="500.00",
+            actual_spending="120.00",
+            budget_month=timezone.localdate().replace(day=1),
+            is_recurring=True,
+        )
+
+        self.other_budget = Budget.objects.create(
+            user=self.other_user,
+            name="Travel",
+            description="Travel budget",
+            amount_limit="800.00",
+            actual_spending="50.00",
+            budget_month=timezone.localdate().replace(day=1),
+            is_recurring=False,
+        )
+
+    def test_budgets_collection_requires_authentication(self):
+        response = self.client.get("/api/budgets/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.json()["error"], "login required")
+
+    def test_create_budget_returns_expected_shape(self):
+        self.client.login(username="budget_user", password="password123")
+        payload = {
+            "name": "Entertainment",
+            "description": "Movies and concerts",
+            "amount_limit": "300.00",
+            "actual_spending": "40.00",
+            "budget_month": "2026-03",
+            "is_recurring": False,
+        }
+
+        response = self.client.post(
+            "/api/budgets/",
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("budget_id", data)
+        self.assertIn("budget", data)
+        self.assertEqual(data["budget"]["name"], payload["name"])
+        self.assertEqual(data["budget"]["amount_limit"], payload["amount_limit"])
+
+    def test_create_budget_validation_error(self):
+        self.client.login(username="budget_user", password="password123")
+        payload = {
+            "name": "",
+            "amount_limit": "200.00",
+            "budget_month": "2026-03",
+        }
+
+        response = self.client.post(
+            "/api/budgets/",
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["error"], "name is required")
+
+    def test_update_budget_persists_changes(self):
+        self.client.login(username="budget_user", password="password123")
+        payload = {
+            "name": "Food Updated",
+            "amount_limit": "640.00",
+            "actual_spending": "280.00",
+        }
+
+        response = self.client.patch(
+            f"/api/budgets/{self.user_budget.id}/",
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user_budget.refresh_from_db()
+        self.assertEqual(self.user_budget.name, "Food Updated")
+        self.assertEqual(str(self.user_budget.amount_limit), "640.00")
+        self.assertEqual(str(self.user_budget.actual_spending), "280.00")
+
+    def test_delete_budget_only_removes_current_user_budget(self):
+        self.client.login(username="budget_user", password="password123")
+
+        response = self.client.delete(f"/api/budgets/{self.user_budget.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Budget.objects.filter(id=self.user_budget.id).exists())
+        self.assertTrue(Budget.objects.filter(id=self.other_budget.id).exists())
+
+    def test_cannot_delete_other_users_budget(self):
+        self.client.login(username="budget_user", password="password123")
+
+        response = self.client.delete(f"/api/budgets/{self.other_budget.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Budget.objects.filter(id=self.other_budget.id).exists())

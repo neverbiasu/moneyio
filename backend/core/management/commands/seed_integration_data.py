@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from core.models import Account, Category, Transaction, User
+from core.models import Account, Budget, Category, Transaction, User
 
 
 class Command(BaseCommand):
@@ -44,6 +44,7 @@ class Command(BaseCommand):
 
         if options["reset"] and user:
             Transaction.objects.filter(user=user).delete()
+            Budget.objects.filter(user=user).delete()
             Category.objects.filter(user=user).delete()
             Account.objects.filter(user=user).delete()
             user.delete()
@@ -59,6 +60,7 @@ class Command(BaseCommand):
         account_map = self._seed_accounts(user)
         category_map = self._seed_categories(user)
         self._seed_transactions(user, account_map, category_map)
+        self._seed_budgets(user, timezone.localtime(timezone.now()))
 
         self.stdout.write(self.style.SUCCESS("Integration seed data is ready."))
         self.stdout.write(
@@ -298,5 +300,89 @@ class Command(BaseCommand):
                     "account": item["account"],
                     "category": item["category"],
                     "amount": item["amount"],
+                },
+            )
+
+    def _seed_budgets(self, user, now):
+        month_start = now.replace(day=1).date()
+        previous_month_start = (month_start - timedelta(days=1)).replace(day=1)
+
+        data = [
+            {
+                "name": "Food & Dining",
+                "description": "Monthly meals budget",
+                "amount_limit": Decimal("600.00"),
+                "actual_spending": Decimal("365.00"),
+                "budget_month": month_start,
+                "is_recurring": True,
+            },
+            {
+                "name": "Transportation",
+                "description": "Metro, taxi, and commute",
+                "amount_limit": Decimal("300.00"),
+                "actual_spending": Decimal("210.00"),
+                "budget_month": month_start,
+                "is_recurring": True,
+            },
+            {
+                "name": "Entertainment",
+                "description": "Movies, concerts, and events",
+                "amount_limit": Decimal("250.00"),
+                "actual_spending": Decimal("175.00"),
+                "budget_month": month_start,
+                "is_recurring": False,
+            },
+            {
+                "name": "Shopping",
+                "description": "General discretionary spending",
+                "amount_limit": Decimal("400.00"),
+                "actual_spending": Decimal("95.00"),
+                "budget_month": month_start,
+                "is_recurring": False,
+            },
+            {
+                "name": "Food & Dining",
+                "description": "Monthly meals budget",
+                "amount_limit": Decimal("580.00"),
+                "actual_spending": Decimal("420.00"),
+                "budget_month": previous_month_start,
+                "is_recurring": True,
+            },
+            {
+                "name": "Transportation",
+                "description": "Metro, taxi, and commute",
+                "amount_limit": Decimal("280.00"),
+                "actual_spending": Decimal("185.00"),
+                "budget_month": previous_month_start,
+                "is_recurring": True,
+            },
+            {
+                "name": "Entertainment",
+                "description": "Movies, concerts, and events",
+                "amount_limit": Decimal("220.00"),
+                "actual_spending": Decimal("132.00"),
+                "budget_month": previous_month_start,
+                "is_recurring": False,
+            },
+            {
+                "name": "Shopping",
+                "description": "General discretionary spending",
+                "amount_limit": Decimal("380.00"),
+                "actual_spending": Decimal("148.00"),
+                "budget_month": previous_month_start,
+                "is_recurring": False,
+            },
+        ]
+
+        for item in data:
+            Budget.objects.update_or_create(
+                user=user,
+                name=item["name"],
+                budget_month=item["budget_month"],
+                defaults={
+                    "description": item["description"],
+                    "amount_limit": item["amount_limit"],
+                    "actual_spending": item["actual_spending"],
+                    "is_recurring": item["is_recurring"],
                 },
             )

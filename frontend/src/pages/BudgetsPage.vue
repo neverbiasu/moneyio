@@ -4,9 +4,9 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import {
   ArrowTrendingUpIcon,
-  BanknotesIcon,
-  CreditCardIcon,
-  CurrencyDollarIcon,
+  CalculatorIcon,
+  ReceiptPercentIcon,
+  ShieldCheckIcon,
   PencilIcon,
   PlusIcon,
   SparklesIcon,
@@ -30,7 +30,12 @@ const modalMode = ref<'create' | 'edit'>('create');
 const selectedBudget = ref<Budget | null>(null);
 const deleteConfirmId = ref<number | null>(null);
 const selectedView = ref<'monthly' | 'yearly'>('monthly');
-const budgetMutationsSupported = false;
+const selectedYear = ref<number | null>(null);
+const budgetMutationsSupported = true;
+
+type BudgetViewModel = Budget & {
+  sourceCount: number;
+};
 
 async function fetchBudgets() {
   isLoading.value = true;
@@ -38,6 +43,7 @@ async function fetchBudgets() {
 
   try {
     budgets.value = await apiService.budgets.getBudgets();
+    syncSelectedYear();
   } catch (err) {
     console.error('Failed to load budgets:', err);
     error.value = t('budgets.loadFailed');
@@ -46,12 +52,113 @@ async function fetchBudgets() {
   }
 }
 
+function parseBudgetYear(budgetMonth: string): number | null {
+  const parts = budgetMonth.split('-');
+  const year = Number(parts[0]);
+  return Number.isNaN(year) ? null : year;
+}
+
+const availableYears = computed<number[]>(() => {
+  const years = budgets.value
+    .map((item) => parseBudgetYear(item.budgetMonth))
+    .filter((item): item is number => item !== null);
+
+  return Array.from(new Set(years)).sort((left, right) => right - left);
+});
+
+function syncSelectedYear() {
+  const years = availableYears.value;
+  if (years.length === 0) {
+    selectedYear.value = new Date().getFullYear();
+    return;
+  }
+
+  if (selectedYear.value !== null && years.includes(selectedYear.value)) {
+    return;
+  }
+
+  const latestYear = years[0];
+  selectedYear.value = latestYear ?? new Date().getFullYear();
+}
+
+const latestBudgetMonth = computed(() => {
+  if (budgets.value.length === 0) {
+    return null;
+  }
+
+  const sortedMonths = budgets.value
+    .map((item) => item.budgetMonth)
+    .filter((item) => /^\d{4}-\d{2}$/.test(item))
+    .sort((left, right) => right.localeCompare(left));
+
+  return sortedMonths[0] ?? null;
+});
+
+const activeYear = computed(
+  () => selectedYear.value ?? availableYears.value[0] ?? new Date().getFullYear(),
+);
+
+const monthlyBudgets = computed<BudgetViewModel[]>(() => {
+  if (budgets.value.length === 0) {
+    return [];
+  }
+
+  const month = latestBudgetMonth.value;
+  if (!month) {
+    return [];
+  }
+
+  return budgets.value
+    .filter((item) => item.budgetMonth === month)
+    .map((item) => ({ ...item, sourceCount: 1 }));
+});
+
+const yearlyBudgets = computed<BudgetViewModel[]>(() => {
+  if (budgets.value.length === 0) {
+    return [];
+  }
+
+  const year = String(activeYear.value);
+  const yearlySource = budgets.value.filter((item) => item.budgetMonth.startsWith(`${year}-`));
+
+  const grouped = new Map<string, BudgetViewModel>();
+
+  for (const item of yearlySource) {
+    const key = item.name.trim().toLowerCase();
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, {
+        ...item,
+        sourceCount: 1,
+      });
+      continue;
+    }
+
+    grouped.set(key, {
+      ...existing,
+      amountLimit: existing.amountLimit + item.amountLimit,
+      actualSpending: existing.actualSpending + item.actualSpending,
+      isRecurring: existing.isRecurring || item.isRecurring,
+      budgetMonth: `${year}-01`,
+      sourceCount: existing.sourceCount + 1,
+      updatedAt: existing.updatedAt > item.updatedAt ? existing.updatedAt : item.updatedAt,
+    });
+  }
+
+  return Array.from(grouped.values());
+});
+
+const activeBudgets = computed<BudgetViewModel[]>(() =>
+  selectedView.value === 'yearly' ? yearlyBudgets.value : monthlyBudgets.value,
+);
+
 const totalBudget = computed(() =>
-  budgets.value.reduce((sum, budget) => sum + budget.amountLimit, 0),
+  activeBudgets.value.reduce((sum, budget) => sum + budget.amountLimit, 0),
 );
 
 const totalSpent = computed(() => {
-  return budgets.value.reduce((sum, budget) => sum + budget.actualSpending, 0);
+  return activeBudgets.value.reduce((sum, budget) => sum + budget.actualSpending, 0);
 });
 
 const remainingBudget = computed(() => {
@@ -61,7 +168,11 @@ const remainingBudget = computed(() => {
 const isOverallOverBudget = computed(() => totalSpent.value > totalBudget.value);
 
 const currentPeriodLabel = computed(() => {
-  const sourceMonth = budgets.value[0]?.budgetMonth;
+  const sourceMonth = latestBudgetMonth.value;
+
+  if (selectedView.value === 'yearly') {
+    return String(activeYear.value);
+  }
 
   if (!sourceMonth) {
     return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -92,14 +203,16 @@ function getRemainingAmount(budget: Budget): number {
 }
 
 const sortedBudgets = computed(() => {
-  return [...budgets.value].sort((left, right) => progressPercent(right) - progressPercent(left));
+  return [...activeBudgets.value].sort(
+    (left, right) => progressPercent(right) - progressPercent(left),
+  );
 });
 
 const mostAtRiskBudget = computed(() => sortedBudgets.value[0] ?? null);
 
 const biggestOpportunityBudget = computed(() => {
   return (
-    [...budgets.value].sort(
+    [...activeBudgets.value].sort(
       (left, right) => getRemainingAmount(right) - getRemainingAmount(left),
     )[0] ?? null
   );
@@ -113,11 +226,19 @@ function isNearLimit(budget: Budget): boolean {
   return !isOverBudget(budget) && progressPercent(budget) >= 80;
 }
 
-function getBudgetDescription(budget: Budget): string {
+function getBudgetDescription(budget: BudgetViewModel): string {
+  if (selectedView.value === 'yearly' && budget.sourceCount > 1) {
+    return t('budgets.yearlyAggregated', { count: String(budget.sourceCount) });
+  }
+
   return (
     budget.description ?? (budget.isRecurring ? t('budgets.monthlyPlan') : t('budgets.oneTimePlan'))
   );
 }
+
+const allowBudgetMutations = computed(
+  () => budgetMutationsSupported && selectedView.value === 'monthly',
+);
 
 function getBudgetStateLabel(budget: Budget): string {
   if (isOverBudget(budget)) {
@@ -195,33 +316,18 @@ function getBudgetInitial(budget: Budget): string {
 }
 
 function openCreateModal() {
-  if (!budgetMutationsSupported) {
-    error.value = t('budgets.mutationsError');
-    return;
-  }
-
   modalMode.value = 'create';
   selectedBudget.value = null;
   isModalOpen.value = true;
 }
 
 function openEditModal(budget: Budget) {
-  if (!budgetMutationsSupported) {
-    error.value = t('budgets.mutationsError');
-    return;
-  }
-
   modalMode.value = 'edit';
   selectedBudget.value = budget;
   isModalOpen.value = true;
 }
 
 function startDeleteConfirm(id: number) {
-  if (!budgetMutationsSupported) {
-    error.value = t('budgets.deletionError');
-    return;
-  }
-
   deleteConfirmId.value = id;
 }
 
@@ -230,12 +336,6 @@ function cancelDelete() {
 }
 
 async function confirmDelete(id: number) {
-  if (!budgetMutationsSupported) {
-    deleteConfirmId.value = null;
-    error.value = t('budgets.deletionError');
-    return;
-  }
-
   try {
     await apiService.budgets.deleteBudget(id);
     deleteConfirmId.value = null;
@@ -301,6 +401,21 @@ onMounted(() => {
             </button>
           </div>
 
+          <label
+            v-if="selectedView === 'yearly' && availableYears.length > 0"
+            class="inline-flex items-center gap-2 rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-600"
+          >
+            <span>{{ t('budgets.year') }}</span>
+            <select
+              v-model.number="selectedYear"
+              class="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none"
+            >
+              <option v-for="year in availableYears" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
+          </label>
+
           <button
             type="button"
             :disabled="!budgetMutationsSupported"
@@ -328,7 +443,7 @@ onMounted(() => {
               </p>
             </div>
             <span class="rounded-2xl bg-slate-100 p-2.5 text-slate-600 shadow-sm">
-              <BanknotesIcon class="size-5" aria-hidden="true" />
+              <CalculatorIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
@@ -344,7 +459,7 @@ onMounted(() => {
               </p>
             </div>
             <span class="rounded-2xl bg-blue-50 p-2.5 text-blue-600 shadow-sm">
-              <CreditCardIcon class="size-5" aria-hidden="true" />
+              <ReceiptPercentIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
@@ -373,7 +488,7 @@ onMounted(() => {
                 isOverallOverBudget ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
               "
             >
-              <CurrencyDollarIcon class="size-5" aria-hidden="true" />
+              <ShieldCheckIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
@@ -396,7 +511,7 @@ onMounted(() => {
     </div>
 
     <div
-      v-else-if="budgets.length === 0"
+      v-else-if="activeBudgets.length === 0"
       class="rounded-[28px] border border-slate-200 bg-white py-16 text-center shadow-sm"
     >
       <SparklesIcon class="mx-auto mb-4 size-12 text-slate-300" aria-hidden="true" />
@@ -404,7 +519,7 @@ onMounted(() => {
       <p class="mt-1 text-sm text-slate-500">{{ t('budgets.noBudgetsHint') }}</p>
       <button
         type="button"
-        :disabled="!budgetMutationsSupported"
+        :disabled="!allowBudgetMutations"
         class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         @click="openCreateModal"
       >
@@ -466,7 +581,7 @@ onMounted(() => {
                     <div class="flex shrink-0 gap-1">
                       <button
                         type="button"
-                        :disabled="!budgetMutationsSupported"
+                        :disabled="!allowBudgetMutations"
                         class="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                         :aria-label="`Edit ${budget.name}`"
                         @click="openEditModal(budget)"
@@ -475,7 +590,7 @@ onMounted(() => {
                       </button>
                       <button
                         type="button"
-                        :disabled="!budgetMutationsSupported"
+                        :disabled="!allowBudgetMutations"
                         class="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                         :aria-label="`Delete ${budget.name}`"
                         @click="startDeleteConfirm(budget.id)"

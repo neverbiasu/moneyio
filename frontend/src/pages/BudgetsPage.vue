@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import {
   ArrowTrendingUpIcon,
@@ -19,6 +20,7 @@ import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 defineOptions({ name: 'BudgetsPage' });
 
 const router = useRouter();
+const { t } = useI18n();
 
 const budgets = ref<Budget[]>([]);
 const isLoading = ref(false);
@@ -38,7 +40,7 @@ async function fetchBudgets() {
     budgets.value = await apiService.budgets.getBudgets();
   } catch (err) {
     console.error('Failed to load budgets:', err);
-    error.value = 'Failed to load budgets. Please try again.';
+    error.value = t('budgets.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -113,20 +115,22 @@ function isNearLimit(budget: Budget): boolean {
 
 function getBudgetDescription(budget: Budget): string {
   return (
-    budget.description ?? (budget.isRecurring ? 'Monthly spending plan' : 'One-time spending plan')
+    budget.description ?? (budget.isRecurring ? t('budgets.monthlyPlan') : t('budgets.oneTimePlan'))
   );
 }
 
 function getBudgetStateLabel(budget: Budget): string {
   if (isOverBudget(budget)) {
-    return `Over by ${formatCurrency(Math.abs(budget.amountLimit - budget.actualSpending))}`;
+    return t('budgets.overBy', {
+      amount: formatCurrency(Math.abs(budget.amountLimit - budget.actualSpending)),
+    });
   }
 
   if (isNearLimit(budget)) {
-    return `Near limit: ${formatCurrency(getRemainingAmount(budget))} left`;
+    return t('budgets.nearLimit', { amount: formatCurrency(getRemainingAmount(budget)) });
   }
 
-  return `Under by ${formatCurrency(getRemainingAmount(budget))}`;
+  return t('budgets.underBy', { amount: formatCurrency(getRemainingAmount(budget)) });
 }
 
 function getBudgetStateTextClass(budget: Budget): string {
@@ -192,7 +196,7 @@ function getBudgetInitial(budget: Budget): string {
 
 function openCreateModal() {
   if (!budgetMutationsSupported) {
-    error.value = 'Budget create and update are not supported by backend API yet.';
+    error.value = t('budgets.mutationsError');
     return;
   }
 
@@ -203,7 +207,7 @@ function openCreateModal() {
 
 function openEditModal(budget: Budget) {
   if (!budgetMutationsSupported) {
-    error.value = 'Budget create and update are not supported by backend API yet.';
+    error.value = t('budgets.mutationsError');
     return;
   }
 
@@ -214,7 +218,7 @@ function openEditModal(budget: Budget) {
 
 function startDeleteConfirm(id: number) {
   if (!budgetMutationsSupported) {
-    error.value = 'Budget deletion is not supported by backend API yet.';
+    error.value = t('budgets.deletionError');
     return;
   }
 
@@ -228,7 +232,7 @@ function cancelDelete() {
 async function confirmDelete(id: number) {
   if (!budgetMutationsSupported) {
     deleteConfirmId.value = null;
-    error.value = 'Budget deletion is not supported by backend API yet.';
+    error.value = t('budgets.deletionError');
     return;
   }
 
@@ -238,7 +242,7 @@ async function confirmDelete(id: number) {
     await fetchBudgets();
   } catch (err) {
     console.error('Failed to delete budget:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to delete budget. Please try again.';
+    error.value = err instanceof Error ? err.message : t('budgets.loadFailed');
   }
 }
 
@@ -266,7 +270,7 @@ onMounted(() => {
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p class="text-sm font-medium text-slate-500">{{ currentPeriodLabel }}</p>
-          <p class="mt-1 text-sm text-slate-600">Manage your monthly spending limits</p>
+          <p class="mt-1 text-sm text-slate-600">{{ t('budgets.manageLimit') }}</p>
         </div>
 
         <div class="flex items-center gap-3 self-start">
@@ -281,7 +285,7 @@ onMounted(() => {
               "
               @click="selectedView = 'monthly'"
             >
-              Monthly
+              {{ t('budgets.monthly') }}
             </button>
             <button
               type="button"
@@ -293,7 +297,7 @@ onMounted(() => {
               "
               @click="selectedView = 'yearly'"
             >
-              Yearly
+              {{ t('budgets.yearly') }}
             </button>
           </div>
 
@@ -304,7 +308,7 @@ onMounted(() => {
             @click="openCreateModal"
           >
             <PlusIcon class="size-4" aria-hidden="true" />
-            Add Budget
+            {{ t('budgets.addBudget') }}
           </button>
         </div>
       </div>
@@ -317,7 +321,7 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                Total Budget
+                {{ t('budgets.totalBudget') }}
               </p>
               <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                 {{ formatCurrency(totalBudget) }}
@@ -333,7 +337,7 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                Total Spent
+                {{ t('budgets.totalSpent') }}
               </p>
               <p class="mt-2 text-3xl font-bold tracking-tight text-blue-600">
                 {{ formatCurrency(totalSpent) }}
@@ -352,7 +356,7 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                {{ isOverallOverBudget ? 'Over Budget' : 'Remaining' }}
+                {{ isOverallOverBudget ? t('budgets.overBudgetLabel') : t('budgets.remaining') }}
               </p>
               <p
                 class="mt-2 text-3xl font-bold tracking-tight"
@@ -396,10 +400,8 @@ onMounted(() => {
       class="rounded-[28px] border border-slate-200 bg-white py-16 text-center shadow-sm"
     >
       <SparklesIcon class="mx-auto mb-4 size-12 text-slate-300" aria-hidden="true" />
-      <p class="text-base font-semibold text-slate-700">No budgets yet</p>
-      <p class="mt-1 text-sm text-slate-500">
-        Create your first budget to track category spending.
-      </p>
+      <p class="text-base font-semibold text-slate-700">{{ t('budgets.noBudgets') }}</p>
+      <p class="mt-1 text-sm text-slate-500">{{ t('budgets.noBudgetsHint') }}</p>
       <button
         type="button"
         :disabled="!budgetMutationsSupported"
@@ -407,7 +409,7 @@ onMounted(() => {
         @click="openCreateModal"
       >
         <PlusIcon class="size-4" aria-hidden="true" />
-        Create Budget
+        {{ t('budgets.createBudget') }}
       </button>
     </div>
 
@@ -415,10 +417,8 @@ onMounted(() => {
       <section class="rounded-[28px] bg-sky-50/70 p-5 sm:p-6">
         <div class="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h2 class="text-lg font-bold text-slate-900">Category Budgets</h2>
-            <p class="mt-1 text-sm text-slate-500">
-              Monitor spending by category and spot risks early.
-            </p>
+            <h2 class="text-lg font-bold text-slate-900">{{ t('budgets.categoryBudgets') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ t('budgets.categoryBudgetsHint') }}</p>
           </div>
         </div>
 
@@ -446,7 +446,7 @@ onMounted(() => {
                       <span
                         class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"
                       >
-                        {{ budget.isRecurring ? 'Monthly' : 'One-time' }}
+                        {{ budget.isRecurring ? t('budgets.isRecurring') : t('budgets.oneTime') }}
                       </span>
                     </div>
                     <p class="mt-1 text-sm text-slate-500">{{ getBudgetDescription(budget) }}</p>
@@ -508,14 +508,16 @@ onMounted(() => {
                   </div>
 
                   <div class="flex items-center justify-between text-xs font-medium text-slate-500">
-                    <span>{{ progressPercent(budget).toFixed(0) }}% spent</span>
+                    <span>{{
+                      t('budgets.spentPercent', { percent: progressPercent(budget).toFixed(0) })
+                    }}</span>
                     <span :class="getBudgetStateTextClass(budget)">
                       {{
                         isOverBudget(budget)
-                          ? 'Action needed'
+                          ? t('budgets.actionNeeded')
                           : isNearLimit(budget)
-                            ? 'Close to limit'
-                            : 'Healthy pace'
+                            ? t('budgets.closeToLimit')
+                            : t('budgets.healthyPace')
                       }}
                     </span>
                   </div>
@@ -527,22 +529,22 @@ onMounted(() => {
               v-if="deleteConfirmId === budget.id"
               class="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-red-300 bg-white/95 p-5 backdrop-blur-sm"
             >
-              <p class="text-sm font-semibold text-slate-800">Delete this budget?</p>
-              <p class="text-xs text-slate-500">This action cannot be undone.</p>
+              <p class="text-sm font-semibold text-slate-800">{{ t('budgets.deleteConfirm') }}</p>
+              <p class="text-xs text-slate-500">{{ t('budgets.deleteUndone') }}</p>
               <div class="flex w-full max-w-xs gap-2">
                 <button
                   type="button"
                   class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                   @click="cancelDelete"
                 >
-                  Cancel
+                  {{ t('common.cancel') }}
                 </button>
                 <button
                   type="button"
                   class="flex-1 rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700"
                   @click="confirmDelete(budget.id)"
                 >
-                  Delete
+                  {{ t('common.delete') }}
                 </button>
               </div>
             </div>
@@ -556,20 +558,20 @@ onMounted(() => {
             <span class="rounded-2xl bg-white p-2.5 text-blue-600 shadow-sm">
               <SparklesIcon class="size-5" aria-hidden="true" />
             </span>
-            <h3 class="text-lg font-bold text-slate-900">Smart Insights</h3>
+            <h3 class="text-lg font-bold text-slate-900">{{ t('budgets.smartInsights') }}</h3>
           </div>
 
           <p class="mt-4 text-sm leading-6 text-slate-600">
             <template v-if="mostAtRiskBudget">
-              <span class="font-semibold text-slate-900">{{ mostAtRiskBudget.name }}</span>
-              is your highest-spend category at
-              <span class="font-semibold text-slate-900">
-                {{ progressPercent(mostAtRiskBudget).toFixed(0) }}%
-              </span>
-              of its budget. Review upcoming expenses to keep the month on track.
+              {{
+                t('budgets.smartInsightsText', {
+                  name: mostAtRiskBudget.name,
+                  percent: progressPercent(mostAtRiskBudget).toFixed(0),
+                })
+              }}
             </template>
             <template v-else>
-              Add a budget to unlock spending insights and recommendations.
+              {{ t('budgets.smartInsightsEmpty') }}
             </template>
           </p>
 
@@ -578,7 +580,7 @@ onMounted(() => {
             class="mt-6 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
             @click="openReportsPage"
           >
-            View analysis →
+            {{ t('budgets.viewAnalysis') }}
           </button>
         </article>
 
@@ -587,21 +589,20 @@ onMounted(() => {
             <span class="rounded-2xl bg-white p-2.5 text-emerald-600 shadow-sm">
               <ArrowTrendingUpIcon class="size-5" aria-hidden="true" />
             </span>
-            <h3 class="text-lg font-bold text-slate-900">Savings Potential</h3>
+            <h3 class="text-lg font-bold text-slate-900">{{ t('budgets.savingsPotential') }}</h3>
           </div>
 
           <p class="mt-4 text-sm leading-6 text-slate-600">
             <template v-if="biggestOpportunityBudget">
-              You still have
-              <span class="font-semibold text-emerald-600">
-                {{ formatCurrency(getRemainingAmount(biggestOpportunityBudget)) }}
-              </span>
-              available in
-              <span class="font-semibold text-slate-900">{{ biggestOpportunityBudget.name }}</span>
-              <span>. Keep this pace to improve your savings by month end.</span>
+              {{
+                t('budgets.savingsPotentialText', {
+                  amount: formatCurrency(getRemainingAmount(biggestOpportunityBudget)),
+                  name: biggestOpportunityBudget.name,
+                })
+              }}
             </template>
             <template v-else>
-              Add budgets to discover how much room is left across your spending plan.
+              {{ t('budgets.savingsPotentialEmpty') }}
             </template>
           </p>
 
@@ -610,7 +611,7 @@ onMounted(() => {
             class="mt-6 text-sm font-semibold text-emerald-600 transition hover:text-emerald-700"
             @click="openSettingsPage"
           >
-            Set savings goal →
+            {{ t('budgets.setSavingsGoal') }}
           </button>
         </article>
       </section>

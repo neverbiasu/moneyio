@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme-mode='dark'], [data-theme-mode='dark'] *));
+
 @theme {
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
@@ -34,6 +36,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html[data-theme-mode='dark'] {
+  color-scheme: dark;
+}
+
+html[data-theme-mode='dark'],
+html[data-theme-mode='dark'] body,
+html[data-theme-mode='dark'] #app {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -55,6 +68,64 @@ a,
 :focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
+}
+
+html[data-theme-mode='dark'] .bg-white {
+  background-color: #111827 !important;
+}
+
+html[data-theme-mode='dark'] .bg-gray-50,
+html[data-theme-mode='dark'] .bg-neutral-50 {
+  background-color: #0f172a !important;
+}
+
+html[data-theme-mode='dark'] .bg-neutral-100,
+html[data-theme-mode='dark'] .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+
+html[data-theme-mode='dark'] .border-gray-100,
+html[data-theme-mode='dark'] .border-gray-200,
+html[data-theme-mode='dark'] .border-neutral-100,
+html[data-theme-mode='dark'] .border-neutral-200,
+html[data-theme-mode='dark'] .border-neutral-300 {
+  border-color: #374151 !important;
+}
+
+html[data-theme-mode='dark'] .text-gray-900,
+html[data-theme-mode='dark'] .text-gray-800,
+html[data-theme-mode='dark'] .text-neutral-900,
+html[data-theme-mode='dark'] .text-neutral-800 {
+  color: #f3f4f6 !important;
+}
+
+html[data-theme-mode='dark'] .text-gray-700,
+html[data-theme-mode='dark'] .text-gray-600,
+html[data-theme-mode='dark'] .text-gray-500,
+html[data-theme-mode='dark'] .text-neutral-700,
+html[data-theme-mode='dark'] .text-neutral-600,
+html[data-theme-mode='dark'] .text-neutral-500,
+html[data-theme-mode='dark'] .text-neutral-400 {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme-mode='dark'] input,
+html[data-theme-mode='dark'] select,
+html[data-theme-mode='dark'] textarea {
+  background-color: #111827 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+html[data-theme-mode='dark'] input::placeholder,
+html[data-theme-mode='dark'] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html[data-theme-mode='dark'] .shadow-sm,
+html[data-theme-mode='dark'] .shadow-xl,
+html[data-theme-mode='dark'] .shadow-lg {
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35) !important;
 }
 
 .fade-enter-active,

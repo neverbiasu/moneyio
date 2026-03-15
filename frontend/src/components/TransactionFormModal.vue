@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
 import { DatePicker } from 'v-calendar';
@@ -14,6 +15,7 @@ import {
 import type { Category, Account, Transaction } from '@/api/types';
 import apiService from '@/api/services';
 import axios from 'axios';
+import { getPreferredLocale } from '@/utils/userPreferences';
 
 defineOptions({ name: 'TransactionFormModal' });
 
@@ -38,6 +40,8 @@ const emit = defineEmits<{
   saved: [];
   deleted: [];
 }>();
+
+const { t, locale } = useI18n();
 
 const transactionType = ref<'expense' | 'income'>('expense');
 const form = reactive({
@@ -88,24 +92,34 @@ const filteredCategories = computed(() => {
 
 const typeConfig = computed(() => {
   const configs = {
-    expense: { label: 'Expense', color: 'red', icon: ArrowUpTrayIcon },
-    income: { label: 'Income', color: 'green', icon: ArrowDownTrayIcon },
+    expense: {
+      label: t('transactionModal.expense'),
+      color: 'red',
+      icon: ArrowUpTrayIcon,
+    },
+    income: {
+      label: t('transactionModal.income'),
+      color: 'green',
+      icon: ArrowDownTrayIcon,
+    },
   };
   return configs[transactionType.value];
 });
 
+const datePickerLocale = computed(() => getPreferredLocale(locale.value === 'zh' ? 'zh' : 'en'));
+
 function validate(): boolean {
   if (isTransferEdit.value) {
     errors.amount = '';
-    errors.categoryId = 'Transfer transactions are not supported in this form.';
+    errors.categoryId = t('transactionModal.transferNotSupported');
     errors.accountId = '';
-    submitError.value = 'Transfer transactions are not supported in this form.';
+    submitError.value = t('transactionModal.transferNotSupported');
     return false;
   }
 
-  errors.amount = form.amount && Number(form.amount) > 0 ? '' : 'Please enter a valid amount';
-  errors.categoryId = form.categoryId ? '' : 'Please select a category';
-  errors.accountId = form.accountId ? '' : 'Please select an account';
+  errors.amount = form.amount && Number(form.amount) > 0 ? '' : t('transactionModal.invalidAmount');
+  errors.categoryId = form.categoryId ? '' : t('transactionModal.chooseCategory');
+  errors.accountId = form.accountId ? '' : t('transactionModal.chooseAccount');
   return !hasErrors.value;
 }
 
@@ -156,9 +170,7 @@ function initializeEditForm(): void {
   errors.amount = '';
   errors.categoryId = '';
   errors.accountId = '';
-  submitError.value = isTransferEdit.value
-    ? 'Transfer transactions are not supported in this form.'
-    : '';
+  submitError.value = isTransferEdit.value ? t('transactionModal.transferNotSupported') : '';
 }
 
 async function submitForm(): Promise<void> {
@@ -168,7 +180,7 @@ async function submitForm(): Promise<void> {
   submitError.value = '';
   try {
     if (isTransferEdit.value) {
-      submitError.value = 'Transfer transactions are not supported in this form.';
+      submitError.value = t('transactionModal.transferNotSupported');
       return;
     }
 
@@ -177,13 +189,13 @@ async function submitForm(): Promise<void> {
 
     const accountId = form.accountId;
     if (accountId === null) {
-      errors.accountId = 'Please select an account';
+      errors.accountId = t('transactionModal.chooseAccount');
       return;
     }
 
     const categoryId = form.categoryId;
     if (categoryId === null) {
-      errors.categoryId = 'Please select a category';
+      errors.categoryId = t('transactionModal.chooseCategory');
       return;
     }
 
@@ -208,11 +220,11 @@ async function submitForm(): Promise<void> {
     if (axios.isAxiosError(err)) {
       submitError.value =
         (err.response?.data as { error?: string } | undefined)?.error ??
-        'Failed to save transaction. Please try again.';
+        t('transactionModal.saveFailed');
     } else if (err instanceof Error) {
       submitError.value = err.message;
     } else {
-      submitError.value = 'Failed to save transaction. Please try again.';
+      submitError.value = t('transactionModal.saveFailed');
     }
   } finally {
     isSaving.value = false;
@@ -224,7 +236,7 @@ async function deleteCurrentTransaction(): Promise<void> {
     return;
   }
 
-  const confirmed = window.confirm('Delete this transaction? This action cannot be undone.');
+  const confirmed = window.confirm(t('transactionModal.deleteConfirm'));
   if (!confirmed) {
     return;
   }
@@ -240,11 +252,11 @@ async function deleteCurrentTransaction(): Promise<void> {
     if (axios.isAxiosError(err)) {
       submitError.value =
         (err.response?.data as { error?: string } | undefined)?.error ??
-        'Failed to delete transaction. Please try again.';
+        t('transactionModal.deleteFailed');
     } else if (err instanceof Error) {
       submitError.value = err.message;
     } else {
-      submitError.value = 'Failed to delete transaction. Please try again.';
+      submitError.value = t('transactionModal.deleteFailed');
     }
   } finally {
     isDeleting.value = false;
@@ -340,7 +352,7 @@ watch(
               aria-labelledby="modal-title"
             >
               <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">
-                {{ isEditMode ? 'Edit Transaction' : 'Add Transaction' }}
+                {{ isEditMode ? t('transactionModal.editTitle') : t('transactionModal.addTitle') }}
               </h2>
 
               <div class="mb-6 flex gap-2">
@@ -353,13 +365,13 @@ watch(
                   ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'expense'"
-                  title="Expense Transaction"
+                  :title="t('transactionModal.expenseTitle')"
                   :disabled="isEditMode"
                   :aria-disabled="isEditMode"
                   @click="selectTransactionType('expense')"
                 >
                   <ArrowUpTrayIcon class="size-5" />
-                  <span>Expense</span>
+                  <span>{{ t('transactionModal.expense') }}</span>
                 </button>
                 <button
                   :class="[
@@ -370,18 +382,18 @@ watch(
                   ]"
                   class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors"
                   :aria-pressed="transactionType === 'income'"
-                  title="Income Transaction"
+                  :title="t('transactionModal.incomeTitle')"
                   :disabled="isEditMode"
                   :aria-disabled="isEditMode"
                   @click="selectTransactionType('income')"
                 >
                   <ArrowDownTrayIcon class="size-5" />
-                  <span>Income</span>
+                  <span>{{ t('transactionModal.income') }}</span>
                 </button>
               </div>
 
               <p v-if="isEditMode" class="mb-4 text-xs text-neutral-500">
-                Transaction type is fixed in edit mode.
+                {{ t('transactionModal.typeFixed') }}
               </p>
 
               <div v-if="isLoading" class="text-center py-8">
@@ -399,7 +411,7 @@ watch(
 
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                    Amount
+                    {{ t('transactionModal.amount') }}
                   </label>
                   <input
                     id="amount"
@@ -407,7 +419,7 @@ watch(
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    :placeholder="t('transactionModal.amountPlaceholder')"
                     class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
                     :aria-invalid="!!errors.amount"
                   />
@@ -415,7 +427,9 @@ watch(
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                    t('transactionModal.category')
+                  }}</label>
                   <Listbox v-model="form.categoryId">
                     <div class="relative">
                       <ListboxButton
@@ -423,7 +437,7 @@ watch(
                         :aria-invalid="!!errors.categoryId"
                       >
                         <span class="truncate text-neutral-800">
-                          {{ selectedCategory?.name || 'Select a category' }}
+                          {{ selectedCategory?.name || t('transactionModal.selectCategory') }}
                         </span>
                         <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
                       </ListboxButton>
@@ -455,7 +469,9 @@ watch(
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                    t('transactionModal.account')
+                  }}</label>
                   <Listbox v-model="form.accountId">
                     <div class="relative">
                       <ListboxButton
@@ -463,7 +479,7 @@ watch(
                         :aria-invalid="!!errors.accountId"
                       >
                         <span class="truncate text-neutral-800">
-                          {{ selectedAccount?.name || 'Select an account' }}
+                          {{ selectedAccount?.name || t('transactionModal.selectAccount') }}
                         </span>
                         <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
                       </ListboxButton>
@@ -495,8 +511,10 @@ watch(
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <DatePicker v-model="form.date" locale="en">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                    t('transactionModal.date')
+                  }}</label>
+                  <DatePicker v-model="form.date" :locale="datePickerLocale">
                     <template #default="{ togglePopover, inputValue, inputEvents }">
                       <div class="relative">
                         <CalendarIcon
@@ -506,7 +524,7 @@ watch(
                           v-bind="inputEvents"
                           :value="inputValue"
                           type="text"
-                          placeholder="Select date"
+                          :placeholder="t('transactionModal.selectDate')"
                           readonly
                           class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
                           @click="togglePopover"
@@ -518,12 +536,12 @@ watch(
 
                 <div>
                   <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
-                    Notes (optional)
+                    {{ t('transactionModal.notesOptional') }}
                   </label>
                   <textarea
                     id="notes"
                     v-model="form.notes"
-                    placeholder="Add any notes..."
+                    :placeholder="t('transactionModal.notesPlaceholder')"
                     rows="3"
                     class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition resize-none"
                   />
@@ -537,14 +555,14 @@ watch(
                     class="mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     @click="deleteCurrentTransaction"
                   >
-                    {{ isDeleting ? 'Deleting...' : 'Delete' }}
+                    {{ isDeleting ? t('transactionModal.deleting') : t('common.delete') }}
                   </button>
                   <button
                     type="button"
                     class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
                     @click="handleClose"
                   >
-                    Cancel
+                    {{ t('common.cancel') }}
                   </button>
                   <button
                     type="submit"
@@ -557,10 +575,10 @@ watch(
                   >
                     {{
                       isSaving
-                        ? 'Saving...'
+                        ? t('transactionModal.saving')
                         : isEditMode
-                          ? 'Update Transaction'
-                          : `Add ${typeConfig.label}`
+                          ? t('transactionModal.update')
+                          : t('transactionModal.addType', { type: typeConfig.label })
                     }}
                   </button>
                 </div>

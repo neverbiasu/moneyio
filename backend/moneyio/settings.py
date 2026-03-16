@@ -28,12 +28,13 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
-_allowed_hosts_env = os.environ.get(
-    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
-)
-ALLOWED_HOSTS = [
-    h.strip() for h in _allowed_hosts_env.split(",") if h.strip()
-]
+_allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
+if _allowed_hosts_env:
+    ALLOWED_HOSTS = [
+        h.strip() for h in _allowed_hosts_env.split(",") if h.strip()
+    ]
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"] if DEBUG else ["*"]
 
 
 # Application definition
@@ -148,6 +149,16 @@ if _cors_env:
 elif DEBUG:
     # Development fallback
     CORS_ALLOW_ALL_ORIGINS = True
+
+_csrf_trusted_origins_env = os.environ.get(
+    "DJANGO_CSRF_TRUSTED_ORIGINS", ""
+)
+if _csrf_trusted_origins_env:
+    CSRF_TRUSTED_ORIGINS = [
+        o.strip()
+        for o in _csrf_trusted_origins_env.split(",")
+        if o.strip()
+    ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

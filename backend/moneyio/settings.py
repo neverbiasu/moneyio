@@ -28,11 +28,27 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
+
+def _normalize_host(host: str) -> str:
+    value = host.strip()
+    if not value:
+        return ""
+    if "://" in value:
+        value = value.split("://", 1)[1]
+    value = value.split("/", 1)[0].strip()
+    if ":" in value and not value.startswith("["):
+        value = value.split(":", 1)[0].strip()
+    return value.rstrip(".")
+
+
 _allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
 if _allowed_hosts_env:
-    ALLOWED_HOSTS = [
-        h.strip() for h in _allowed_hosts_env.split(",") if h.strip()
+    _parsed_hosts = [
+        _normalize_host(h)
+        for h in _allowed_hosts_env.split(",")
+        if h.strip()
     ]
+    ALLOWED_HOSTS = [h for h in _parsed_hosts if h]
 else:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"] if DEBUG else ["*"]
 
@@ -154,11 +170,15 @@ _csrf_trusted_origins_env = os.environ.get(
     "DJANGO_CSRF_TRUSTED_ORIGINS", ""
 )
 if _csrf_trusted_origins_env:
-    CSRF_TRUSTED_ORIGINS = [
-        o.strip()
-        for o in _csrf_trusted_origins_env.split(",")
-        if o.strip()
-    ]
+    _origins = []
+    for origin in _csrf_trusted_origins_env.split(","):
+        _origin = origin.strip()
+        if not _origin:
+            continue
+        if "://" not in _origin:
+            _origin = f"https://{_normalize_host(_origin)}"
+        _origins.append(_origin.rstrip("/"))
+    CSRF_TRUSTED_ORIGINS = [o for o in _origins if o]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

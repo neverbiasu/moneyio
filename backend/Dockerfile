@@ -18,10 +18,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project source
 COPY . .
 
+RUN chmod +x /app/start.sh
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
 # Run migrations then start gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && if [ \"${SEED_INTEGRATION_DATA:-False}\" = \"True\" ]; then if [ \"${SEED_INTEGRATION_DATA_RESET:-False}\" = \"True\" ]; then python manage.py seed_integration_data --i-understand --reset; else python manage.py seed_integration_data --i-understand; fi; fi && gunicorn moneyio.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 60"]
+CMD ["/app/start.sh"]

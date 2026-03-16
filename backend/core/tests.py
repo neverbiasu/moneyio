@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -216,7 +219,6 @@ class AuthMethodConstraintTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response.json()["error"], "method not allowed")
 
-
 class BudgetAPITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -334,3 +336,150 @@ class BudgetAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Budget.objects.filter(id=self.other_budget.id).exists())
+
+class UserModelTests(TestCase):
+    #Test User Model
+    def test_create_user(self):
+        user = User.objects.create_user(
+             username="modelusercreation",
+             password="password",
+             email='modelcreateuser@test.com',
+        )
+        self.assertEqual(user.username, "modelusercreation")
+        self.assertEqual(user.email, "modelcreateuser@test.com")
+        self.assertIsNotNone(user.reg_date)
+
+    def test_user_str(self):
+        # Return username
+        user = User.objects.create_user(
+            username="struser", password="x", email="struser@test.com"
+        )
+        self.assertEqual(str(user), "struser")
+
+class AccountModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="accountuser", password="accounttest", email="accountuser@test.com"
+        )
+        acc = Account.objects.create(
+            user = self.user,
+            name = "Bank",
+            account_type = "Bank Card",
+            balance = Decimal("2026.03"),
+        )
+        self.assertEqual(acc.name, "Bank")
+        self.assertEqual(acc.balance, Decimal("2026.03"))
+
+    def test_account_default_balance(self):
+        acc = Account.objects.create(
+            user = self.user, name = "Cash", account_type = "Cash"
+        )
+        self.assertEqual(acc.balance, Decimal("0.00"))
+
+    def test_account_str(self):
+        acc = Account.objects.create(
+            user = self.user, name = "Test Account", account_type = "Card"
+        )
+        self.assertEqual(str(acc), "Test Account")
+
+    def test_account_related_transactions(self):
+        acc = Account.objects.create(
+            user=self.user, name="Account", account_type="Card"
+        )
+        self.assertEqual(acc.transactions.count(), 0)
+
+class CategoryModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="categoryuser", password="testAAA12!@", email="categoryuser@test.com"
+        )
+
+    def test_create_income_category(self):
+        cat = Category.objects.create(
+            user=self.user, name="Salary", category_type=Category.CategoryType.INCOME
+        )
+        self.assertEqual(cat.category_type, "IN")
+
+    def test_create_expense_category(self):
+        cat = Category.objects.create(
+            user=self.user, name="Food", category_type=Category.CategoryType.EXPENSE
+        )
+        self.assertEqual(cat.category_type, "OUT")
+
+    def test_category_str(self):
+        cat = Category.objects.create(
+            user=self.user, name="Market", category_type=Category.CategoryType.EXPENSE
+        )
+        self.assertEqual(str(cat), "Market")
+
+    def test_category_default_tree_level(self):
+        cat = Category.objects.create(
+            user=self.user, name="Cat", category_type=Category.CategoryType.INCOME
+        )
+        self.assertEqual(cat.tree_level, 1)
+
+class TransactionModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="transuser", password="transaction", email="transuser@test.com"
+        )
+        self.acc = Account.objects.create(
+            user=self.user, name="Acc", account_type="Card"
+        )
+        self.cat = Category.objects.create(
+            user=self.user, name="Cat", category_type=Category.CategoryType.INCOME
+        )
+
+    def test_create_transaction(self):
+        tx = Transaction.objects.create(
+            user=self.user,
+            account=self.acc,
+            category=self.cat,
+            amount=Decimal("2026.03"),
+            trans_date=timezone.now(),
+            note="Test note",
+        )
+        self.assertEqual(tx.amount, Decimal("2026.03"))
+        self.assertEqual(tx.note, "Test note")
+        self.assertIsNotNone(tx.crt_time)
+        self.assertIsNotNone(tx.upt_time)
+
+    def test_transaction_str_format(self):
+        tx = Transaction.objects.create(
+            user=self.user,
+            account=self.acc,
+            category=self.cat,
+            amount=Decimal("100.00"),
+            trans_date=timezone.now(),
+        )
+        s = str(tx)
+        self.assertIn(self.cat.name, s)
+        self.assertIn("100.00", s)
+
+class BudgetModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="budgetuser", password="x", email="budgetuser@test.com"
+        )
+
+    def test_create_budget(self):
+        from datetime import date
+        b = Budget.objects.create(
+            user=self.user,
+            amount_limit=Decimal("3000.00"),
+            budget_month=date(2026, 3, 1),
+            is_recurring=True,
+        )
+        self.assertEqual(b.amount_limit, Decimal("3000.00"))
+        self.assertEqual(b.actual_spending, Decimal("0.00"))
+        self.assertTrue(b.is_recurring)
+
+    def test_budget_str(self):
+        from datetime import date
+        b = Budget.objects.create(
+            user=self.user,
+            amount_limit=Decimal("1000.00"),
+            budget_month=date(2026, 3, 1),
+        )
+        self.assertIn("2026", str(b))
+        self.assertIn("Budget", str(b))

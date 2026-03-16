@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -221,12 +222,12 @@ def transactions_summary(request):
         income_data = current_month_data.filter(
             category__category_type="IN"
         ).aggregate(Sum("amount"))
-        total_income = income_data["amount__sum"] or 0.0
+        total_income = income_data["amount__sum"] or Decimal("0")
 
         expense_data = current_month_data.filter(
             category__category_type="OUT"
         ).aggregate(Sum("amount"))
-        total_expense = expense_data["amount__sum"] or 0.0
+        total_expense = expense_data["amount__sum"] or Decimal("0")
 
         return JsonResponse(
             {

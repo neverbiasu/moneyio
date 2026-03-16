@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import type { Transaction, Category } from '@/api/mock-data';
+import type { Transaction, Category } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'RecentTransactionsList' });
 
@@ -17,6 +19,11 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
 });
 
+defineEmits<{
+  addClick: [];
+}>();
+
+const { t } = useI18n();
 const router = useRouter();
 
 const recentTransactions = computed(() => {
@@ -25,11 +32,13 @@ const recentTransactions = computed(() => {
     .slice(0, 5);
 });
 
-const getCategoryName = (categoryId: number) => {
-  return props.categories.find((c) => c.id === categoryId)?.name ?? 'Unknown';
+const getCategoryName = (categoryId: number | null) => {
+  if (categoryId === null) return t('common.transfer');
+  return props.categories.find((c) => c.id === categoryId)?.name ?? t('common.unknown');
 };
 
-const getCategoryType = (categoryId: number) => {
+const getCategoryType = (categoryId: number | null) => {
+  if (categoryId === null) return 'transfer';
   return props.categories.find((c) => c.id === categoryId)?.type ?? 'expense';
 };
 
@@ -39,15 +48,16 @@ const formatDate = (dateString: string) => {
 };
 
 const formatAmount = (amount: number, type: string) => {
-  const formatted = amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
-  return type === 'income' ? `+${formatted}` : `-${formatted}`;
+  const formatted = formatCurrencyWithPreference(amount);
+  if (type === 'income') return `+${formatted}`;
+  if (type === 'transfer') return amount > 0 ? `+${formatted}` : `-${formatted}`;
+  return `-${formatted}`;
 };
 
-const getAmountColor = (type: string) => {
-  return type === 'income' ? 'text-green-600' : 'text-red-600';
+const getAmountColor = (type: string, amount?: number) => {
+  if (type === 'income') return 'text-green-600';
+  if (type === 'transfer') return amount && amount > 0 ? 'text-green-600' : 'text-red-600';
+  return 'text-red-600';
 };
 
 function goToTransactions() {
@@ -58,11 +68,10 @@ function goToTransactions() {
 <template>
   <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+      <h2 class="text-lg font-semibold text-gray-900">{{ t('recentTx.title') }}</h2>
     </div>
 
     <div class="divide-y divide-gray-200">
-      <!-- Loading State -->
       <div v-if="isLoading" class="divide-y divide-gray-200">
         <div v-for="i in 5" :key="i" class="px-6 py-4 flex items-center justify-between">
           <div class="flex-1">
@@ -73,12 +82,10 @@ function goToTransactions() {
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="recentTransactions.length === 0" class="px-6 py-12">
-        <p class="text-center text-gray-500">No transactions yet. Start by adding one!</p>
+        <p class="text-center text-gray-500">{{ t('recentTx.empty') }}</p>
       </div>
 
-      <!-- Transactions List -->
       <div v-else>
         <div
           v-for="transaction in recentTransactions"
@@ -94,7 +101,7 @@ function goToTransactions() {
           <p
             :class="[
               'text-sm font-semibold ml-4',
-              getAmountColor(getCategoryType(transaction.categoryId)),
+              getAmountColor(getCategoryType(transaction.categoryId), transaction.amount),
             ]"
           >
             {{ formatAmount(transaction.amount, getCategoryType(transaction.categoryId)) }}
@@ -103,15 +110,23 @@ function goToTransactions() {
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-      <button
-        type="button"
-        class="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 py-2 rounded-md hover:bg-blue-50 transition-colors"
-        @click="goToTransactions"
-      >
-        View All Transactions
-      </button>
+      <div class="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          class="text-sm font-medium text-blue-600 hover:text-blue-700 py-2 px-2 rounded-md hover:bg-blue-50 transition-colors"
+          @click="goToTransactions"
+        >
+          {{ t('recentTx.viewAll') }}
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+          @click="$emit('addClick')"
+        >
+          {{ t('recentTx.add') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

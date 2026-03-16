@@ -1,46 +1,84 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { mockAPI } from '@/api/mock';
+import * as authApi from '@/api/auth';
 
 interface AuthState {
-  token: string | null;
   user: {
     id: number;
     username: string;
     email: string;
-    registrationDate: string;
   } | null;
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('token') : null,
-  );
   const user = ref<AuthState['user']>(null);
+  const isLoaded = ref(false);
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => !!user.value);
+
+  async function fetchCurrentUser() {
+    const response = await authApi.getCurrentUser();
+    if (response.user === null || !response.id || !response.username || !response.email) {
+      user.value = null;
+      return;
+    }
+    user.value = {
+      id: response.id,
+      username: response.username,
+      email: response.email,
+    };
+  }
+
+  async function ensureAuthLoaded() {
+    if (isLoaded.value) {
+      return;
+    }
+    try {
+      await fetchCurrentUser();
+    } finally {
+      isLoaded.value = true;
+    }
+  }
 
   async function login(username: string, password: string) {
-    const res = await mockAPI.auth.login(username, password);
-    const { token: newToken, user: newUser } = res;
-    token.value = newToken;
-    user.value = newUser;
-    localStorage.setItem('token', newToken);
+    await authApi.login({ username, password });
+    await fetchCurrentUser();
   }
 
   async function register(username: string, email: string, password: string) {
-    const res = await mockAPI.auth.register(username, email, password);
-    const { token: newToken, user: newUser } = res;
-    token.value = newToken;
-    user.value = newUser;
-    localStorage.setItem('token', newToken);
+    await authApi.register({ username, email, password });
+    await authApi.login({ username, password });
+    await fetchCurrentUser();
   }
 
-  function logout() {
-    token.value = null;
+  async function logout() {
+    try {
+      await authApi.logout();
+    } finally {
+      user.value = null;
+      isLoaded.value = true;
+    }
+  }
+
+  async function changePassword(password: string) {
+    await authApi.changePassword({ password });
+  }
+
+  function clearLocalAuthState() {
     user.value = null;
-    localStorage.removeItem('token');
+    isLoaded.value = true;
   }
 
-  return { token, user, isAuthenticated, login, register, logout };
+  return {
+    user,
+    isAuthenticated,
+    isLoaded,
+    ensureAuthLoaded,
+    fetchCurrentUser,
+    clearLocalAuthState,
+    login,
+    register,
+    logout,
+    changePassword,
+  };
 });

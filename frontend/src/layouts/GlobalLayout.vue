@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import AppSidebar from '../components/AppSidebar.vue';
+import NotificationBell from '../components/NotificationBell.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const sidebarOpen = ref(false);
 const isDesktop = ref(false);
 let mq: MediaQueryList | null = null;
@@ -28,17 +31,32 @@ onUnmounted(() => {
   }
 });
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/reports', label: 'Analytics' },
-  { to: '/budgets', label: 'Budgets' },
-  { to: '/settings', label: 'Settings' },
-];
-
 const pageTitle = computed(() => {
-  const matchedItem = navItems.find((item) => route.path.startsWith(item.to));
-  return matchedItem?.label ?? 'MoneyIO';
+  const key = String(route.name ?? '');
+  const titleMap: Record<string, string> = {
+    dashboard: 'nav.dashboard',
+    transactions: 'nav.transactions',
+    accounts: 'nav.accounts',
+    reports: 'nav.reports',
+    budgets: 'nav.budgets',
+    settings: 'nav.settings',
+  };
+
+  return titleMap[key] ? t(titleMap[key]) : t('common.moneyio');
+});
+
+const pageSubtitle = computed(() => {
+  const key = String(route.name ?? '');
+  const subtitleMap: Record<string, string> = {
+    dashboard: 'subtitle.dashboard',
+    transactions: 'subtitle.transactions',
+    accounts: 'subtitle.accounts',
+    reports: 'subtitle.reports',
+    budgets: 'subtitle.budgets',
+    settings: 'subtitle.settings',
+  };
+
+  return subtitleMap[key] ? t(subtitleMap[key]) : '';
 });
 
 watch(
@@ -76,30 +94,37 @@ watch(
 
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <header
-        class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8"
+        class="bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8"
         role="banner"
       >
-        <div class="flex items-center">
-          <button
-            type="button"
-            class="md:hidden mr-4 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-            aria-label="Open navigation"
-            aria-controls="primary-navigation"
-            :aria-expanded="sidebarOpen"
-            @click="sidebarOpen = !sidebarOpen"
-          >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-          <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle }}</h2>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center min-h-16 py-2">
+            <button
+              type="button"
+              class="md:hidden mr-4 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-label="Open navigation"
+              aria-controls="primary-navigation"
+              :aria-expanded="sidebarOpen"
+              @click="sidebarOpen = !sidebarOpen"
+            >
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+            <div class="min-w-0">
+              <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle }}</h2>
+              <p v-if="pageSubtitle" class="text-sm text-gray-500 mt-0.5">{{ pageSubtitle }}</p>
+            </div>
+          </div>
         </div>
-        <div id="page-actions" class="flex items-center space-x-4"></div>
+        <div id="page-actions" class="flex items-center space-x-4 shrink-0">
+          <NotificationBell />
+        </div>
       </header>
 
       <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" tabindex="-1">

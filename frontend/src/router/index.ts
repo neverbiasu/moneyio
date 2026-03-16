@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
+import AccountsPage from '../pages/AccountsPage.vue';
 import ReportsPage from '../pages/ReportsPage.vue';
 import BudgetsPage from '../pages/BudgetsPage.vue';
 import SettingsPage from '../pages/SettingsPage.vue';
@@ -35,6 +36,12 @@ const router = createRouter({
           name: 'transactions',
           component: TransactionsPage,
           meta: { subtitle: 'View and manage all your transactions' },
+        },
+        {
+          path: 'accounts',
+          name: 'accounts',
+          component: AccountsPage,
+          meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',
@@ -71,15 +78,14 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to): { name: string } | undefined => {
+router.beforeEach(async (to): Promise<{ name: string } | undefined> => {
   const authStore = useAuthStore();
+  await authStore.ensureAuthLoaded();
 
-  // Redirect authenticated users away from auth pages
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
     return { name: 'dashboard' };
   }
 
-  // Redirect unauthenticated users to login for protected routes
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     return { name: 'login' };
   }

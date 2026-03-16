@@ -2,13 +2,16 @@
 import { UserIcon, ShieldCheckIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline';
 import type { Component } from 'vue';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface MenuItem {
   key: string;
-  label: string;
+  labelKey: string;
   icon: Component;
   badge?: string;
 }
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'action', key: string): void;
@@ -16,9 +19,9 @@ const emit = defineEmits<{
 }>();
 
 const menuItems: MenuItem[] = [
-  { key: 'profile', label: 'Personal Profile', icon: UserIcon },
-  { key: 'security', label: 'Security Settings', icon: ShieldCheckIcon },
-  { key: 'logout', label: 'Logout', icon: ArrowRightOnRectangleIcon },
+  { key: 'profile', labelKey: 'menu.profile', icon: UserIcon },
+  { key: 'security', labelKey: 'menu.security', icon: ShieldCheckIcon },
+  { key: 'logout', labelKey: 'menu.logout', icon: ArrowRightOnRectangleIcon },
 ];
 
 const rootRef = ref<HTMLElement | null>(null);
@@ -47,7 +50,7 @@ onBeforeUnmount(() => {
   <div
     ref="rootRef"
     class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-    aria-label="User menu"
+    :aria-label="t('menu.userMenu')"
   >
     <hr class="border-gray-100" />
 
@@ -59,7 +62,7 @@ onBeforeUnmount(() => {
           @click="handleAction(item.key)"
         >
           <component :is="item.icon" class="w-4 h-4 text-gray-500 flex-shrink-0" />
-          <span class="flex-1 text-left">{{ item.label }}</span>
+          <span class="flex-1 text-left">{{ t(item.labelKey) }}</span>
           <span
             v-if="item.badge"
             class="px-1.5 py-0.5 text-xs font-semibold bg-blue-600 text-white rounded"

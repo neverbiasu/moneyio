@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { nextTick, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 
 defineOptions({ name: 'RegisterPage' });
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const form = reactive({ username: '', email: '', password: '', confirmPassword: '' });
 const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' });
@@ -16,14 +18,15 @@ const isLoading = ref(false);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validate(): boolean {
-  errors.username = form.username.trim() ? '' : 'Username is required';
+  errors.username = form.username.trim() ? '' : t('auth.usernameRequired');
   errors.email = !form.email.trim()
-    ? 'Email is required'
+    ? t('auth.emailRequired')
     : !EMAIL_RE.test(form.email)
-      ? 'Invalid email address'
+      ? t('auth.invalidEmail')
       : '';
-  errors.password = form.password ? '' : 'Password is required';
-  errors.confirmPassword = form.confirmPassword !== form.password ? 'Passwords do not match' : '';
+  errors.password = form.password ? '' : t('auth.passwordRequired');
+  errors.confirmPassword =
+    form.confirmPassword !== form.password ? t('auth.passwordsNotMatch') : '';
   return !errors.username && !errors.email && !errors.password && !errors.confirmPassword;
 }
 
@@ -35,8 +38,16 @@ async function handleSubmit() {
     await authStore.register(form.username, form.email, form.password);
     await router.push('/dashboard');
   } catch (err) {
-    const e = err as { response?: { data?: { message?: string; detail?: string } } };
-    apiError.value = e.response?.data?.message ?? e.response?.data?.detail ?? 'Registration failed';
+    const e = err as {
+      response?: { status?: number; data?: { message?: string; detail?: string; error?: string } };
+    };
+    apiError.value =
+      e.response?.data?.error ??
+      e.response?.data?.message ??
+      e.response?.data?.detail ??
+      (e.response?.status
+        ? `${t('auth.registrationFailed')} (HTTP ${e.response.status})`
+        : t('auth.registrationFailed'));
     await nextTick(() => document.getElementById('register-error')?.focus());
   } finally {
     isLoading.value = false;
@@ -56,10 +67,12 @@ async function handleSubmit() {
           >
             <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
           </div>
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Moneyio</h1>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+            {{ t('common.moneyio') }}
+          </h1>
         </div>
         <p class="text-subtext-light dark:text-subtext-dark text-center text-sm font-medium">
-          Minimal accounting for personal growth
+          {{ t('auth.tagline') }}
         </p>
       </div>
 
@@ -67,7 +80,9 @@ async function handleSubmit() {
         class="bg-card-light dark:bg-card-dark rounded-2xl shadow-soft p-8 sm:p-10 border border-white/60 dark:border-border-dark backdrop-blur-sm"
       >
         <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create account</h2>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{ t('auth.createAccount') }}
+          </h2>
           <div
             class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800"
           >
@@ -76,7 +91,7 @@ async function handleSubmit() {
             >
             <span
               class="text-[10px] font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide"
-              >Secure</span
+              >{{ t('auth.secure') }}</span
             >
           </div>
         </div>
@@ -96,7 +111,7 @@ async function handleSubmit() {
             <label
               class="block text-sm font-medium text-text-light dark:text-text-dark mb-1.5"
               for="username"
-              >Username</label
+              >{{ t('auth.username') }}</label
             >
             <div class="relative group">
               <div
@@ -128,7 +143,7 @@ async function handleSubmit() {
             <label
               class="block text-sm font-medium text-text-light dark:text-text-dark mb-1.5"
               for="reg-email"
-              >Email address</label
+              >{{ t('auth.emailAddress') }}</label
             >
             <div class="relative group">
               <div
@@ -160,7 +175,7 @@ async function handleSubmit() {
             <label
               class="block text-sm font-medium text-text-light dark:text-text-dark mb-1.5"
               for="reg-password"
-              >Password</label
+              >{{ t('auth.password') }}</label
             >
             <div class="relative group">
               <div
@@ -192,7 +207,7 @@ async function handleSubmit() {
             <label
               class="block text-sm font-medium text-text-light dark:text-text-dark mb-1.5"
               for="confirm-password"
-              >Confirm password</label
+              >{{ t('auth.confirmPassword') }}</label
             >
             <div class="relative group">
               <div
@@ -226,17 +241,17 @@ async function handleSubmit() {
               :disabled="isLoading"
               class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {{ isLoading ? 'Creating account…' : 'Create account' }}
+              {{ isLoading ? t('auth.creatingAccount') : t('auth.createAccountAction') }}
             </button>
           </div>
         </form>
 
         <p class="mt-8 text-center text-sm text-subtext-light dark:text-subtext-dark">
-          Already have an account?
+          {{ t('auth.alreadyHaveAccount') }}
           <RouterLink
             :to="{ name: 'login' }"
             class="font-bold text-primary hover:text-primary-hover dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-            >Sign in</RouterLink
+            >{{ t('auth.signIn') }}</RouterLink
           >
         </p>
       </div>
@@ -247,7 +262,7 @@ async function handleSubmit() {
           class="flex items-center gap-1 hover:text-primary dark:hover:text-gray-200 transition-colors"
         >
           <span class="material-symbols-outlined text-[14px]">shield</span>
-          <span>Privacy Policy</span>
+          <span>{{ t('auth.privacy') }}</span>
         </a>
         <span class="text-gray-300 dark:text-gray-700">•</span>
         <a
@@ -255,7 +270,7 @@ async function handleSubmit() {
           class="flex items-center gap-1 hover:text-primary dark:hover:text-gray-200 transition-colors"
         >
           <span class="material-symbols-outlined text-[14px]">description</span>
-          <span>Terms of Service</span>
+          <span>{{ t('auth.terms') }}</span>
         </a>
       </footer>
     </div>

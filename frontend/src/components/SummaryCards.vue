@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Summary } from '@/api/mock-data';
+import { useI18n } from 'vue-i18n';
+import type { Summary } from '@/api/types';
+import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'SummaryCards' });
 
@@ -14,31 +16,19 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
 });
 
+const { t } = useI18n();
+const fallbackCurrency = formatCurrencyWithPreference(0);
+
 const formattedBalance = computed(() => {
-  return (
-    props.data?.totalBalance.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.totalBalance) : fallbackCurrency;
 });
 
 const formattedIncome = computed(() => {
-  return (
-    props.data?.monthlyIncome.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyIncome) : fallbackCurrency;
 });
 
 const formattedExpense = computed(() => {
-  return (
-    props.data?.monthlyExpense.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }) ?? '$0.00'
-  );
+  return props.data ? formatCurrencyWithPreference(props.data.monthlyExpense) : fallbackCurrency;
 });
 </script>
 
@@ -47,7 +37,7 @@ const formattedExpense = computed(() => {
     <!-- Total Balance Card -->
     <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-600">Total Balance</h3>
+        <h3 class="text-sm font-medium text-gray-600">{{ t('summary.totalBalance') }}</h3>
         <div class="bg-blue-100 rounded-full p-2">
           <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -66,7 +56,7 @@ const formattedExpense = computed(() => {
     <!-- Monthly Income Card -->
     <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-600">Monthly Income</h3>
+        <h3 class="text-sm font-medium text-gray-600">{{ t('summary.monthlyIncome') }}</h3>
         <div class="bg-green-100 rounded-full p-2">
           <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -85,7 +75,7 @@ const formattedExpense = computed(() => {
     <!-- Monthly Expense Card -->
     <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-600">Monthly Expense</h3>
+        <h3 class="text-sm font-medium text-gray-600">{{ t('summary.monthlyExpense') }}</h3>
         <div class="bg-red-100 rounded-full p-2">
           <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
@@ -99,7 +89,7 @@ const formattedExpense = computed(() => {
     <!-- Savings Rate Card -->
     <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-600">Savings Rate</h3>
+        <h3 class="text-sm font-medium text-gray-600">{{ t('summary.savingsRate') }}</h3>
         <div class="bg-purple-100 rounded-full p-2">
           <svg
             class="w-5 h-5 text-purple-600"

@@ -4,13 +4,16 @@ import {
   ArrowsUpDownIcon,
   ChartBarIcon,
   BanknotesIcon,
+  WalletIcon,
   Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
+import UserProfileModal from './UserProfileModal.vue';
 
 defineProps<{
   isOpen: boolean;
@@ -19,26 +22,32 @@ defineProps<{
 const emit = defineEmits<(e: 'close') => void>();
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: Squares2X2Icon },
-  { to: '/transactions', label: 'Transactions', icon: ArrowsUpDownIcon },
-  { to: '/reports', label: 'Analytics', icon: ChartBarIcon },
-  { to: '/budgets', label: 'Budgets', icon: BanknotesIcon },
-  { to: '/settings', label: 'Settings', icon: Cog6ToothIcon },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: Squares2X2Icon },
+  { to: '/transactions', labelKey: 'nav.transactions', icon: ArrowsUpDownIcon },
+  { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
+  { to: '/reports', labelKey: 'nav.reports', icon: ChartBarIcon },
+  { to: '/budgets', labelKey: 'nav.budgets', icon: BanknotesIcon },
+  { to: '/settings', labelKey: 'nav.settings', icon: Cog6ToothIcon },
 ];
+
+const avatarUrl = ref('/avatar.png');
 
 const currentUser = computed(() => {
   const user = authStore.user as { username?: string; email?: string } | null;
   return {
     name: user?.username ?? 'User',
     email: user?.email ?? 'user@example.com',
-    avatar: '/avatar.png',
+    avatar: avatarUrl.value,
   };
 });
 
 const userMenuOpen = ref(false);
+const profileModalOpen = ref(false);
 
 const mq = typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)') : null;
 const isDesktop = ref(mq?.matches ?? true);
@@ -51,8 +60,30 @@ function toggleUserMenu() {
   userMenuOpen.value = !userMenuOpen.value;
 }
 
-function handleUserAction(_key: string) {
+async function handleUserAction(key: string) {
   userMenuOpen.value = false;
+
+  if (key === 'logout') {
+    await authStore.logout();
+    emit('close');
+    await router.push('/login');
+    return;
+  }
+
+  if (key === 'profile') {
+    profileModalOpen.value = true;
+    return;
+  }
+
+  if (key === 'security') {
+    emit('close');
+    await router.push('/settings');
+  }
+}
+
+function handleProfileSaved(newAvatar: string) {
+  avatarUrl.value = newAvatar;
+  localStorage.setItem('userAvatarDataUrl', newAvatar);
 }
 
 function onMqChange(e: MediaQueryListEvent) {
@@ -61,6 +92,10 @@ function onMqChange(e: MediaQueryListEvent) {
 
 onMounted(() => {
   mq?.addEventListener('change', onMqChange);
+  const savedAvatar = localStorage.getItem('userAvatarDataUrl');
+  if (savedAvatar) {
+    avatarUrl.value = savedAvatar;
+  }
 });
 
 onBeforeUnmount(() => {
@@ -82,7 +117,7 @@ onBeforeUnmount(() => {
   >
     <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">
       <img src="/logo.svg" alt="MoneyIO Logo" class="w-8 h-8 mr-2" />
-      <h1 class="text-xl font-bold text-gray-800">MoneyIO</h1>
+      <h1 class="text-xl font-bold text-gray-800">{{ t('common.moneyio') }}</h1>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-4">
@@ -99,13 +134,22 @@ onBeforeUnmount(() => {
             @click="handleNavClick"
           >
             <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
-            {{ item.label }}
+            {{ t(item.labelKey) }}
           </RouterLink>
         </li>
       </ul>
     </nav>
 
     <div class="relative border-t border-gray-200 p-4">
+      <UserProfileModal
+        :is-open="profileModalOpen"
+        :name="currentUser.name"
+        :email="currentUser.email"
+        :avatar="currentUser.avatar"
+        @close="profileModalOpen = false"
+        @saved="handleProfileSaved"
+      />
+
       <UserMenuPopup v-if="userMenuOpen" @action="handleUserAction" @close="userMenuOpen = false" />
 
       <button

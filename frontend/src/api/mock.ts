@@ -105,13 +105,15 @@ export const mockAccountsAPI = {
     return account;
   },
 
-  async createAccount(data: Omit<Account, 'id' | 'userId' | 'balance'>): Promise<Account> {
+  async createAccount(
+    data: Omit<Account, 'id' | 'userId' | 'balance'> & { balance?: number },
+  ): Promise<Account> {
     await delay(500);
     const newAccount: Account = {
       id: getNextId(mockAccounts),
       userId: 1,
       ...data,
-      balance: 0,
+      balance: data.balance ?? 0,
     };
     mockAccounts.push(newAccount);
     return newAccount;
@@ -378,9 +380,16 @@ export const mockDashboardAPI = {
 
   async getChartData(): Promise<ChartData> {
     await delay(800);
+    const latestTransaction = mockTransactions.reduce<(typeof mockTransactions)[0] | null>(
+      (latest, current) =>
+        !latest || current.transactionDate > latest.transactionDate ? current : latest,
+      null,
+    );
+    const endDate = latestTransaction ? new Date(latestTransaction.transactionDate) : new Date();
+
     const last30Days = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (29 - i));
+      const date = new Date(endDate);
+      date.setDate(endDate.getDate() - (29 - i));
       return date.toISOString().slice(0, 10);
     });
 

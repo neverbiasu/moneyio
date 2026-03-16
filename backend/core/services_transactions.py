@@ -1,6 +1,7 @@
 import decimal
 
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 
 from .models import Account, Category, Transaction
@@ -136,25 +137,40 @@ def create_transaction_for_user(user, payload):
     return tx
 
 
-def list_transactions_for_user(user, account_id=None):
-    """
-    Retrieve transactions for the user.
-
-    Performance optimisation:
-    - select_related is used to avoid N+1 queries
-      when accessing account and category.
-    """
-
+def list_transactions_for_user(user, account_id=None, keyword=None):
     qs = (
         Transaction.objects
         .filter(user=user)
         .select_related("account", "category")
+        .only(
+            "id",
+            "amount",
+            "trans_date",
+            "note",
+            "account__id",
+            "account__name",
+            "account__balance",
+            "account__account_type",
+            "category__id",
+            "category__name",
+            "category__category_type",
+        )
         .order_by("-trans_date", "-id")
     )
 
-    # Optional filtering by account
+    # Existing account filter
     if account_id:
         qs = qs.filter(account_id=account_id, account__user=user)
+
+    # Optional keyword search
+    if keyword:
+        keyword = keyword.strip()
+        if keyword:
+            qs = qs.filter(
+                Q(note__icontains=keyword)
+                | Q(category__name__icontains=keyword)
+                | Q(account__name__icontains=keyword)
+            )
 
     return qs
 

@@ -41,9 +41,16 @@ def _normalize_host(host: str) -> str:
     return value.rstrip(".")
 
 
+_allow_all_hosts = (
+    os.environ.get("DJANGO_ALLOW_ALL_HOSTS", "True").lower()
+    == "true"
+)
+
 _allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
 _baseline_allowed_hosts = ["localhost", "127.0.0.1", "backend", ".sslip.io"]
-if _allowed_hosts_env:
+if _allow_all_hosts:
+    ALLOWED_HOSTS = ["*"]
+elif _allowed_hosts_env:
     _parsed_hosts = [
         _normalize_host(h)
         for h in _allowed_hosts_env.split(",")

@@ -422,7 +422,10 @@ function setLanguage(language: LanguagePreference): void {
                       {{ t('landing.previewInsightsTitle') }}
                     </p>
                   </div>
-                  <ChartPieIcon class="h-8 w-8 text-sky-300" />
+                  <ChartPieIcon
+                    class="h-8 w-8"
+                    :class="isDarkTheme ? 'text-sky-300' : 'text-sky-600'"
+                  />
                 </div>
                 <p
                   class="mt-4 text-sm leading-6"
@@ -446,21 +449,30 @@ function setLanguage(language: LanguagePreference): void {
                     class="flex items-center gap-3 text-sm"
                     :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'"
                   >
-                    <CheckCircleIcon class="h-5 w-5 text-emerald-300" />
+                    <CheckCircleIcon
+                      class="h-5 w-5"
+                      :class="isDarkTheme ? 'text-emerald-300' : 'text-emerald-600'"
+                    />
                     <span>{{ t('landing.previewChecklistFirst') }}</span>
                   </li>
                   <li
                     class="flex items-center gap-3 text-sm"
                     :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'"
                   >
-                    <CheckCircleIcon class="h-5 w-5 text-emerald-300" />
+                    <CheckCircleIcon
+                      class="h-5 w-5"
+                      :class="isDarkTheme ? 'text-emerald-300' : 'text-emerald-600'"
+                    />
                     <span>{{ t('landing.previewChecklistSecond') }}</span>
                   </li>
                   <li
                     class="flex items-center gap-3 text-sm"
                     :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'"
                   >
-                    <CheckCircleIcon class="h-5 w-5 text-emerald-300" />
+                    <CheckCircleIcon
+                      class="h-5 w-5"
+                      :class="isDarkTheme ? 'text-emerald-300' : 'text-emerald-600'"
+                    />
                     <span>{{ t('landing.previewChecklistThird') }}</span>
                   </li>
                 </ul>
@@ -504,7 +516,8 @@ function setLanguage(language: LanguagePreference): void {
             "
           >
             <div
-              class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-sky-200"
+              class="flex h-12 w-12 items-center justify-center rounded-2xl"
+              :class="isDarkTheme ? 'bg-primary/15 text-sky-200' : 'bg-sky-100 text-sky-700'"
             >
               <component :is="feature.icon" class="h-6 w-6" />
             </div>
@@ -599,7 +612,8 @@ function setLanguage(language: LanguagePreference): void {
             "
           >
             <div
-              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-sky-200"
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold"
+              :class="isDarkTheme ? 'bg-white/10 text-sky-200' : 'bg-sky-100 text-sky-700'"
             >
               {{ step.id }}
             </div>
@@ -618,34 +632,6 @@ function setLanguage(language: LanguagePreference): void {
               </p>
             </div>
           </article>
-        </div>
-      </section>
-
-      <section
-        class="rounded-[32px] border border-primary/20 px-8 py-10 text-center shadow-xl shadow-primary/10 lg:px-14"
-        :class="isDarkTheme ? 'bg-primary/12' : 'bg-primary/8'"
-      >
-        <div class="mx-auto max-w-3xl">
-          <h2
-            class="text-3xl font-semibold tracking-tight sm:text-4xl"
-            :class="isDarkTheme ? 'text-white' : 'text-slate-950'"
-          >
-            {{ t('landing.ctaTitle') }}
-          </h2>
-          <p
-            class="mt-4 text-lg leading-8"
-            :class="isDarkTheme ? 'text-blue-100' : 'text-slate-700'"
-          >
-            {{ t('landing.ctaDescription') }}
-          </p>
-          <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-            <RouterLink
-              :to="authStore.isAuthenticated ? '/app/dashboard' : '/register'"
-              class="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-base font-semibold text-slate-950 transition hover:bg-slate-100"
-            >
-              {{ authStore.isAuthenticated ? t('landing.openApp') : t('landing.primaryCta') }}
-            </RouterLink>
-          </div>
         </div>
       </section>
     </main>

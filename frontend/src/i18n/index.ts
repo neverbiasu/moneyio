@@ -81,7 +81,8 @@ const messages = {
       previewBalanceTrend: '+12.4% vs last month',
       previewBudgetLabel: 'Monthly budget health',
       previewBudgetValue: '72% used',
-      previewBudgetHint: 'Groceries and transport are on track. Dining out needs attention this week.',
+      previewBudgetHint:
+        'Groceries and transport are on track. Dining out needs attention this week.',
       previewInsightsLabel: 'Insights',
       previewInsightsTitle: 'Spending concentration is improving',
       previewInsightsDescription:
@@ -449,22 +450,17 @@ const messages = {
       },
       features: {
         cashflowTitle: '在一个安静清晰的视图中查看所有账户',
-        cashflowDescription:
-          '无需在零散表格或多个银行页面之间跳转，也能清楚掌握余额、流入和流出。',
+        cashflowDescription: '无需在零散表格或多个银行页面之间跳转，也能清楚掌握余额、流入和流出。',
         budgetsTitle: '在预算失控前提前发现压力',
-        budgetsDescription:
-          '分类预算、周期限制和报表视图让你更容易及早修正支出节奏。',
+        budgetsDescription: '分类预算、周期限制和报表视图让你更容易及早修正支出节奏。',
         securityTitle: '用聚焦而可信的界面建立信心',
-        securityDescription:
-          '清晰的信息层级、充足对比和低噪音界面，帮助用户快速操作且不迷失方向。',
+        securityDescription: '清晰的信息层级、充足对比和低噪音界面，帮助用户快速操作且不迷失方向。',
       },
       workflow: {
         captureTitle: '先建立账户与分类结构',
-        captureDescription:
-          '先把基础信息整理好，让余额、收入与支出从一开始就有清晰的数据结构。',
+        captureDescription: '先把基础信息整理好，让余额、收入与支出从一开始就有清晰的数据结构。',
         reviewTitle: '查看趋势与预算健康度',
-        reviewDescription:
-          '通过仪表盘和报表理解变化发生在哪里、影响多大，以及是否需要立即处理。',
+        reviewDescription: '通过仪表盘和报表理解变化发生在哪里、影响多大，以及是否需要立即处理。',
         improveTitle: '每周持续优化资金决策',
         improveDescription:
           '把洞察转化为更合理的转账安排、更低的非必要支出，以及更稳定的储蓄进度。',

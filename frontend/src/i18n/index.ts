@@ -92,8 +92,8 @@ const messages = {
       previewChecklistSecond: 'Cash flow remains positive for 4 straight weeks',
       previewChecklistThird: 'New income was categorized automatically',
       metrics: {
-        activeUsersValue: '10k+',
-        activeUsersLabel: 'Tracked monthly budgets',
+        budgetsTrackedValue: '10k+',
+        budgetsTrackedLabel: 'Tracked monthly budgets',
         trackedValue: '$4.2M',
         trackedLabel: 'Cash flow reviewed each month',
         setupValue: '5 min',
@@ -441,8 +441,8 @@ const messages = {
       previewChecklistSecond: '现金流已连续 4 周保持为正',
       previewChecklistThird: '新增收入已自动完成分类',
       metrics: {
-        activeUsersValue: '10k+',
-        activeUsersLabel: '月度预算追踪数',
+        budgetsTrackedValue: '10k+',
+        budgetsTrackedLabel: '月度预算追踪数',
         trackedValue: '$4.2M',
         trackedLabel: '每月审查的现金流规模',
         setupValue: '5 分钟',

@@ -15,8 +15,7 @@ import { useI18n } from 'vue-i18n';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import SummaryCards from '@/components/SummaryCards.vue';
 import TrendChart from '@/components/TrendChart.vue';
-import { mockCategories, mockTransactions } from '@/api/mock-data';
-import type { Category, ChartDataPoint, Summary, Transaction } from '@/api/types';
+import type { ChartDataPoint, Summary } from '@/api/types';
 import { syncI18nLocale } from '@/i18n';
 import { useAuthStore } from '@/stores/auth';
 import {
@@ -43,8 +42,8 @@ const languageOptions: Array<{ value: LanguagePreference; label: string }> = [
 
 const heroMetrics = computed(() => [
   {
-    value: t('landing.metrics.activeUsersValue'),
-    label: t('landing.metrics.activeUsersLabel'),
+    value: t('landing.metrics.budgetsTrackedValue'),
+    label: t('landing.metrics.budgetsTrackedLabel'),
   },
   {
     value: t('landing.metrics.trackedValue'),
@@ -110,29 +109,14 @@ const demoTrendPoints = computed<ChartDataPoint[]>(() => [
   { date: '2026-01-29', income: 4750, expense: 1860 },
 ]);
 
-const demoTransactions = computed<Transaction[]>(
-  () => mockTransactions.slice(0, 12) as Transaction[],
-);
-const demoCategories = computed<Category[]>(() => mockCategories as Category[]);
-
-const demoPieItems = computed(() => {
-  const expenseCategories = demoCategories.value.filter((category) => category.type === 'expense');
-
-  return expenseCategories
-    .map((category) => {
-      const total = demoTransactions.value
-        .filter((transaction) => transaction.categoryId === category.id)
-        .reduce((sum, transaction) => sum + transaction.amount, 0);
-
-      return {
-        name: category.name,
-        value: total,
-      };
-    })
-    .filter((item) => item.value > 0)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 6);
-});
+const demoPieItems = computed(() => [
+  { name: 'Housing', value: 680 },
+  { name: 'Food', value: 410 },
+  { name: 'Transport', value: 290 },
+  { name: 'Utilities', value: 240 },
+  { name: 'Health', value: 150 },
+  { name: 'Education', value: 90 },
+]);
 
 function updatePreferences(nextTheme?: ThemePreference, nextLanguage?: LanguagePreference): void {
   preferences.value = {
@@ -230,7 +214,7 @@ function setLanguage(language: LanguagePreference): void {
 
         <RouterLink
           v-if="authStore.isAuthenticated"
-          to="/dashboard"
+          to="/app/dashboard"
           class="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition"
           :class="
             isDarkTheme
@@ -285,7 +269,7 @@ function setLanguage(language: LanguagePreference): void {
 
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
             <RouterLink
-              :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
+              :to="authStore.isAuthenticated ? '/app/dashboard' : '/register'"
               class="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-hover"
             >
               <span>
@@ -295,7 +279,7 @@ function setLanguage(language: LanguagePreference): void {
             </RouterLink>
             <RouterLink
               v-if="authStore.isAuthenticated"
-              to="/transactions"
+              to="/app/transactions"
               class="inline-flex items-center justify-center rounded-2xl border px-6 py-3.5 text-base font-semibold transition"
               :class="
                 isDarkTheme
@@ -488,7 +472,10 @@ function setLanguage(language: LanguagePreference): void {
 
       <section id="features">
         <div class="max-w-2xl">
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-sky-300">
+          <p
+            class="text-sm font-semibold uppercase tracking-[0.24em]"
+            :class="isDarkTheme ? 'text-sky-300' : 'text-sky-700'"
+          >
             {{ t('landing.featuresEyebrow') }}
           </p>
           <h2
@@ -539,7 +526,10 @@ function setLanguage(language: LanguagePreference): void {
 
       <section id="demo" class="space-y-8">
         <div class="max-w-2xl">
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-sky-300">
+          <p
+            class="text-sm font-semibold uppercase tracking-[0.24em]"
+            :class="isDarkTheme ? 'text-sky-300' : 'text-sky-700'"
+          >
             {{ t('landing.demoEyebrow') }}
           </p>
           <h2
@@ -579,7 +569,10 @@ function setLanguage(language: LanguagePreference): void {
         "
       >
         <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-sky-300">
+          <p
+            class="text-sm font-semibold uppercase tracking-[0.24em]"
+            :class="isDarkTheme ? 'text-sky-300' : 'text-sky-700'"
+          >
             {{ t('landing.workflowEyebrow') }}
           </p>
           <h2
@@ -647,7 +640,7 @@ function setLanguage(language: LanguagePreference): void {
           </p>
           <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
             <RouterLink
-              :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
+              :to="authStore.isAuthenticated ? '/app/dashboard' : '/register'"
               class="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-base font-semibold text-slate-950 transition hover:bg-slate-100"
             >
               {{ authStore.isAuthenticated ? t('landing.openApp') : t('landing.primaryCta') }}

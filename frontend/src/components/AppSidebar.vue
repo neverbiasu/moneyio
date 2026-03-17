@@ -27,12 +27,12 @@ const authStore = useAuthStore();
 const { t } = useI18n();
 
 const navItems = [
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: Squares2X2Icon },
-  { to: '/transactions', labelKey: 'nav.transactions', icon: ArrowsUpDownIcon },
-  { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
-  { to: '/reports', labelKey: 'nav.reports', icon: ChartBarIcon },
-  { to: '/budgets', labelKey: 'nav.budgets', icon: BanknotesIcon },
-  { to: '/settings', labelKey: 'nav.settings', icon: Cog6ToothIcon },
+  { to: '/app/dashboard', labelKey: 'nav.dashboard', icon: Squares2X2Icon },
+  { to: '/app/transactions', labelKey: 'nav.transactions', icon: ArrowsUpDownIcon },
+  { to: '/app/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
+  { to: '/app/reports', labelKey: 'nav.reports', icon: ChartBarIcon },
+  { to: '/app/budgets', labelKey: 'nav.budgets', icon: BanknotesIcon },
+  { to: '/app/settings', labelKey: 'nav.settings', icon: Cog6ToothIcon },
 ];
 
 const avatarUrl = ref('/avatar.png');
@@ -77,7 +77,7 @@ async function handleUserAction(key: string) {
 
   if (key === 'security') {
     emit('close');
-    await router.push('/settings');
+    await router.push('/app/settings');
   }
 }
 

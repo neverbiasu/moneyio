@@ -36,7 +36,7 @@ async function handleSubmit() {
   apiError.value = '';
   try {
     await authStore.register(form.username, form.email, form.password);
-    await router.push('/dashboard');
+    await router.push('/app/dashboard');
   } catch (err) {
     const e = err as {
       response?: { status?: number; data?: { message?: string; detail?: string; error?: string } };

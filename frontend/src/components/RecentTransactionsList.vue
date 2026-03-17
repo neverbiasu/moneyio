@@ -61,7 +61,7 @@ const getAmountColor = (type: string, amount?: number) => {
 };
 
 function goToTransactions() {
-  void router.push('/transactions');
+  void router.push('/app/transactions');
 }
 </script>
 

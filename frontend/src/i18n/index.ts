@@ -49,6 +49,79 @@ const messages = {
       loginFailed: 'Login failed',
       registrationFailed: 'Registration failed',
     },
+    landing: {
+      navTagline: 'Personal finance with calm clarity',
+      badge: 'One place for budgets, accounts, and spending insight',
+      heroTitle: 'Turn everyday money data into confident decisions.',
+      heroDescription:
+        'MoneyIO gives you a clear command center for balances, budgets, categories, and trends so you can act faster without spreadsheet fatigue.',
+      primaryCta: 'Create your workspace',
+      secondaryCta: 'Explore features',
+      startFree: 'Start free',
+      openApp: 'Open dashboard',
+      demoEyebrow: 'Interactive demo',
+      demoTitle: 'See the real dashboard components before you sign in.',
+      demoDescription:
+        'The landing page now previews the same summary cards, chart, and category breakdown that appear inside the product.',
+      featuresEyebrow: 'Why teams and individuals choose MoneyIO',
+      featuresTitle: 'A landing page that matches the product experience.',
+      featuresDescription:
+        'Every section is designed to communicate trust, momentum, and simplicity before the first transaction is even created.',
+      workflowEyebrow: 'How it works',
+      workflowTitle: 'A faster path from raw transactions to better habits.',
+      workflowDescription:
+        'Capture activity, review budget health, and use insights to improve the next decision instead of reacting at month end.',
+      ctaTitle: 'Start organizing accounts, budgets, and reports in one place.',
+      ctaDescription:
+        'Create an account to launch a new budgeting flow in minutes, or use the navigation above to continue with your existing workspace.',
+      previewHeader: 'Live product preview',
+      previewTitle: 'A dashboard built for daily money clarity',
+      previewStatus: 'Healthy cash flow',
+      previewBalanceLabel: 'Total balance',
+      previewBalanceTrend: '+12.4% vs last month',
+      previewBudgetLabel: 'Monthly budget health',
+      previewBudgetValue: '72% used',
+      previewBudgetHint:
+        'Groceries and transport are on track. Dining out needs attention this week.',
+      previewInsightsLabel: 'Insights',
+      previewInsightsTitle: 'Spending concentration is improving',
+      previewInsightsDescription:
+        'Your top three categories now represent a smaller share of total spending, which reduces budget pressure and keeps savings goals realistic.',
+      previewChecklistLabel: 'Today at a glance',
+      previewChecklistFirst: '2 budgets are comfortably under plan',
+      previewChecklistSecond: 'Cash flow remains positive for 4 straight weeks',
+      previewChecklistThird: 'New income was categorized automatically',
+      metrics: {
+        budgetsTrackedValue: '10k+',
+        budgetsTrackedLabel: 'Tracked monthly budgets',
+        trackedValue: '$4.2M',
+        trackedLabel: 'Cash flow reviewed each month',
+        setupValue: '5 min',
+        setupLabel: 'Average time to first dashboard',
+      },
+      features: {
+        cashflowTitle: 'See every account in one calm overview',
+        cashflowDescription:
+          'Keep balances, inflows, and outflows visible without jumping across disconnected spreadsheets or banking tabs.',
+        budgetsTitle: 'Spot budget pressure before it becomes a problem',
+        budgetsDescription:
+          'Category budgets, recurring limits, and report views make it easier to correct spending early.',
+        securityTitle: 'Build confidence with a focused, trusted interface',
+        securityDescription:
+          'Clear hierarchy, strong contrast, and low-noise surfaces help users act quickly while staying oriented.',
+      },
+      workflow: {
+        captureTitle: 'Capture accounts and categories',
+        captureDescription:
+          'Connect the basics first so balances, income, and expenses have clean structure from the start.',
+        reviewTitle: 'Review trends and budget health',
+        reviewDescription:
+          'Use the dashboard and reports to understand what changed, where it changed, and how urgent the change is.',
+        improveTitle: 'Improve weekly money decisions',
+        improveDescription:
+          'Translate insights into better transfers, lower discretionary spend, and more predictable savings progress.',
+      },
+    },
     settings: {
       profile: 'Profile',
       security: 'Security',
@@ -325,6 +398,73 @@ const messages = {
       terms: '服务条款',
       loginFailed: '登录失败',
       registrationFailed: '注册失败',
+    },
+    landing: {
+      navTagline: '清晰而平静的个人财务体验',
+      badge: '在一个地方管理预算、账户与支出洞察',
+      heroTitle: '把每天的资金数据，变成更有把握的决策。',
+      heroDescription:
+        'MoneyIO 为你提供清晰的财务指挥面板，统一查看余额、预算、分类与趋势，减少表格负担，更快采取行动。',
+      primaryCta: '创建你的工作区',
+      secondaryCta: '查看功能亮点',
+      startFree: '免费开始',
+      openApp: '打开仪表盘',
+      demoEyebrow: '交互式 Demo',
+      demoTitle: '登录前先看看真实的仪表盘组件。',
+      demoDescription:
+        '落地页现在直接展示产品里的摘要卡片、趋势图和分类占比图，先看到真实体验再继续进入。',
+      featuresEyebrow: '为什么选择 MoneyIO',
+      featuresTitle: '让落地页体验与产品体验保持一致。',
+      featuresDescription:
+        '每个区块都围绕信任感、进展感与简洁性设计，让用户在创建第一条交易前就能理解产品价值。',
+      workflowEyebrow: '使用方式',
+      workflowTitle: '从原始交易到更好习惯的更快路径。',
+      workflowDescription:
+        '先记录活动，再检查预算健康度，并把洞察转化为下一次更好的决策，而不是等到月末被动处理。',
+      ctaTitle: '在一个地方整理账户、预算和报表。',
+      ctaDescription:
+        '创建一个新账户，在几分钟内开始预算管理流程，或通过上方导航继续进入你已有的工作区。',
+      previewHeader: '产品预览',
+      previewTitle: '为每日资金判断打造的仪表盘',
+      previewStatus: '现金流健康',
+      previewBalanceLabel: '总余额',
+      previewBalanceTrend: '较上月增长 12.4%',
+      previewBudgetLabel: '月度预算健康度',
+      previewBudgetValue: '已使用 72%',
+      previewBudgetHint: '餐饮与交通仍在计划内，本周外出就餐需要额外留意。',
+      previewInsightsLabel: '洞察',
+      previewInsightsTitle: '支出集中度正在改善',
+      previewInsightsDescription:
+        '前三大分类占总支出的比例正在下降，这能减少预算压力，并让储蓄目标更可持续。',
+      previewChecklistLabel: '今日概览',
+      previewChecklistFirst: '2 个预算项目明显低于计划支出',
+      previewChecklistSecond: '现金流已连续 4 周保持为正',
+      previewChecklistThird: '新增收入已自动完成分类',
+      metrics: {
+        budgetsTrackedValue: '10k+',
+        budgetsTrackedLabel: '月度预算追踪数',
+        trackedValue: '$4.2M',
+        trackedLabel: '每月审查的现金流规模',
+        setupValue: '5 分钟',
+        setupLabel: '首次进入仪表盘平均耗时',
+      },
+      features: {
+        cashflowTitle: '在一个安静清晰的视图中查看所有账户',
+        cashflowDescription: '无需在零散表格或多个银行页面之间跳转，也能清楚掌握余额、流入和流出。',
+        budgetsTitle: '在预算失控前提前发现压力',
+        budgetsDescription: '分类预算、周期限制和报表视图让你更容易及早修正支出节奏。',
+        securityTitle: '用聚焦而可信的界面建立信心',
+        securityDescription: '清晰的信息层级、充足对比和低噪音界面，帮助用户快速操作且不迷失方向。',
+      },
+      workflow: {
+        captureTitle: '先建立账户与分类结构',
+        captureDescription: '先把基础信息整理好，让余额、收入与支出从一开始就有清晰的数据结构。',
+        reviewTitle: '查看趋势与预算健康度',
+        reviewDescription: '通过仪表盘和报表理解变化发生在哪里、影响多大，以及是否需要立即处理。',
+        improveTitle: '每周持续优化资金决策',
+        improveDescription:
+          '把洞察转化为更合理的转账安排、更低的非必要支出，以及更稳定的储蓄进度。',
+      },
     },
     settings: {
       profile: '资料',

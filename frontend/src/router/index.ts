@@ -7,6 +7,7 @@ import ReportsPage from '../pages/ReportsPage.vue';
 import BudgetsPage from '../pages/BudgetsPage.vue';
 import SettingsPage from '../pages/SettingsPage.vue';
 import LoginPage from '@/pages/LoginPage.vue';
+import LandingPage from '@/pages/LandingPage.vue';
 import RegisterPage from '@/pages/RegisterPage.vue';
 import { useAuthStore } from '@/stores/auth';
 
@@ -22,9 +23,15 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: LandingPage,
+      meta: { requiresAuth: false },
+    },
+    {
+      path: '/app',
       component: GlobalLayout,
       children: [
-        { path: '', redirect: '/dashboard' },
+        { path: '', redirect: '/app/dashboard' },
         {
           path: 'dashboard',
           name: 'dashboard',

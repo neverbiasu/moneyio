@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -36,6 +36,19 @@ def transactions_collection(request):
         transactions = (
             Transaction.objects.filter(user=request.user)
             .select_related("account", "category")
+            .only(
+                "id",
+                "amount",
+                "trans_date",
+                "note",
+                "account__id",
+                "account__name",
+                "account__account_type",
+                "account__balance",
+                "category__id",
+                "category__name",
+                "category__category_type",
+            )
             .order_by("-trans_date")
         )
 
@@ -63,8 +76,16 @@ def transactions_collection(request):
                 )
             transactions = transactions.filter(account_id=target_acc_id)
 
+        # Keep the original "search" parameter, but extend its scope.
+        # It now searches note, category name, and account name.
         if note_content:
-            transactions = transactions.filter(note__icontains=note_content)
+            note_content = note_content.strip()
+            if note_content:
+                transactions = transactions.filter(
+                    Q(note__icontains=note_content)
+                    | Q(category__name__icontains=note_content)
+                    | Q(account__name__icontains=note_content)
+                )
 
         if start_date:
             d = parse_date(start_date)
@@ -129,9 +150,12 @@ def transactions_collection(request):
 
         return JsonResponse(
             {
-                "current_page": page,
+                "current_page": page_obj.number,
                 "page_size": page_size,
-                "total_count": transactions.count(),
+                "total_count": paginator.count,
+                "total_pages": paginator.num_pages,
+                "has_previous": page_obj.has_previous(),
+                "has_next": page_obj.has_next(),
                 "results": results,
             }
         )

@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/', // Ensure static assets are served from the root
   plugins: [vue(), tailwindcss()],
   server: {
     proxy: {

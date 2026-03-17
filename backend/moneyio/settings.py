@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,14 +21,48 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or (
     "django-insecure-sf9wpbkl4kx1i7n1m57mo6t)&)0yxr0quv&m3v1^)l!&nqnm7&"
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = []
+
+def _normalize_host(host: str) -> str:
+    value = host.strip()
+    if not value:
+        return ""
+    if "://" in value:
+        value = value.split("://", 1)[1]
+    value = value.split("/", 1)[0].strip()
+    if ":" in value and not value.startswith("["):
+        value = value.split(":", 1)[0].strip()
+    return value.rstrip(".")
+
+
+_allow_all_hosts = (
+    os.environ.get("DJANGO_ALLOW_ALL_HOSTS", "True").lower()
+    == "true"
+)
+
+_allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
+_baseline_allowed_hosts = ["localhost", "127.0.0.1", "backend", ".sslip.io"]
+if _allow_all_hosts:
+    ALLOWED_HOSTS = ["*"]
+elif _allowed_hosts_env:
+    _parsed_hosts = [
+        _normalize_host(h)
+        for h in _allowed_hosts_env.split(",")
+        if h.strip()
+    ]
+    ALLOWED_HOSTS = [
+        *dict.fromkeys(
+            [h for h in _parsed_hosts if h] + _baseline_allowed_hosts
+        )
+    ]
+else:
+    ALLOWED_HOSTS = _baseline_allowed_hosts if DEBUG else ["*"]
 
 
 # Application definition
@@ -39,12 +74,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "core",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -79,7 +117,9 @@ WSGI_APPLICATION = "moneyio.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.environ.get(
+            "SQLITE_DB_PATH", str(BASE_DIR / "db.sqlite3")
+        ),
     }
 }
 
@@ -118,7 +158,39 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# CORS: allow the frontend origin in production
+_cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+if _cors_env:
+    CORS_ALLOWED_ORIGINS = [
+        o.strip() for o in _cors_env.split(",") if o.strip()
+    ]
+elif DEBUG:
+    # Development fallback
+    CORS_ALLOW_ALL_ORIGINS = True
+
+_csrf_trusted_origins_env = os.environ.get(
+    "DJANGO_CSRF_TRUSTED_ORIGINS", ""
+)
+if _csrf_trusted_origins_env:
+    _origins = []
+    for origin in _csrf_trusted_origins_env.split(","):
+        _origin = origin.strip()
+        if not _origin:
+            continue
+        if "://" not in _origin:
+            _origin = f"https://{_normalize_host(_origin)}"
+        _origins.append(_origin.rstrip("/"))
+    CSRF_TRUSTED_ORIGINS = [o for o in _origins if o]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

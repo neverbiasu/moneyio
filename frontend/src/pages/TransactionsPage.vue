@@ -9,7 +9,6 @@ import {
   BuildingStorefrontIcon,
   CalendarIcon,
   MagnifyingGlassIcon,
-  
   SparklesIcon,
   XMarkIcon,
   FunnelIcon,
@@ -30,7 +29,6 @@ defineOptions({ name: 'TransactionsPage' });
 
 const { t } = useI18n();
 const datePickerLocale = computed(() => getPreferredLocale());
-
 
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
@@ -443,7 +441,12 @@ async function handleTransactionDeleted() {
           <label for="start-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.from')
           }}</label>
-          <DatePicker v-model="startDateInput" :locale="datePickerLocale" mode="date" :max-date="endDateInput || undefined">
+          <DatePicker
+            v-model="startDateInput"
+            :locale="datePickerLocale"
+            mode="date"
+            :max-date="endDateInput || undefined"
+          >
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
                 <CalendarIcon
@@ -452,9 +455,9 @@ async function handleTransactionDeleted() {
                 <input
                   id="start-date-filter"
                   :value="inputValue"
-                  v-on="inputEvents"
                   readonly
                   class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  v-on="inputEvents"
                   @click="togglePopover"
                 />
                 <button
@@ -475,7 +478,12 @@ async function handleTransactionDeleted() {
           <label for="end-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.to')
           }}</label>
-          <DatePicker v-model="endDateInput" :locale="datePickerLocale" mode="date" :min-date="startDateInput || undefined">
+          <DatePicker
+            v-model="endDateInput"
+            :locale="datePickerLocale"
+            mode="date"
+            :min-date="startDateInput || undefined"
+          >
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
                 <CalendarIcon
@@ -484,9 +492,9 @@ async function handleTransactionDeleted() {
                 <input
                   id="end-date-filter"
                   :value="inputValue"
-                  v-on="inputEvents"
                   readonly
                   class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  v-on="inputEvents"
                   @click="togglePopover"
                 />
                 <button

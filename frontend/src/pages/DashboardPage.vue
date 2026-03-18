@@ -248,7 +248,7 @@ async function fetchDashboardData() {
 }
 
 function goToTransactions() {
-  router.push({ name: 'transactions' });
+  void router.push({ name: 'transactions' });
 }
 
 onMounted(() => {

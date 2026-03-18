@@ -12,7 +12,7 @@ import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'ReportsPage' });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const startDateInput = ref<string>(
   toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
@@ -240,7 +240,7 @@ onMounted(() => {
           </label>
           <DatePicker
             :model-value="startDate"
-            locale="en"
+            :locale="locale"
             :max-date="endDate"
             @update:model-value="updateStartDate"
           >
@@ -268,7 +268,7 @@ onMounted(() => {
           </label>
           <DatePicker
             :model-value="endDate"
-            locale="en"
+            :locale="locale"
             :min-date="startDate"
             @update:model-value="updateEndDate"
           >

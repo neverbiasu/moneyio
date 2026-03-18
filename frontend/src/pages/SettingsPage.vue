@@ -47,7 +47,7 @@ const profileForm = reactive({
   email: '',
   avatar: '/avatar.png',
 });
-const selectedAvatarFileName = ref('No file selected');
+const selectedAvatarFileName = ref(t('settings.noFileSelected'));
 
 const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'USD', label: 'US Dollar ($)' },
@@ -89,7 +89,7 @@ function handleAvatarFileChange(event: Event): void {
   const file = target.files?.[0];
 
   if (!file) {
-    selectedAvatarFileName.value = 'No file selected';
+    selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
   }
@@ -98,14 +98,14 @@ function handleAvatarFileChange(event: Event): void {
 
   if (!file.type.startsWith('image/')) {
     profileError.value = 'Please select an image file.';
-    selectedAvatarFileName.value = 'No file selected';
+    selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
   }
 
   if (file.size > 2 * 1024 * 1024) {
     profileError.value = 'Image size must be less than 2MB.';
-    selectedAvatarFileName.value = 'No file selected';
+    selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
   }
@@ -298,7 +298,7 @@ onMounted(() => {
                   id="profile-avatar"
                   type="file"
                   accept="image/*"
-                  class="sr-only"
+                  class="sr-only focus:not-sr-only"
                   @change="handleAvatarFileChange"
                 />
                 <label

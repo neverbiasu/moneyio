@@ -190,7 +190,7 @@ function getAmountColor(type: string, amount: number): string {
 }
 
 function formatAmount(type: string, amount: number): string {
-  const formatted = formatCurrencyWithPreference(amount);
+  const formatted = formatCurrencyWithPreference(amount, { absolute: true });
   if (type === 'income') return `+${formatted}`;
   if (type === 'transfer') return amount >= 0 ? `+${formatted}` : `-${formatted}`;
   return `-${formatted}`;
@@ -202,9 +202,9 @@ function formatDateLabel(dateString: string): string {
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffDays <= 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  return `${diffDays} days ago`;
+  if (diffDays <= 0) return t('dashboard.dateLabel.today');
+  if (diffDays === 1) return t('dashboard.dateLabel.yesterday');
+  return t('dashboard.dateLabel.daysAgo', { count: diffDays });
 }
 
 async function fetchDashboardData() {
@@ -256,11 +256,13 @@ async function handleTransactionSaved() {
           <p
             class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider"
           >
-            Active Balance
+            {{ t('dashboard.activeBalance') }}
           </p>
           <p v-if="isLoading" class="mt-4 h-12 w-56 animate-pulse rounded-2xl bg-white/25"></p>
           <p v-else class="mt-3 text-5xl font-extrabold tracking-tight">{{ activeBalance }}</p>
-          <p class="mt-2 text-sm font-medium text-blue-100">Top spending: {{ topCategory }}</p>
+          <p class="mt-2 text-sm font-medium text-blue-100">
+            {{ t('dashboard.topSpending') }}: {{ topCategory }}
+          </p>
         </div>
 
         <div
@@ -268,7 +270,9 @@ async function handleTransactionSaved() {
         >
           <p class="text-2xl">🔥</p>
           <p class="mt-1 text-2xl font-bold">{{ streakDays }}</p>
-          <p class="text-xs font-semibold uppercase tracking-wide text-blue-100">Day Streak</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-blue-100">
+            {{ t('dashboard.dayStreak') }}
+          </p>
         </div>
       </div>
     </section>

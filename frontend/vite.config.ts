@@ -21,4 +21,19 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    reportCompressedSize: false,
+    rollupOptions: {
+      output: {
+        // Manual chunk splitting for better caching and performance
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia'],
+          vendors: ['axios'],
+          // Dynamically imported routes will be code-split automatically
+        },
+      },
+    },
+  },
 });

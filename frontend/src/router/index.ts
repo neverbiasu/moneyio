@@ -1,15 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { defineAsyncComponent } from 'vue';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
-import DashboardPage from '../pages/DashboardPage.vue';
-import TransactionsPage from '../pages/TransactionsPage.vue';
-import AccountsPage from '../pages/AccountsPage.vue';
-import ReportsPage from '../pages/ReportsPage.vue';
-import BudgetsPage from '../pages/BudgetsPage.vue';
-import SettingsPage from '../pages/SettingsPage.vue';
-import LoginPage from '@/pages/LoginPage.vue';
 import LandingPage from '@/pages/LandingPage.vue';
+import LoginPage from '@/pages/LoginPage.vue';
 import RegisterPage from '@/pages/RegisterPage.vue';
 import { useAuthStore } from '@/stores/auth';
+
+// Lazy load authenticated pages for better code splitting
+const DashboardPage = defineAsyncComponent(() => import('@/pages/DashboardPage.vue'));
+const TransactionsPage = defineAsyncComponent(() => import('@/pages/TransactionsPage.vue'));
+const AccountsPage = defineAsyncComponent(() => import('@/pages/AccountsPage.vue'));
+const ReportsPage = defineAsyncComponent(() => import('@/pages/ReportsPage.vue'));
+const BudgetsPage = defineAsyncComponent(() => import('@/pages/BudgetsPage.vue'));
+const SettingsPage = defineAsyncComponent(() => import('@/pages/SettingsPage.vue'));
 
 declare module 'vue-router' {
   interface RouteMeta {

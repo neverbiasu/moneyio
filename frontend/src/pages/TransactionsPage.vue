@@ -7,10 +7,10 @@ import {
   ArrowTrendingUpIcon,
   BoltIcon,
   BuildingStorefrontIcon,
-  ChevronDownIcon,
-  CheckIcon,
+  
+  
   MagnifyingGlassIcon,
-  CalendarIcon,
+  
   SparklesIcon,
   XMarkIcon,
   FunnelIcon,

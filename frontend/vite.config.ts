@@ -32,7 +32,6 @@ export default defineConfig({
           vue: ['vue', 'vue-router', 'pinia'],
           vendors: ['axios', '@popperjs/core'],
           headlessui: ['@headlessui/vue'],
-          heroicons: ['@heroicons/vue'],
           // Dynamically imported routes will be code-split automatically
         },
         // Optimize chunk file naming

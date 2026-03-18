@@ -1,18 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { defineAsyncComponent } from 'vue';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
-import LandingPage from '@/pages/LandingPage.vue';
-import LoginPage from '@/pages/LoginPage.vue';
-import RegisterPage from '@/pages/RegisterPage.vue';
-import DashboardPage from '@/pages/DashboardPage.vue';
-import TransactionsPage from '@/pages/TransactionsPage.vue';
 import { useAuthStore } from '@/stores/auth';
-
-// Lazy load authenticated pages for better code splitting
-const accountsPage = defineAsyncComponent(async () => import('@/pages/AccountsPage.vue'));
-const reportsPage = defineAsyncComponent(async () => import('@/pages/ReportsPage.vue'));
-const budgetsPage = defineAsyncComponent(async () => import('@/pages/BudgetsPage.vue'));
-const settingsPage = defineAsyncComponent(async () => import('@/pages/SettingsPage.vue'));
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -27,7 +15,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'landing',
-      component: LandingPage,
+      component: async () => import('@/pages/LandingPage.vue'),
       meta: { requiresAuth: false },
     },
     {
@@ -38,37 +26,37 @@ const router = createRouter({
         {
           path: 'dashboard',
           name: 'dashboard',
-          component: DashboardPage,
+          component: async () => import('@/pages/DashboardPage.vue'),
           meta: { subtitle: "Here's what's happening with your money today" },
         },
         {
           path: 'transactions',
           name: 'transactions',
-          component: TransactionsPage,
+          component: async () => import('@/pages/TransactionsPage.vue'),
           meta: { subtitle: 'View and manage all your transactions' },
         },
         {
           path: 'accounts',
           name: 'accounts',
-          component: accountsPage,
+          component: async () => import('@/pages/AccountsPage.vue'),
           meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',
           name: 'reports',
-          component: reportsPage,
+          component: async () => import('@/pages/ReportsPage.vue'),
           meta: { subtitle: 'Analyze your spending and income trends' },
         },
         {
           path: 'budgets',
           name: 'budgets',
-          component: budgetsPage,
+          component: async () => import('@/pages/BudgetsPage.vue'),
           meta: { subtitle: 'Set and track your budgets' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: settingsPage,
+          component: async () => import('@/pages/SettingsPage.vue'),
           meta: { subtitle: 'Manage your account and preferences' },
         },
       ],
@@ -76,13 +64,13 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginPage,
+      component: async () => import('@/pages/LoginPage.vue'),
       meta: { requiresAuth: false },
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterPage,
+      component: async () => import('@/pages/RegisterPage.vue'),
       meta: { requiresAuth: false },
     },
   ],

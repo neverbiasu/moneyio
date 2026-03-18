@@ -374,10 +374,11 @@ async function handleTransactionDeleted() {
 
       <div class="flex flex-wrap items-end gap-2">
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="category-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.category')
           }}</label>
           <select
+            id="category-filter"
             v-model.number="selectedCategoryId"
             class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
           >
@@ -393,10 +394,11 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="account-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.account')
           }}</label>
           <select
+            id="account-filter"
             v-model.number="selectedAccountId"
             class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
           >
@@ -412,11 +414,12 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="start-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.from')
           }}</label>
           <div class="relative">
             <input
+              id="start-date-filter"
               v-model="startDateInput"
               type="date"
               :max="endDateInput || undefined"
@@ -435,11 +438,12 @@ async function handleTransactionDeleted() {
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="end-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.to')
           }}</label>
           <div class="relative">
             <input
+              id="end-date-filter"
               v-model="endDateInput"
               type="date"
               :min="startDateInput || undefined"

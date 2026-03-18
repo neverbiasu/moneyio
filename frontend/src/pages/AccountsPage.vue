@@ -99,7 +99,7 @@ onMounted(() => {
     <div class="flex justify-end">
       <button
         type="button"
-        class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+        class="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-1 active:bg-blue-800 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
         @click="openCreateModal"
       >
         <PlusIcon class="size-5" aria-hidden="true" />
@@ -140,7 +140,7 @@ onMounted(() => {
       <div
         v-for="account in accounts"
         :key="account.id"
-        class="relative rounded-xl border border-neutral-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-neutral-300 transition"
+        class="relative rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_4px_0_0_rgba(148,163,184,0.42)] transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_6px_0_0_rgba(148,163,184,0.52)]"
       >
         <!-- Account type badge -->
         <div class="flex items-start justify-between mb-4">

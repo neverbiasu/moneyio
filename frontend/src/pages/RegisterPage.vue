@@ -77,20 +77,20 @@ async function handleSubmit() {
       </div>
 
       <div
-        class="bg-card-light dark:bg-card-dark rounded-2xl shadow-soft p-8 sm:p-10 border border-white/60 dark:border-border-dark backdrop-blur-sm"
+        class="bg-card-light dark:bg-card-dark rounded-3xl shadow-[0_6px_0_0_rgba(148,163,184,0.45)] p-8 sm:p-10 border border-border-light dark:border-border-dark backdrop-blur-sm"
       >
         <div class="flex items-center justify-between mb-8">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
             {{ t('auth.createAccount') }}
           </h2>
           <div
-            class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800"
+            class="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 dark:border-blue-800 dark:bg-blue-900/20"
           >
             <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-[16px]"
               >verified_user</span
             >
             <span
-              class="text-[10px] font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide"
+              class="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300"
               >{{ t('auth.secure') }}</span
             >
           </div>
@@ -239,7 +239,7 @@ async function handleSubmit() {
             <button
               type="submit"
               :disabled="isLoading"
-              class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+              class="w-full flex justify-center rounded-2xl border border-primary/20 bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition-all duration-200 ease-in-out hover:bg-primary-hover hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {{ isLoading ? t('auth.creatingAccount') : t('auth.createAccountAction') }}
             </button>

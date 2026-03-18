@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+  ArrowDownLeftIcon,
+  ArrowPathIcon,
+  ArrowUpRightIcon,
+  QuestionMarkCircleIcon,
+} from '@heroicons/vue/24/outline';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -60,19 +66,36 @@ const getAmountColor = (type: string, amount?: number) => {
   return 'text-red-600';
 };
 
+const getCategoryIcon = (categoryId: number | null) => {
+  const type = getCategoryType(categoryId);
+  if (type === 'income') return ArrowDownLeftIcon;
+  if (type === 'transfer') return ArrowPathIcon;
+  if (type === 'expense') return ArrowUpRightIcon;
+  return QuestionMarkCircleIcon;
+};
+
+const getCategoryIconStyle = (categoryId: number | null) => {
+  const type = getCategoryType(categoryId);
+  if (type === 'income') return 'bg-emerald-100 text-emerald-600';
+  if (type === 'transfer') return 'bg-blue-100 text-blue-600';
+  return 'bg-rose-100 text-rose-600';
+};
+
 function goToTransactions() {
   void router.push('/app/transactions');
 }
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
+  <div
+    class="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-[var(--shadow-card)]"
+  >
+    <div class="border-b border-blue-100 px-6 py-4">
       <h2 class="text-lg font-semibold text-gray-900">{{ t('recentTx.title') }}</h2>
     </div>
 
-    <div class="divide-y divide-gray-200">
-      <div v-if="isLoading" class="divide-y divide-gray-200">
+    <div class="divide-y divide-blue-100">
+      <div v-if="isLoading" class="divide-y divide-blue-100">
         <div v-for="i in 5" :key="i" class="px-6 py-4 flex items-center justify-between">
           <div class="flex-1">
             <div class="h-4 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
@@ -90,13 +113,21 @@ function goToTransactions() {
         <div
           v-for="transaction in recentTransactions"
           :key="transaction.id"
-          class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          class="px-6 py-4 flex items-center justify-between transition-colors hover:bg-blue-50/60"
         >
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 truncate">
-              {{ getCategoryName(transaction.categoryId) }}
-            </p>
-            <p class="text-xs text-gray-500">{{ formatDate(transaction.transactionDate) }}</p>
+          <div class="flex min-w-0 flex-1 items-center gap-3">
+            <div
+              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+              :class="getCategoryIconStyle(transaction.categoryId)"
+            >
+              <component :is="getCategoryIcon(transaction.categoryId)" class="h-5 w-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-gray-900 truncate">
+                {{ getCategoryName(transaction.categoryId) }}
+              </p>
+              <p class="text-xs text-gray-500">{{ formatDate(transaction.transactionDate) }}</p>
+            </div>
           </div>
           <p
             :class="[
@@ -110,7 +141,7 @@ function goToTransactions() {
       </div>
     </div>
 
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+    <div class="border-t border-blue-100 bg-blue-50/70 px-6 py-4">
       <div class="flex items-center justify-between gap-2">
         <button
           type="button"

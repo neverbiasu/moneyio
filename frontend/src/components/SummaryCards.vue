@@ -33,12 +33,16 @@ const formattedExpense = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
     <!-- Total Balance Card -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div
+      class="bg-white rounded-3xl border border-blue-100 p-7 shadow-[var(--shadow-card)] md:col-span-2 xl:col-span-2"
+    >
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-600">{{ t('summary.totalBalance') }}</h3>
-        <div class="bg-blue-100 rounded-full p-2">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          {{ t('summary.totalBalance') }}
+        </h3>
+        <div class="bg-blue-100 rounded-full p-2.5">
           <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
@@ -49,12 +53,14 @@ const formattedExpense = computed(() => {
           </svg>
         </div>
       </div>
-      <div v-if="isLoading" class="h-8 bg-gray-200 rounded animate-pulse"></div>
-      <p v-else class="text-2xl font-bold text-gray-900">{{ formattedBalance }}</p>
+      <div v-if="isLoading" class="h-10 bg-gray-200 rounded-2xl animate-pulse"></div>
+      <p v-else class="text-4xl font-extrabold tracking-tight text-slate-900">
+        {{ formattedBalance }}
+      </p>
     </div>
 
     <!-- Monthly Income Card -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-medium text-gray-600">{{ t('summary.monthlyIncome') }}</h3>
         <div class="bg-green-100 rounded-full p-2">
@@ -73,7 +79,7 @@ const formattedExpense = computed(() => {
     </div>
 
     <!-- Monthly Expense Card -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-medium text-gray-600">{{ t('summary.monthlyExpense') }}</h3>
         <div class="bg-red-100 rounded-full p-2">
@@ -87,7 +93,7 @@ const formattedExpense = computed(() => {
     </div>
 
     <!-- Savings Rate Card -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-medium text-gray-600">{{ t('summary.savingsRate') }}</h3>
         <div class="bg-purple-100 rounded-full p-2">

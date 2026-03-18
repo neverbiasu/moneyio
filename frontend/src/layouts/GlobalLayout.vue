@@ -77,7 +77,7 @@ watch(
     Skip to main content
   </a>
 
-  <div class="flex h-screen bg-gray-50 overflow-hidden">
+  <div class="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
     <AppSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div
@@ -92,16 +92,16 @@ watch(
       @keydown.esc.prevent="sidebarOpen = false"
     ></div>
 
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <div class="flex-1 flex min-w-0 flex-col overflow-hidden">
       <header
-        class="bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8"
+        class="mx-3 mt-3 flex items-center justify-between rounded-2xl border border-border-light bg-card-light px-4 shadow-[var(--shadow-card)] dark:border-border-dark dark:bg-card-dark sm:mx-4 sm:px-6 lg:mx-6 lg:px-8"
         role="banner"
       >
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center min-h-16 py-2">
+        <div class="min-w-0 flex-1">
+          <div class="flex min-h-16 items-center py-2">
             <button
               type="button"
-              class="md:hidden mr-4 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              class="mr-4 rounded-xl p-1.5 text-subtext-light transition hover:bg-blue-50 hover:text-primary focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary md:hidden dark:text-subtext-dark dark:hover:bg-slate-800 dark:hover:text-blue-300"
               aria-label="Open navigation"
               aria-controls="primary-navigation"
               :aria-expanded="sidebarOpen"
@@ -117,12 +117,19 @@ watch(
               </svg>
             </button>
             <div class="min-w-0">
-              <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle }}</h2>
-              <p v-if="pageSubtitle" class="text-sm text-gray-500 mt-0.5">{{ pageSubtitle }}</p>
+              <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
+                {{ pageTitle }}
+              </h2>
+              <p
+                v-if="pageSubtitle"
+                class="mt-0.5 text-sm text-subtext-light dark:text-subtext-dark"
+              >
+                {{ pageSubtitle }}
+              </p>
             </div>
           </div>
         </div>
-        <div id="page-actions" class="flex items-center space-x-4 shrink-0">
+        <div id="page-actions" class="flex shrink-0 items-center space-x-4">
           <NotificationBell />
         </div>
       </header>

@@ -419,7 +419,7 @@ onMounted(() => {
           <button
             type="button"
             :disabled="!budgetMutationsSupported"
-            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)] disabled:cursor-not-allowed disabled:opacity-60"
             @click="openCreateModal"
           >
             <PlusIcon class="size-4" aria-hidden="true" />
@@ -432,7 +432,9 @@ onMounted(() => {
         v-if="!isLoading && budgets.length > 0"
         class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
       >
-        <div class="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm">
+        <div
+          class="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -442,13 +444,15 @@ onMounted(() => {
                 {{ formatCurrency(totalBudget) }}
               </p>
             </div>
-            <span class="rounded-2xl bg-slate-100 p-2.5 text-slate-600 shadow-sm">
+            <span class="rounded-2xl bg-slate-100 p-2.5 text-slate-600">
               <CalculatorIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
 
-        <div class="rounded-2xl border border-blue-100/80 bg-white px-5 py-4 shadow-sm">
+        <div
+          class="rounded-2xl border border-blue-100/80 bg-white px-5 py-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -458,14 +462,14 @@ onMounted(() => {
                 {{ formatCurrency(totalSpent) }}
               </p>
             </div>
-            <span class="rounded-2xl bg-blue-50 p-2.5 text-blue-600 shadow-sm">
+            <span class="rounded-2xl bg-blue-50 p-2.5 text-blue-600">
               <ReceiptPercentIcon class="size-5" aria-hidden="true" />
             </span>
           </div>
         </div>
 
         <div
-          class="rounded-2xl bg-white px-5 py-4 shadow-sm"
+          class="rounded-2xl bg-white px-5 py-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
           :class="isOverallOverBudget ? 'border border-red-100/80' : 'border border-emerald-100/80'"
         >
           <div class="flex items-start justify-between gap-3">
@@ -483,7 +487,7 @@ onMounted(() => {
               </p>
             </div>
             <span
-              class="rounded-2xl p-2.5 shadow-sm"
+              class="rounded-2xl p-2.5"
               :class="
                 isOverallOverBudget ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
               "
@@ -512,7 +516,7 @@ onMounted(() => {
 
     <div
       v-else-if="activeBudgets.length === 0"
-      class="rounded-[28px] border border-slate-200 bg-white py-16 text-center shadow-sm"
+      class="rounded-[28px] border border-slate-200 bg-white py-16 text-center shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
     >
       <SparklesIcon class="mx-auto mb-4 size-12 text-slate-300" aria-hidden="true" />
       <p class="text-base font-semibold text-slate-700">{{ t('budgets.noBudgets') }}</p>
@@ -541,7 +545,7 @@ onMounted(() => {
           <article
             v-for="budget in sortedBudgets"
             :key="budget.id"
-            class="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            class="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_4px_0_0_rgba(148,163,184,0.42)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_rgba(148,163,184,0.52)]"
           >
             <div class="flex items-start gap-4">
               <div

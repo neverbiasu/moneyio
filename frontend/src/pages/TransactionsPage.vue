@@ -6,10 +6,15 @@ import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
 import axios from 'axios';
 import {
+  ArrowDownLeftIcon,
+  ArrowTrendingUpIcon,
+  BoltIcon,
+  BuildingStorefrontIcon,
   ChevronDownIcon,
   CheckIcon,
   MagnifyingGlassIcon,
   CalendarIcon,
+  SparklesIcon,
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
@@ -225,6 +230,71 @@ function getCategoryBadgeClass(id: number | null): string {
   return CATEGORY_BADGE.get(id) ?? 'bg-neutral-100 text-neutral-700';
 }
 
+function getCategoryIcon(categoryId: number | null) {
+  const type = getCategoryType(categoryId);
+  if (type === 'income') return ArrowDownLeftIcon;
+
+  const categoryName = getCategoryName(categoryId).toLowerCase();
+
+  if (
+    categoryName.includes('entertainment') ||
+    categoryName.includes('movie') ||
+    categoryName.includes('game') ||
+    categoryName.includes('fun')
+  ) {
+    return SparklesIcon;
+  }
+
+  if (
+    categoryName.includes('food') ||
+    categoryName.includes('dining') ||
+    categoryName.includes('lunch') ||
+    categoryName.includes('breakfast')
+  ) {
+    return BuildingStorefrontIcon;
+  }
+
+  if (categoryName.includes('transport') || categoryName.includes('travel')) {
+    return BoltIcon;
+  }
+
+  return ArrowTrendingUpIcon;
+}
+
+function getCategoryIconClass(categoryId: number | null): string {
+  const type = getCategoryType(categoryId);
+
+  if (type === 'income') {
+    return 'border-emerald-200 bg-emerald-100 text-emerald-700 shadow-[0_2px_0_0_rgba(16,185,129,0.45)]';
+  }
+
+  const categoryName = getCategoryName(categoryId).toLowerCase();
+
+  if (
+    categoryName.includes('entertainment') ||
+    categoryName.includes('movie') ||
+    categoryName.includes('game') ||
+    categoryName.includes('fun')
+  ) {
+    return 'border-violet-200 bg-violet-100 text-violet-700 shadow-[0_2px_0_0_rgba(139,92,246,0.45)]';
+  }
+
+  if (
+    categoryName.includes('food') ||
+    categoryName.includes('dining') ||
+    categoryName.includes('lunch') ||
+    categoryName.includes('breakfast')
+  ) {
+    return 'border-amber-200 bg-amber-100 text-amber-700 shadow-[0_2px_0_0_rgba(245,158,11,0.45)]';
+  }
+
+  if (categoryName.includes('transport') || categoryName.includes('travel')) {
+    return 'border-sky-200 bg-sky-100 text-sky-700 shadow-[0_2px_0_0_rgba(14,165,233,0.45)]';
+  }
+
+  return 'border-rose-200 bg-rose-100 text-rose-700 shadow-[0_2px_0_0_rgba(244,63,94,0.4)]';
+}
+
 const jumpInput = ref('');
 
 function jumpToPage() {
@@ -284,7 +354,9 @@ async function handleTransactionDeleted() {
 
 <template>
   <div class="space-y-4">
-    <div class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-sm">
+    <div
+      class="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+    >
       <div class="flex gap-2">
         <div class="relative flex-1">
           <MagnifyingGlassIcon
@@ -307,7 +379,7 @@ async function handleTransactionDeleted() {
           {{ t('transactions.search') }}
         </button>
         <button
-          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-1 active:bg-blue-800 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
           @click="openCreateModal"
         >
           {{ t('transactions.add') }}
@@ -494,7 +566,10 @@ async function handleTransactionDeleted() {
       <p class="text-xs text-neutral-400 mt-1">{{ t('transactions.noTransactionsHint') }}</p>
     </div>
 
-    <div v-else class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <div
+      v-else
+      class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+    >
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-neutral-200 bg-neutral-50">
@@ -541,9 +616,15 @@ async function handleTransactionDeleted() {
             </td>
             <td class="px-4 py-3">
               <span
-                class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md"
+                class="inline-flex items-center gap-2 rounded-xl border px-2.5 py-1 text-xs font-semibold"
                 :class="getCategoryBadgeClass(transaction.categoryId)"
               >
+                <span
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-lg border"
+                  :class="getCategoryIconClass(transaction.categoryId)"
+                >
+                  <component :is="getCategoryIcon(transaction.categoryId)" class="h-3.5 w-3.5" />
+                </span>
                 {{ getCategoryName(transaction.categoryId) }}
               </span>
             </td>
@@ -574,7 +655,7 @@ async function handleTransactionDeleted() {
 
     <div
       v-if="transactions.length > 0"
-      class="flex items-center justify-between px-4 py-3 bg-white border border-neutral-200 rounded-xl shadow-sm"
+      class="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
     >
       <p class="text-sm text-neutral-500">
         {{

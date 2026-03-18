@@ -47,6 +47,7 @@ const profileForm = reactive({
   email: '',
   avatar: '/avatar.png',
 });
+const selectedAvatarFileName = ref('No file selected');
 
 const currencyOptions: Array<{ value: CurrencyPreference; label: string }> = [
   { value: 'USD', label: 'US Dollar ($)' },
@@ -63,7 +64,7 @@ const themeOptions: Array<{ value: ThemePreference; labelKey: string }> = [
 
 const languageOptions: Array<{ value: LanguagePreference; label: string }> = [
   { value: 'en', label: 'English' },
-  { value: 'zh', label: '中文' },
+  { value: 'zh', label: 'Chinese' },
 ];
 
 const fontSizeOptions: Array<{ value: FontSizePreference; label: string }> = [
@@ -88,18 +89,23 @@ function handleAvatarFileChange(event: Event): void {
   const file = target.files?.[0];
 
   if (!file) {
+    selectedAvatarFileName.value = 'No file selected';
     target.value = '';
     return;
   }
 
+  selectedAvatarFileName.value = file.name;
+
   if (!file.type.startsWith('image/')) {
     profileError.value = 'Please select an image file.';
+    selectedAvatarFileName.value = 'No file selected';
     target.value = '';
     return;
   }
 
   if (file.size > 2 * 1024 * 1024) {
     profileError.value = 'Image size must be less than 2MB.';
+    selectedAvatarFileName.value = 'No file selected';
     target.value = '';
     return;
   }
@@ -268,7 +274,9 @@ onMounted(() => {
     </div>
 
     <section v-if="activeTab === 'profile'" class="space-y-6">
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <h2 class="text-lg font-semibold text-neutral-900 mb-1">
           {{ t('settings.profileTitle') }}
         </h2>
@@ -285,13 +293,23 @@ onMounted(() => {
               <label class="block text-sm font-medium text-neutral-700 mb-1" for="profile-avatar">
                 {{ t('settings.avatar') }}
               </label>
-              <input
-                id="profile-avatar"
-                type="file"
-                accept="image/*"
-                class="w-full text-sm text-gray-700"
-                @change="handleAvatarFileChange"
-              />
+              <div class="flex items-center gap-3">
+                <input
+                  id="profile-avatar"
+                  type="file"
+                  accept="image/*"
+                  class="sr-only"
+                  @change="handleAvatarFileChange"
+                />
+                <label
+                  for="profile-avatar"
+                  class="inline-flex cursor-pointer items-center rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+                >
+                  Choose image
+                </label>
+                <span class="truncate text-sm text-neutral-500">{{ selectedAvatarFileName }}</span>
+              </div>
+              <p class="mt-1 text-xs text-neutral-400">PNG, JPG, WEBP, GIF up to 2MB</p>
             </div>
           </div>
 
@@ -326,7 +344,7 @@ onMounted(() => {
           <div class="flex justify-end pt-2">
             <button
               type="button"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:bg-blue-700 active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
               @click="saveProfile"
             >
               {{ t('settings.saveProfile') }}
@@ -337,7 +355,9 @@ onMounted(() => {
     </section>
 
     <section v-if="activeTab === 'security'" class="space-y-6">
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">
           {{ t('settings.securityTitle') }}
         </h2>
@@ -388,7 +408,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">
           {{ t('settings.accountActions') }}
         </h2>
@@ -409,7 +431,9 @@ onMounted(() => {
     </section>
 
     <section v-if="activeTab === 'preferences'" class="space-y-6">
-      <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">
           {{ t('settings.preferencesTitle') }}
         </h2>

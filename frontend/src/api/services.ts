@@ -48,7 +48,20 @@ interface BackendTransactionsResponse {
   current_page: number;
   page_size: number;
   total_count: number;
+  total_pages?: number;
+  has_previous?: boolean;
+  has_next?: boolean;
   results: BackendTransactionListItem[];
+}
+
+interface TransactionsPageResult {
+  items: Transaction[];
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
 }
 
 interface BackendTransactionDetail {
@@ -196,6 +209,41 @@ async function fetchAllTransactions(params?: {
   return all;
 }
 
+async function fetchTransactionsPage(params?: {
+  accountId?: number;
+  categoryId?: number;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<TransactionsPageResult> {
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 20;
+
+  const response = await api.get<BackendTransactionsResponse>('/transactions/', {
+    params: {
+      page,
+      page_size: pageSize,
+      account_id: params?.accountId,
+      category_id: params?.categoryId,
+      search: params?.search,
+      start: params?.startDate,
+      end: params?.endDate,
+    },
+  });
+
+  return {
+    items: response.data.results.map(mapTransaction),
+    currentPage: response.data.current_page,
+    pageSize: response.data.page_size,
+    totalCount: response.data.total_count,
+    totalPages: response.data.total_pages ?? 0,
+    hasPrevious: response.data.has_previous ?? false,
+    hasNext: response.data.has_next ?? false,
+  };
+}
+
 function mapBudget(item: BackendBudget): Budget {
   const description = item.description?.trim();
 
@@ -297,6 +345,18 @@ export const apiService = {
   },
 
   transactions: {
+    async getTransactionsPage(filters?: {
+      accountId?: number;
+      categoryId?: number;
+      search?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      pageSize?: number;
+    }): Promise<TransactionsPageResult> {
+      return fetchTransactionsPage(filters);
+    },
+
     async getTransactions(filters?: {
       accountId?: number;
       categoryId?: number;

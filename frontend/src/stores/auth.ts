@@ -10,9 +10,30 @@ interface AuthState {
   } | null;
 }
 
+const SESSION_HINT_KEY = 'moneyio.auth.hasSession';
+
+function readSessionHint(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return localStorage.getItem(SESSION_HINT_KEY) === '1';
+}
+
+function writeSessionHint(value: boolean) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  if (value) {
+    localStorage.setItem(SESSION_HINT_KEY, '1');
+    return;
+  }
+  localStorage.removeItem(SESSION_HINT_KEY);
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthState['user']>(null);
   const isLoaded = ref(false);
+  const hasSessionHint = ref(readSessionHint());
 
   const isAuthenticated = computed(() => !!user.value);
 
@@ -20,6 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
     const response = await authApi.getCurrentUser();
     if (response.user === null || !response.id || !response.username || !response.email) {
       user.value = null;
+      hasSessionHint.value = false;
+      writeSessionHint(false);
       return;
     }
     user.value = {
@@ -27,6 +50,8 @@ export const useAuthStore = defineStore('auth', () => {
       username: response.username,
       email: response.email,
     };
+    hasSessionHint.value = true;
+    writeSessionHint(true);
   }
 
   async function ensureAuthLoaded() {
@@ -56,6 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
       await authApi.logout();
     } finally {
       user.value = null;
+      hasSessionHint.value = false;
+      writeSessionHint(false);
       isLoaded.value = true;
     }
   }
@@ -66,6 +93,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clearLocalAuthState() {
     user.value = null;
+    hasSessionHint.value = false;
+    writeSessionHint(false);
     isLoaded.value = true;
   }
 
@@ -73,6 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isAuthenticated,
     isLoaded,
+    hasSessionHint,
     ensureAuthLoaded,
     fetchCurrentUser,
     clearLocalAuthState,

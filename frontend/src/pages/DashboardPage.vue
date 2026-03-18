@@ -29,6 +29,7 @@ const categories = ref<Category[]>([]);
 const chartData = ref<ChartData | null>(null);
 const budgets = ref<Budget[]>([]);
 const isLoading = ref(true);
+const isChartsLoading = ref(true);
 const error = ref<string | null>(null);
 const isModalOpen = ref(false);
 
@@ -209,27 +210,38 @@ function formatDateLabel(dateString: string): string {
 
 async function fetchDashboardData() {
   isLoading.value = true;
+  isChartsLoading.value = true;
   error.value = null;
 
   try {
-    const [summary, transactions, categoriesData, trendData, budgetsData] = await Promise.all([
+    const [summary, transactionsPage, categoriesData] = await Promise.all([
       apiService.dashboard.getSummary(),
-      apiService.transactions.getTransactions(),
+      apiService.transactions.getTransactionsPage({ page: 1, pageSize: 20 }),
       apiService.categories.getCategories(),
+    ]);
+
+    summaryData.value = summary;
+    recentTransactions.value = transactionsPage.items;
+    categories.value = categoriesData;
+
+    isLoading.value = false;
+
+    const [trendData, budgetsData] = await Promise.all([
       apiService.dashboard.getChartData(),
       apiService.budgets.getBudgets(),
     ]);
 
-    summaryData.value = summary;
-    recentTransactions.value = transactions;
-    categories.value = categoriesData;
     chartData.value = trendData;
     budgets.value = budgetsData;
+    isChartsLoading.value = false;
   } catch (err) {
     console.error('Failed to load dashboard data:', err);
     error.value = t('dashboard.loadFailed');
+    isChartsLoading.value = false;
   } finally {
-    isLoading.value = false;
+    if (isLoading.value) {
+      isLoading.value = false;
+    }
   }
 }
 
@@ -426,7 +438,7 @@ async function handleTransactionSaved() {
       </div>
     </section>
 
-    <TransactionFormModal
+    <transactionFormModal
       v-if="isModalOpen"
       :is-open="isModalOpen"
       :categories="categories"

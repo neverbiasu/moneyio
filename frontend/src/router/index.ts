@@ -1,14 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
-import DashboardPage from '../pages/DashboardPage.vue';
-import TransactionsPage from '../pages/TransactionsPage.vue';
-import AccountsPage from '../pages/AccountsPage.vue';
-import ReportsPage from '../pages/ReportsPage.vue';
-import BudgetsPage from '../pages/BudgetsPage.vue';
-import SettingsPage from '../pages/SettingsPage.vue';
-import LoginPage from '@/pages/LoginPage.vue';
-import LandingPage from '@/pages/LandingPage.vue';
-import RegisterPage from '@/pages/RegisterPage.vue';
 import { useAuthStore } from '@/stores/auth';
 
 declare module 'vue-router' {
@@ -24,7 +15,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'landing',
-      component: LandingPage,
+      component: async () => import('@/pages/LandingPage.vue'),
       meta: { requiresAuth: false },
     },
     {
@@ -35,37 +26,37 @@ const router = createRouter({
         {
           path: 'dashboard',
           name: 'dashboard',
-          component: DashboardPage,
+          component: async () => import('@/pages/DashboardPage.vue'),
           meta: { subtitle: "Here's what's happening with your money today" },
         },
         {
           path: 'transactions',
           name: 'transactions',
-          component: TransactionsPage,
+          component: async () => import('@/pages/TransactionsPage.vue'),
           meta: { subtitle: 'View and manage all your transactions' },
         },
         {
           path: 'accounts',
           name: 'accounts',
-          component: AccountsPage,
+          component: async () => import('@/pages/AccountsPage.vue'),
           meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',
           name: 'reports',
-          component: ReportsPage,
+          component: async () => import('@/pages/ReportsPage.vue'),
           meta: { subtitle: 'Analyze your spending and income trends' },
         },
         {
           path: 'budgets',
           name: 'budgets',
-          component: BudgetsPage,
+          component: async () => import('@/pages/BudgetsPage.vue'),
           meta: { subtitle: 'Set and track your budgets' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: SettingsPage,
+          component: async () => import('@/pages/SettingsPage.vue'),
           meta: { subtitle: 'Manage your account and preferences' },
         },
       ],
@@ -73,13 +64,13 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginPage,
+      component: async () => import('@/pages/LoginPage.vue'),
       meta: { requiresAuth: false },
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterPage,
+      component: async () => import('@/pages/RegisterPage.vue'),
       meta: { requiresAuth: false },
     },
   ],
@@ -87,7 +78,14 @@ const router = createRouter({
 
 router.beforeEach(async (to): Promise<{ name: string } | undefined> => {
   const authStore = useAuthStore();
-  await authStore.ensureAuthLoaded();
+
+  if (!authStore.isLoaded) {
+    if (to.meta.requiresAuth !== false && authStore.hasSessionHint) {
+      void authStore.ensureAuthLoaded();
+    } else {
+      await authStore.ensureAuthLoaded();
+    }
+  }
 
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
     return { name: 'dashboard' };

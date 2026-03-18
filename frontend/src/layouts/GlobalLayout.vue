@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, defineAsyncComponent, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import AppSidebar from '../components/AppSidebar.vue';
-import NotificationBell from '../components/NotificationBell.vue';
+
+const appSidebar = defineAsyncComponent(async () => import('../components/AppSidebar.vue'));
+const notificationBell = defineAsyncComponent(
+  async () => import('../components/NotificationBell.vue'),
+);
 
 const route = useRoute();
 const { t } = useI18n();

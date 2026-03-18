@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
-import { DatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
 import axios from 'axios';
 import {
   ArrowDownLeftIcon,
@@ -18,10 +15,13 @@ import {
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
-import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
+
+const transactionFormModal = defineAsyncComponent(
+  async () => import('@/components/TransactionFormModal.vue'),
+);
 
 defineOptions({ name: 'TransactionsPage' });
 
@@ -39,8 +39,8 @@ const selectedTransaction = ref<Transaction | null>(null);
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
 const selectedAccountId = ref<number | null>(null);
-const startDate = ref<Date | null>(null);
-const endDate = ref<Date | null>(null);
+const startDateInput = ref('');
+const endDateInput = ref('');
 
 const activeSearch = ref('');
 const activeFilters = reactive({
@@ -69,16 +69,8 @@ const ALL_ACCOUNT: AccountOption = { id: null, name: '__all__' };
 const categoryOptions = computed<CategoryOption[]>(() => [ALL_CATEGORY, ...categories.value]);
 const accountOptions = computed<AccountOption[]>(() => [ALL_ACCOUNT, ...accounts.value]);
 
-const selectedCategory = computed<CategoryOption>(
-  () => categoryOptions.value.find((c) => c.id === selectedCategoryId.value) ?? ALL_CATEGORY,
-);
-const selectedAccount = computed<AccountOption>(
-  () => accountOptions.value.find((a) => a.id === selectedAccountId.value) ?? ALL_ACCOUNT,
-);
-
 const paginatedTransactions = computed(() => {
-  const start = (pagination.page - 1) * pagination.limit;
-  return transactions.value.slice(start, start + pagination.limit);
+  return transactions.value;
 });
 
 const totalPages = computed(() => Math.ceil(pagination.total / pagination.limit));
@@ -109,42 +101,56 @@ function getApiErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
+function toApiDate(value: Date | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
   try {
-    let filtered = await apiService.transactions.getTransactions();
+    const startDateValue = toApiDate(activeFilters.startDate);
+    const endDateValue = toApiDate(activeFilters.endDate);
+
+    const requestParams: {
+      page: number;
+      pageSize: number;
+      search?: string;
+      categoryId?: number;
+      accountId?: number;
+      startDate?: string;
+      endDate?: string;
+    } = {
+      page: pagination.page,
+      pageSize: pagination.limit,
+    };
 
     if (activeSearch.value) {
-      const sl = activeSearch.value.toLowerCase();
-      filtered = filtered.filter((t) => t.note?.toLowerCase().includes(sl) ?? false);
+      requestParams.search = activeSearch.value;
     }
     if (activeFilters.categoryId !== null) {
-      filtered = filtered.filter((t) => t.categoryId === activeFilters.categoryId);
+      requestParams.categoryId = activeFilters.categoryId;
     }
     if (activeFilters.accountId !== null) {
-      filtered = filtered.filter((t) => t.accountId === activeFilters.accountId);
+      requestParams.accountId = activeFilters.accountId;
     }
-    if (activeFilters.startDate) {
-      const sd = activeFilters.startDate;
-      filtered = filtered.filter((t) => new Date(t.transactionDate) >= sd);
+    if (startDateValue) {
+      requestParams.startDate = startDateValue;
     }
-    if (activeFilters.endDate) {
-      const ed = new Date(activeFilters.endDate);
-      ed.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((t) => new Date(t.transactionDate) <= ed);
+    if (endDateValue) {
+      requestParams.endDate = endDateValue;
     }
 
-    filtered.sort((a, b) => {
-      const dateDiff =
-        new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
-      if (dateDiff !== 0) {
-        return dateDiff;
-      }
-      return b.id - a.id;
-    });
-    transactions.value = filtered;
-    pagination.total = filtered.length;
+    const pageResult = await apiService.transactions.getTransactionsPage(requestParams);
+
+    transactions.value = pageResult.items;
+    pagination.total = pageResult.totalCount;
   } catch (err) {
     console.error('Failed to load transactions:', err);
     error.value = getApiErrorMessage(err, t('transactions.loadFailed'));
@@ -170,8 +176,10 @@ function commitAndFetch() {
   activeSearch.value = searchQuery.value;
   activeFilters.categoryId = selectedCategoryId.value;
   activeFilters.accountId = selectedAccountId.value;
-  activeFilters.startDate = startDate.value;
-  activeFilters.endDate = endDate.value;
+  activeFilters.startDate = startDateInput.value
+    ? new Date(`${startDateInput.value}T00:00:00`)
+    : null;
+  activeFilters.endDate = endDateInput.value ? new Date(`${endDateInput.value}T00:00:00`) : null;
   pagination.page = 1;
   void fetchTransactions();
 }
@@ -184,8 +192,8 @@ function resetFilters() {
   searchQuery.value = '';
   selectedCategoryId.value = null;
   selectedAccountId.value = null;
-  startDate.value = null;
-  endDate.value = null;
+  startDateInput.value = '';
+  endDateInput.value = '';
   activeSearch.value = '';
   Object.assign(activeFilters, {
     categoryId: null,
@@ -312,13 +320,17 @@ function nextPage() {
 }
 watch(
   () => pagination.page,
-  () => window.scrollTo(0, 0),
+  () => {
+    window.scrollTo(0, 0);
+    void fetchTransactions();
+  },
 );
 
 watch(
   () => pagination.limit,
   () => {
     pagination.page = 1;
+    void fetchTransactions();
   },
 );
 
@@ -385,145 +397,91 @@ async function handleTransactionDeleted() {
 
       <div class="flex flex-wrap items-end gap-2">
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="category-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.category')
           }}</label>
-          <Listbox v-model="selectedCategoryId">
-            <div class="relative">
-              <ListboxButton
-                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
-              >
-                <span class="truncate text-neutral-800">{{
-                  selectedCategory.name === '__all__' ? t('common.all') : selectedCategory.name
-                }}</span>
-                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
-              </ListboxButton>
-              <ListboxOptions
-                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
-              >
-                <ListboxOption
-                  v-for="opt in categoryOptions"
-                  :key="opt.id ?? 'all'"
-                  v-slot="{ active, selected }"
-                  :value="opt.id"
-                >
-                  <li
-                    :class="[
-                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
-                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
-                    ]"
-                  >
-                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
-                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
-                  </li>
-                </ListboxOption>
-              </ListboxOptions>
-            </div>
-          </Listbox>
+          <select
+            id="category-filter"
+            v-model.number="selectedCategoryId"
+            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
+          >
+            <option :value="null">{{ t('common.all') }}</option>
+            <option
+              v-for="opt in categoryOptions.filter((item) => item.id !== null)"
+              :key="String(opt.id)"
+              :value="opt.id"
+            >
+              {{ opt.name }}
+            </option>
+          </select>
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="account-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.account')
           }}</label>
-          <Listbox v-model="selectedAccountId">
-            <div class="relative">
-              <ListboxButton
-                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
-              >
-                <span class="truncate text-neutral-800">{{
-                  selectedAccount.name === '__all__' ? t('common.all') : selectedAccount.name
-                }}</span>
-                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
-              </ListboxButton>
-              <ListboxOptions
-                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
-              >
-                <ListboxOption
-                  v-for="opt in accountOptions"
-                  :key="opt.id ?? 'all'"
-                  v-slot="{ active, selected }"
-                  :value="opt.id"
-                >
-                  <li
-                    :class="[
-                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
-                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
-                    ]"
-                  >
-                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
-                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
-                  </li>
-                </ListboxOption>
-              </ListboxOptions>
-            </div>
-          </Listbox>
+          <select
+            id="account-filter"
+            v-model.number="selectedAccountId"
+            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
+          >
+            <option :value="null">{{ t('common.all') }}</option>
+            <option
+              v-for="opt in accountOptions.filter((item) => item.id !== null)"
+              :key="String(opt.id)"
+              :value="opt.id"
+            >
+              {{ opt.name }}
+            </option>
+          </select>
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="start-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.from')
           }}</label>
-          <DatePicker v-model="startDate" locale="en" :max-date="endDate ?? undefined">
-            <template #default="{ togglePopover, inputValue, inputEvents }">
-              <div class="relative">
-                <CalendarIcon
-                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-                />
-                <input
-                  v-bind="inputEvents"
-                  :value="inputValue"
-                  type="text"
-                  :placeholder="t('transactions.startDate')"
-                  readonly
-                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
-                  @click="togglePopover"
-                />
-                <button
-                  v-if="startDate"
-                  type="button"
-                  aria-label="Clear start date"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                  @click.stop="startDate = null"
-                >
-                  <XMarkIcon class="size-4" />
-                </button>
-              </div>
-            </template>
-          </DatePicker>
+          <div class="relative">
+            <input
+              id="start-date-filter"
+              v-model="startDateInput"
+              type="date"
+              :max="endDateInput || undefined"
+              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            />
+            <button
+              v-if="startDateInput"
+              type="button"
+              aria-label="Clear start date"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              @click.stop="startDateInput = ''"
+            >
+              <XMarkIcon class="size-4" />
+            </button>
+          </div>
         </div>
 
         <div class="flex-1 min-w-36">
-          <label class="block text-xs font-medium text-neutral-500 mb-1">{{
+          <label for="end-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.to')
           }}</label>
-          <DatePicker v-model="endDate" locale="en" :min-date="startDate ?? undefined">
-            <template #default="{ togglePopover, inputValue, inputEvents }">
-              <div class="relative">
-                <CalendarIcon
-                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-                />
-                <input
-                  v-bind="inputEvents"
-                  :value="inputValue"
-                  type="text"
-                  :placeholder="t('transactions.endDate')"
-                  readonly
-                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
-                  @click="togglePopover"
-                />
-                <button
-                  v-if="endDate"
-                  type="button"
-                  aria-label="Clear end date"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                  @click.stop="endDate = null"
-                >
-                  <XMarkIcon class="size-4" />
-                </button>
-              </div>
-            </template>
-          </DatePicker>
+          <div class="relative">
+            <input
+              id="end-date-filter"
+              v-model="endDateInput"
+              type="date"
+              :min="startDateInput || undefined"
+              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            />
+            <button
+              v-if="endDateInput"
+              type="button"
+              aria-label="Clear end date"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              @click.stop="endDateInput = ''"
+            >
+              <XMarkIcon class="size-4" />
+            </button>
+          </div>
         </div>
 
         <div class="flex gap-2 shrink-0">
@@ -634,8 +592,8 @@ async function handleTransactionDeleted() {
               :class="
                 getCategoryType(transaction.categoryId) === 'income' ||
                 (getCategoryType(transaction.categoryId) === 'transfer' && transaction.amount > 0)
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? 'text-green-700'
+                  : 'text-red-700'
               "
             >
               {{
@@ -706,7 +664,7 @@ async function handleTransactionDeleted() {
       </div>
     </div>
 
-    <TransactionFormModal
+    <transactionFormModal
       v-if="isModalOpen"
       :is-open="isModalOpen"
       :mode="modalMode"

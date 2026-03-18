@@ -21,4 +21,35 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    modulePreload: false,
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    reportCompressedSize: false,
+    rollupOptions: {
+      output: {
+        // Manual chunk splitting for better caching and performance
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia'],
+          vendors: ['axios', '@popperjs/core'],
+          headlessui: ['@headlessui/vue'],
+          // Dynamically imported routes will be code-split automatically
+        },
+        // Optimize chunk file naming
+        chunkFileNames: 'js/[name]-[hash].js',
+        entryFileNames: 'js/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          if (!assetInfo.name) return '[name]-[hash][extname]';
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|gif|svg/.test(ext)) {
+            return `images/[name]-[hash][extname]`;
+          } else if (/woff|woff2|eot|ttf|otf/.test(ext)) {
+            return `fonts/[name]-[hash][extname]`;
+          }
+          return `[name]-[hash][extname]`;
+        },
+      },
+    },
+  },
 });

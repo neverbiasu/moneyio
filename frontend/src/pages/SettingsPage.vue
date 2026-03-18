@@ -120,6 +120,14 @@ function handleAvatarFileChange(event: Event): void {
   reader.readAsDataURL(file);
 }
 
+function handleExportData() {
+  alert('Export data feature is coming soon.');
+}
+
+function handleDeleteAccount() {
+  alert('Delete account feature is coming soon.');
+}
+
 function saveProfile(): void {
   profileError.value = '';
   profileSuccess.value = '';
@@ -416,10 +424,10 @@ onMounted(() => {
         </h2>
 
         <div class="space-y-3">
-          <button class="duo-btn-secondary w-full px-4 py-2 text-sm font-medium text-left">
+          <button class="duo-btn-secondary w-full px-4 py-2 text-sm font-medium text-left" @click="handleExportData">
             {{ t('settings.exportData') }}
           </button>
-          <button class="duo-btn-danger w-full px-4 py-2 text-sm font-medium text-left">
+          <button class="duo-btn-danger w-full px-4 py-2 text-sm font-medium text-left" @click="handleDeleteAccount">
             {{ t('settings.deleteAccount') }}
           </button>
         </div>

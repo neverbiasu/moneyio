@@ -11,11 +11,13 @@ import {
 import { SparklesIcon } from '@heroicons/vue/20/solid';
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import apiService from '@/api/services';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
+const transactionFormModal = defineAsyncComponent(
+  async () => import('@/components/TransactionFormModal.vue'),
+);
 const trendChart = defineAsyncComponent(async () => import('@/components/TrendChart.vue'));
 const categoryPieChart = defineAsyncComponent(
   async () => import('@/components/CategoryPieChart.vue'),
@@ -451,7 +453,7 @@ async function handleTransactionSaved() {
       </div>
     </section>
 
-    <TransactionFormModal
+    <transactionFormModal
       v-if="isModalOpen"
       :is-open="isModalOpen"
       :categories="categories"

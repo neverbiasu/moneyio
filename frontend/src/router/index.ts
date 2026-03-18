@@ -78,7 +78,14 @@ const router = createRouter({
 
 router.beforeEach(async (to): Promise<{ name: string } | undefined> => {
   const authStore = useAuthStore();
-  await authStore.ensureAuthLoaded();
+
+  if (!authStore.isLoaded) {
+    if (to.meta.requiresAuth !== false && authStore.hasSessionHint) {
+      void authStore.ensureAuthLoaded();
+    } else {
+      await authStore.ensureAuthLoaded();
+    }
+  }
 
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
     return { name: 'dashboard' };

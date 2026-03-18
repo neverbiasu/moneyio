@@ -22,6 +22,7 @@ export default defineConfig({
     },
   },
   build: {
+    modulePreload: false,
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: false,

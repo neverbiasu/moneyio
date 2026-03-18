@@ -8,12 +8,13 @@ import {
   Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import UserMenuPopup from './UserMenuPopup.vue';
-import UserProfileModal from './UserProfileModal.vue';
+
+const userProfileModal = defineAsyncComponent(async () => import('./UserProfileModal.vue'));
 
 defineProps<{
   isOpen: boolean;
@@ -145,7 +146,7 @@ onBeforeUnmount(() => {
     </nav>
 
     <div class="relative border-t border-blue-100 p-4 dark:border-slate-800">
-      <UserProfileModal
+      <userProfileModal
         :is-open="profileModalOpen"
         :name="currentUser.name"
         :email="currentUser.email"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import {
@@ -12,10 +12,13 @@ import {
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
-import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
+
+const transactionFormModal = defineAsyncComponent(
+  async () => import('@/components/TransactionFormModal.vue'),
+);
 
 defineOptions({ name: 'TransactionsPage' });
 
@@ -641,7 +644,7 @@ async function handleTransactionDeleted() {
       </div>
     </div>
 
-    <TransactionFormModal
+    <transactionFormModal
       v-if="isModalOpen"
       :is-open="isModalOpen"
       :mode="modalMode"

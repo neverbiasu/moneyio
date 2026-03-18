@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, defineAsyncComponent, ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import AppSidebar from '../components/AppSidebar.vue';
-import NotificationBell from '../components/NotificationBell.vue';
+
+const appSidebar = defineAsyncComponent(async () => import('../components/AppSidebar.vue'));
+const notificationBell = defineAsyncComponent(
+  async () => import('../components/NotificationBell.vue'),
+);
 
 const route = useRoute();
 const { t } = useI18n();
@@ -78,7 +81,11 @@ watch(
   </a>
 
   <div class="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-    <AppSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
+    <appSidebar
+      v-if="isDesktop || sidebarOpen"
+      :is-open="sidebarOpen"
+      @close="sidebarOpen = false"
+    />
 
     <div
       v-if="sidebarOpen"
@@ -130,7 +137,7 @@ watch(
           </div>
         </div>
         <div id="page-actions" class="flex shrink-0 items-center space-x-4">
-          <NotificationBell />
+          <notificationBell />
         </div>
       </header>
 

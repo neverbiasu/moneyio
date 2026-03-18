@@ -28,28 +28,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Manual chunk splitting for better caching and performance
-        manualChunks(id) {
-          if (!id.includes('node_modules')) {
-            return undefined;
-          }
-
-          if (id.includes('@heroicons/vue/')) {
-            return 'heroicons';
-          }
-
-          if (id.includes('@headlessui/vue')) {
-            return 'headlessui';
-          }
-
-          if (id.includes('/vue-router/') || id.includes('/pinia/') || id.includes('/vue/')) {
-            return 'vue';
-          }
-
-          if (id.includes('/axios/') || id.includes('@popperjs/core')) {
-            return 'vendors';
-          }
-
-          return undefined;
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia'],
+          vendors: ['axios', '@popperjs/core'],
+          headlessui: ['@headlessui/vue'],
+          heroicons: ['@heroicons/vue'],
+          // Dynamically imported routes will be code-split automatically
         },
         // Optimize chunk file naming
         chunkFileNames: 'js/[name]-[hash].js',

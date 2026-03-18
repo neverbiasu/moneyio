@@ -142,7 +142,6 @@ const messages = {
       confirmPassword: 'Confirm Password',
       updatePassword: 'Update Password',
       passwordUpdated: 'Password updated successfully.',
-      passwordUpdateFailed: 'Failed to update password.',
       passwordMinLength: 'Password must be at least 8 characters.',
       accountActions: 'Account Actions',
       exportData: 'Export Data',
@@ -165,11 +164,6 @@ const messages = {
       saving: 'Saving...',
       preferencesSaved: 'Preferences saved successfully!',
       preferencesFailed: 'Failed to save preferences. Please try again.',
-      noFileSelected: 'No file selected',
-      chooseImage: 'Choose image',
-      avatarFileHint: 'PNG, JPG, WEBP, GIF up to {sizeMB}MB',
-      avatarImageOnly: 'Please select an image file.',
-      avatarTooLarge: 'Image size must be less than {sizeMB}MB.',
     },
     menu: {
       userMenu: 'User menu',
@@ -208,11 +202,6 @@ const messages = {
     },
     dashboard: {
       loadFailed: 'Unable to load dashboard. Please try again.',
-      dateLabel: {
-        today: 'Today',
-        yesterday: 'Yesterday',
-        daysAgo: '{count} days ago',
-      },
     },
     trend: {
       sectionAria: 'Income and expense trend chart',
@@ -497,7 +486,6 @@ const messages = {
       confirmPassword: '确认密码',
       updatePassword: '更新密码',
       passwordUpdated: '密码更新成功。',
-      passwordUpdateFailed: '密码更新失败。',
       passwordMinLength: '密码长度至少为 8 位。',
       accountActions: '账户操作',
       exportData: '导出数据',
@@ -520,11 +508,6 @@ const messages = {
       saving: '保存中...',
       preferencesSaved: '偏好保存成功！',
       preferencesFailed: '保存偏好失败，请稍后重试。',
-      noFileSelected: '未选择文件',
-      chooseImage: '选择图片',
-      avatarFileHint: '支持 PNG、JPG、WEBP、GIF，最大 {sizeMB}MB',
-      avatarImageOnly: '请选择图片文件。',
-      avatarTooLarge: '图片大小不能超过 {sizeMB}MB。',
     },
     menu: {
       userMenu: '用户菜单',
@@ -563,11 +546,6 @@ const messages = {
     },
     dashboard: {
       loadFailed: '加载仪表盘失败，请稍后重试。',
-      dateLabel: {
-        today: '今天',
-        yesterday: '昨天',
-        daysAgo: '{count} 天前',
-      },
     },
     trend: {
       sectionAria: '收支趋势图表',

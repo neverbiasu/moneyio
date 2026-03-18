@@ -19,7 +19,6 @@ import { syncI18nLocale } from '@/i18n';
 defineOptions({ name: 'SettingsPage' });
 
 const { t, locale } = useI18n();
-const AVATAR_MAX_SIZE_MB = 2;
 
 const activeTab = ref<'profile' | 'security' | 'preferences'>('profile');
 const authStore = useAuthStore();
@@ -98,14 +97,14 @@ function handleAvatarFileChange(event: Event): void {
   selectedAvatarFileName.value = file.name;
 
   if (!file.type.startsWith('image/')) {
-    profileError.value = t('settings.avatarImageOnly');
+    profileError.value = 'Please select an image file.';
     selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
   }
 
-  if (file.size > AVATAR_MAX_SIZE_MB * 1024 * 1024) {
-    profileError.value = t('settings.avatarTooLarge', { sizeMB: AVATAR_MAX_SIZE_MB });
+  if (file.size > 2 * 1024 * 1024) {
+    profileError.value = 'Image size must be less than 2MB.';
     selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
@@ -184,7 +183,7 @@ async function changePassword() {
   passwordSuccess.value = '';
 
   if (!passwordForm.password) {
-    passwordError.value = t('auth.passwordRequired');
+    passwordError.value = 'Password is required.';
     return;
   }
 
@@ -216,7 +215,7 @@ async function changePassword() {
     passwordError.value =
       err instanceof Error && err.message.trim() !== ''
         ? err.message
-        : t('settings.passwordUpdateFailed');
+        : 'Failed to update password.';
   }
 }
 
@@ -306,13 +305,11 @@ onMounted(() => {
                   for="profile-avatar"
                   class="duo-btn-secondary inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium"
                 >
-                  {{ t('settings.chooseImage') }}
+                  Choose image
                 </label>
                 <span class="truncate text-sm text-neutral-500">{{ selectedAvatarFileName }}</span>
               </div>
-              <p class="mt-1 text-xs text-neutral-400">
-                {{ t('settings.avatarFileHint', { sizeMB: AVATAR_MAX_SIZE_MB }) }}
-              </p>
+              <p class="mt-1 text-xs text-neutral-400">PNG, JPG, WEBP, GIF up to 2MB</p>
             </div>
           </div>
 

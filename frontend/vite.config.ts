@@ -30,8 +30,24 @@ export default defineConfig({
         // Manual chunk splitting for better caching and performance
         manualChunks: {
           vue: ['vue', 'vue-router', 'pinia'],
-          vendors: ['axios'],
+          vendors: ['axios', '@popperjs/core'],
+          headlessui: ['@headlessui/vue'],
+          heroicons: ['@heroicons/vue'],
           // Dynamically imported routes will be code-split automatically
+        },
+        // Optimize chunk file naming
+        chunkFileNames: 'js/[name]-[hash].js',
+        entryFileNames: 'js/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          if (!assetInfo.name) return '[name]-[hash][extname]';
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|gif|svg/.test(ext)) {
+            return `images/[name]-[hash][extname]`;
+          } else if (/woff|woff2|eot|ttf|otf/.test(ext)) {
+            return `fonts/[name]-[hash][extname]`;
+          }
+          return `[name]-[hash][extname]`;
         },
       },
     },

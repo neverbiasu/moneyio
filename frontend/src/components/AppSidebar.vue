@@ -146,7 +146,8 @@ onBeforeUnmount(() => {
     </nav>
 
     <div class="relative border-t border-blue-100 p-4 dark:border-slate-800">
-      <UserProfileModal
+      <component
+        :is="userProfileModal"
         :is-open="profileModalOpen"
         :name="currentUser.name"
         :email="currentUser.email"

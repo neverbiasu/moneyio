@@ -99,7 +99,7 @@ onMounted(() => {
     <div class="flex justify-end">
       <button
         type="button"
-        class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+        class="duo-btn-primary flex items-center gap-2 px-4 py-2.5 text-sm font-medium"
         @click="openCreateModal"
       >
         <PlusIcon class="size-5" aria-hidden="true" />
@@ -127,7 +127,7 @@ onMounted(() => {
       <p class="text-xs text-neutral-400 mt-1">{{ t('accounts.noAccountsHint') }}</p>
       <button
         type="button"
-        class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+        class="duo-btn-primary mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium"
         @click="openCreateModal"
       >
         <PlusIcon class="size-4" aria-hidden="true" />
@@ -140,7 +140,7 @@ onMounted(() => {
       <div
         v-for="account in accounts"
         :key="account.id"
-        class="relative rounded-xl border border-neutral-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-neutral-300 transition"
+        class="relative rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_4px_0_0_rgba(148,163,184,0.42)] transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_6px_0_0_rgba(148,163,184,0.52)]"
       >
         <!-- Account type badge -->
         <div class="flex items-start justify-between mb-4">
@@ -198,14 +198,14 @@ onMounted(() => {
           <div class="flex gap-2 w-full">
             <button
               type="button"
-              class="flex-1 px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
+              class="duo-btn-secondary flex-1 px-3 py-1.5 text-sm font-medium"
               @click="cancelDelete"
             >
               {{ t('common.cancel') }}
             </button>
             <button
               type="button"
-              class="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
+              class="duo-btn-danger flex-1 px-3 py-1.5 text-sm font-medium"
               @click="confirmDelete(account.id)"
             >
               {{ t('common.delete') }}

@@ -160,7 +160,7 @@ watch(
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black bg-opacity-40" />
+        <div class="fixed inset-0 bg-slate-900/35 backdrop-blur-[2px]" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
@@ -175,14 +175,14 @@ watch(
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_0_0_rgba(148,163,184,0.45)]"
               role="dialog"
               aria-modal="true"
               :aria-labelledby="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
             >
               <h2
                 :id="isEditMode ? 'modal-title-edit' : 'modal-title-create'"
-                class="text-xl font-bold text-gray-900 mb-6"
+                class="mb-6 text-2xl font-bold tracking-tight text-slate-900"
               >
                 {{ isEditMode ? 'Edit Account' : 'Create New Account' }}
               </h2>
@@ -270,7 +270,7 @@ watch(
                 <div class="flex gap-2 justify-end pt-4">
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
+                    class="duo-btn-secondary px-4 py-2 text-sm font-medium"
                     @click="handleClose"
                   >
                     Cancel
@@ -278,7 +278,7 @@ watch(
                   <button
                     type="submit"
                     :disabled="isSaving"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    class="duo-btn-primary px-4 py-2 text-sm font-medium"
                   >
                     {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Create' }}
                   </button>

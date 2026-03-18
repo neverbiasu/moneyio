@@ -331,7 +331,7 @@ watch(
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black bg-opacity-40" />
+        <div class="fixed inset-0 bg-slate-900/35 backdrop-blur-[2px]" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
@@ -346,12 +346,12 @@ watch(
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_0_0_rgba(148,163,184,0.45)]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="modal-title"
             >
-              <h2 id="modal-title" class="text-xl font-bold text-gray-900 mb-6">
+              <h2 id="modal-title" class="mb-6 text-2xl font-bold tracking-tight text-slate-900">
                 {{ isEditMode ? t('transactionModal.editTitle') : t('transactionModal.addTitle') }}
               </h2>
 
@@ -552,14 +552,14 @@ watch(
                     v-if="isEditMode"
                     type="button"
                     :disabled="isSaving || isDeleting"
-                    class="mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    class="duo-btn-danger mr-auto px-4 py-2 text-sm font-medium"
                     @click="deleteCurrentTransaction"
                   >
                     {{ isDeleting ? t('transactionModal.deleting') : t('common.delete') }}
                   </button>
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
+                    class="duo-btn-secondary px-4 py-2 text-sm font-medium"
                     @click="handleClose"
                   >
                     {{ t('common.cancel') }}
@@ -568,10 +568,12 @@ watch(
                     type="submit"
                     :disabled="isSaving || isDeleting || isTransferEdit"
                     :class="{
-                      'bg-red-600 hover:bg-red-700': transactionType === 'expense',
-                      'bg-green-600 hover:bg-green-700': transactionType === 'income',
+                      'bg-red-600 shadow-[0_4px_0_0_rgba(185,28,28,0.7)] hover:bg-red-700 active:shadow-[0_1px_0_0_rgba(185,28,28,0.7)]':
+                        transactionType === 'expense',
+                      'bg-green-600 shadow-[0_4px_0_0_rgba(21,128,61,0.7)] hover:bg-green-700 active:shadow-[0_1px_0_0_rgba(21,128,61,0.7)]':
+                        transactionType === 'income',
                     }"
-                    class="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    class="rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {{
                       isSaving

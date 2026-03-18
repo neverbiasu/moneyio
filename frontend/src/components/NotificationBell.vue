@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           role="menuitem"
-          class="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
+          class="duo-btn-secondary px-3 py-1.5 text-sm font-medium"
           @click="clearAll"
         >
           {{ t('notifications.clearAll') }}

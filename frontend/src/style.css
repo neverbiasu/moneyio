@@ -3,33 +3,53 @@
 @custom-variant dark (&:where([data-theme-mode='dark'], [data-theme-mode='dark'] *));
 
 @theme {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
+  --color-primary: #2f6bff;
+  --color-primary-hover: #1f57e7;
 
-  --color-background-light: #dff1fb;
+  --color-background-light: #f3f7ff;
   --color-background-dark: #0f172a;
 
   --color-card-light: #ffffff;
   --color-card-dark: #1e293b;
 
+  --color-surface-light: #eef4ff;
+  --color-surface-dark: #111d33;
+
   --color-text-light: #111827;
   --color-text-dark: #f1f5f9;
 
-  --color-subtext-light: #6b7280;
+  --color-subtext-light: #64748b;
   --color-subtext-dark: #94a3b8;
 
-  --color-border-light: #e5e7eb;
+  --color-border-light: #d6e2ff;
   --color-border-dark: #334155;
 
-  --shadow-soft: 0 4px 24px 0 rgb(0 0 0 / 0.08);
+  --shadow-soft: 0 4px 0 0 rgb(37 99 235 / 0.24);
+  --shadow-card: 0 5px 0 0 rgb(59 130 246 / 0.28);
+}
+
+/* Light mode button tokens (defaults) */
+:root {
+  --color-btn-secondary-bg: #ffffff;
+  --color-btn-secondary-bg-hover: #f8fafc;
+  --color-btn-secondary-border: #cbd5e1;
+  --color-btn-secondary-text: #334155;
+}
+
+/* Dark mode button token overrides */
+[data-theme-mode='dark'] {
+  --color-btn-secondary-bg: var(--color-surface-dark);
+  --color-btn-secondary-bg-hover: #1e293b;
+  --color-btn-secondary-border: #475569;
+  --color-btn-secondary-text: #e2e8f0;
 }
 
 :root {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #1f2937;
-  background-color: #f8fafc;
+  color: #1e293b;
+  background-color: #f3f7ff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -57,6 +77,11 @@ body,
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+body {
+  background-image: radial-gradient(circle at 10% 0%, rgb(191 219 254 / 0.28), transparent 40%),
+    radial-gradient(circle at 95% 0%, rgb(147 197 253 / 0.2), transparent 28%);
 }
 
 button,
@@ -136,4 +161,79 @@ html[data-theme-mode='dark'] .shadow-lg {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.duo-btn-primary {
+  border: 1px solid rgb(37 99 235 / 0.28);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 0 0 rgb(30 64 175 / 0.75);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-primary:hover {
+  transform: translateY(-1px);
+  background: var(--color-primary-hover);
+}
+
+.duo-btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(30 64 175 / 0.75);
+}
+
+.duo-btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(30 64 175 / 0.45);
+}
+
+.duo-btn-secondary {
+  border: 1px solid var(--color-btn-secondary-border);
+  background: var(--color-btn-secondary-bg);
+  color: var(--color-btn-secondary-text);
+  box-shadow: 0 3px 0 0 rgb(148 163 184 / 0.5);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-secondary:hover {
+  transform: translateY(-1px);
+  background: var(--color-btn-secondary-bg-hover);
+}
+
+.duo-btn-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(148 163 184 / 0.5);
+}
+
+.duo-btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(148 163 184 / 0.3);
+}
+
+.duo-btn-danger {
+  border: 1px solid rgb(220 38 38 / 0.28);
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 4px 0 0 rgb(153 27 27 / 0.75);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-danger:hover {
+  transform: translateY(-1px);
+  background: #b91c1c;
+}
+
+.duo-btn-danger:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(153 27 27 / 0.75);
+}
+
+.duo-btn-danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(153 27 27 / 0.45);
 }

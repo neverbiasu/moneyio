@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CalendarIcon } from '@heroicons/vue/20/solid';
+import { DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
 import apiService from '@/api/services';
@@ -10,7 +12,7 @@ import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 defineOptions({ name: 'ReportsPage' });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const startDateInput = ref<string>(
   toDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
@@ -186,6 +188,22 @@ function setDatePreset(getValue: () => { start: Date; end: Date }) {
   endDateInput.value = toDateInputValue(end);
 }
 
+function updateStartDate(value: Date | null) {
+  if (!value) {
+    return;
+  }
+
+  startDateInput.value = toDateInputValue(value);
+}
+
+function updateEndDate(value: Date | null) {
+  if (!value) {
+    return;
+  }
+
+  endDateInput.value = toDateInputValue(value);
+}
+
 onMounted(() => {
   void fetchReportData();
 });
@@ -193,7 +211,9 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm space-y-3">
+    <div
+      class="rounded-xl border border-neutral-200 bg-white p-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)] space-y-3"
+    >
       <div>
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-2">
           {{ t('reports.quickSelect') }}
@@ -202,7 +222,7 @@ onMounted(() => {
           <button
             v-for="preset in datePresets"
             :key="preset.labelKey"
-            class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition"
+            class="duo-btn-secondary px-3 py-1.5 text-sm font-medium"
             @click="setDatePreset(preset.getValue)"
           >
             {{ t(preset.labelKey) }}
@@ -218,33 +238,57 @@ onMounted(() => {
           >
             {{ t('reports.from') }}
           </label>
-          <div class="relative">
-            <CalendarIcon
-              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-            />
-            <input
-              id="start-date"
-              v-model="startDateInput"
-              type="date"
-              class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            />
-          </div>
+          <DatePicker
+            :model-value="startDate"
+            :locale="locale"
+            :max-date="endDate"
+            @update:model-value="updateStartDate"
+          >
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  id="start-date"
+                  v-bind="inputEvents"
+                  :value="inputValue"
+                  type="text"
+                  readonly
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-3 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  @click="togglePopover"
+                />
+              </div>
+            </template>
+          </DatePicker>
         </div>
         <div>
           <label for="end-date" class="block text-xs uppercase tracking-wide text-neutral-500 mb-2">
             {{ t('reports.to') }}
           </label>
-          <div class="relative">
-            <CalendarIcon
-              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-            />
-            <input
-              id="end-date"
-              v-model="endDateInput"
-              type="date"
-              class="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            />
-          </div>
+          <DatePicker
+            :model-value="endDate"
+            :locale="locale"
+            :min-date="startDate"
+            @update:model-value="updateEndDate"
+          >
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  id="end-date"
+                  v-bind="inputEvents"
+                  :value="inputValue"
+                  type="text"
+                  readonly
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-3 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  @click="togglePopover"
+                />
+              </div>
+            </template>
+          </DatePicker>
         </div>
       </div>
     </div>
@@ -254,14 +298,18 @@ onMounted(() => {
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">
           {{ t('reports.totalIncome') }}
         </p>
         <p class="text-2xl font-bold text-green-600">{{ formatCurrency(totalIncome) }}</p>
       </div>
 
-      <div class="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div
+        class="rounded-xl border border-neutral-200 bg-white p-4 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
         <p class="text-xs uppercase tracking-wide text-neutral-500 mb-1">
           {{ t('reports.totalExpenses') }}
         </p>

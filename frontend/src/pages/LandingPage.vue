@@ -215,11 +215,11 @@ function setLanguage(language: LanguagePreference): void {
         <RouterLink
           v-if="authStore.isAuthenticated"
           to="/app/dashboard"
-          class="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition"
+          class="duo-btn-secondary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition"
           :class="
             isDarkTheme
-              ? 'border-white/15 text-white hover:border-white/30 hover:bg-white/8'
-              : 'border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white'
+              ? 'border-white/20 bg-slate-900 text-white shadow-[0_3px_0_0_rgba(51,65,85,0.9)] hover:bg-slate-800'
+              : 'text-slate-700'
           "
         >
           {{ t('landing.openApp') }}
@@ -227,11 +227,11 @@ function setLanguage(language: LanguagePreference): void {
         <RouterLink
           v-else
           to="/login"
-          class="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition"
+          class="duo-btn-secondary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition"
           :class="
             isDarkTheme
-              ? 'border-white/15 text-white hover:border-white/30 hover:bg-white/8'
-              : 'border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white'
+              ? 'border-white/20 bg-slate-900 text-white shadow-[0_3px_0_0_rgba(51,65,85,0.9)] hover:bg-slate-800'
+              : 'text-slate-700'
           "
         >
           {{ t('auth.signIn') }}
@@ -269,38 +269,43 @@ function setLanguage(language: LanguagePreference): void {
 
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
             <RouterLink
-              :to="authStore.isAuthenticated ? '/app/dashboard' : '/register'"
-              class="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-hover"
+              :to="authStore.isAuthenticated ? '/app/dashboard' : '/login'"
+              class="duo-btn-primary inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-semibold text-white"
+              :class="
+                isDarkTheme
+                  ? 'border-white/15 bg-primary shadow-[0_4px_0_0_rgba(30,64,175,0.9)] hover:bg-primary-hover'
+                  : ''
+              "
             >
               <span>
-                {{ authStore.isAuthenticated ? t('landing.openApp') : t('landing.primaryCta') }}
+                {{ authStore.isAuthenticated ? t('landing.openApp') : t('auth.signIn') }}
               </span>
               <ArrowRightIcon class="h-5 w-5" />
             </RouterLink>
             <RouterLink
               v-if="authStore.isAuthenticated"
               to="/app/transactions"
-              class="inline-flex items-center justify-center rounded-2xl border px-6 py-3.5 text-base font-semibold transition"
+              class="duo-btn-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3.5 text-base font-semibold transition"
               :class="
                 isDarkTheme
-                  ? 'border-white/15 text-white hover:border-white/30 hover:bg-white/8'
-                  : 'border-slate-300 text-slate-800 hover:border-slate-400 hover:bg-white'
+                  ? 'border-white/20 bg-slate-900 text-white shadow-[0_3px_0_0_rgba(51,65,85,0.9)] hover:bg-slate-800'
+                  : 'text-slate-800'
               "
             >
               {{ t('nav.transactions') }}
             </RouterLink>
-            <a
+            <RouterLink
               v-else
-              href="#demo"
-              class="inline-flex items-center justify-center rounded-2xl border px-6 py-3.5 text-base font-semibold transition"
+              to="/register"
+              class="duo-btn-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3.5 text-base font-semibold transition"
               :class="
                 isDarkTheme
-                  ? 'border-white/15 text-white hover:border-white/30 hover:bg-white/8'
-                  : 'border-slate-300 text-slate-800 hover:border-slate-400 hover:bg-white'
+                  ? 'border-white/20 bg-slate-900 text-white shadow-[0_3px_0_0_rgba(51,65,85,0.9)] hover:bg-slate-800'
+                  : 'text-slate-800'
               "
             >
-              {{ t('landing.secondaryCta') }}
-            </a>
+              {{ t('auth.signUp') }}
+            </RouterLink>
           </div>
 
           <dl class="mt-10 grid gap-4 sm:grid-cols-3">
@@ -569,8 +574,8 @@ function setLanguage(language: LanguagePreference): void {
         >
           <div class="space-y-6">
             <SummaryCards :data="demoSummary" />
-            <TrendChart :points="demoTrendPoints" />
-            <CategoryPieChart :items="demoPieItems" />
+            <TrendChart :points="demoTrendPoints" :embedded="true" />
+            <CategoryPieChart :items="demoPieItems" :embedded="true" />
           </div>
         </div>
       </section>

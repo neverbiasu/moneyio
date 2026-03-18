@@ -138,14 +138,14 @@ function saveProfile() {
               <div class="mt-6 flex justify-end gap-2">
                 <button
                   type="button"
-                  class="px-4 py-2 text-sm font-medium text-gray-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition"
+                  class="duo-btn-secondary px-4 py-2 text-sm font-medium"
                   @click="handleClose"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+                  class="duo-btn-primary px-4 py-2 text-sm font-medium"
                   @click="saveProfile"
                 >
                   Save

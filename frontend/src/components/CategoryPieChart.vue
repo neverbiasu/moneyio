@@ -14,11 +14,13 @@ interface PieItem {
 interface Props {
   items?: PieItem[];
   isLoading?: boolean;
+  embedded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   items: () => [],
   isLoading: false,
+  embedded: false,
 });
 
 const { t } = useI18n();
@@ -93,7 +95,11 @@ const slices = computed(() => {
 
 <template>
   <section
-    class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
+    :class="[
+      props.embedded
+        ? 'bg-transparent rounded-none border-0 shadow-none p-0'
+        : 'bg-white rounded-lg border border-gray-200 shadow-sm p-6',
+    ]"
     :aria-label="t('categoryChart.sectionAria')"
   >
     <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('categoryChart.title') }}</h2>

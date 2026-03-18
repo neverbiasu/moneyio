@@ -10,11 +10,13 @@ defineOptions({ name: 'TrendChart' });
 interface Props {
   points?: ChartDataPoint[];
   isLoading?: boolean;
+  embedded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   points: () => [],
   isLoading: false,
+  embedded: false,
 });
 
 const { t } = useI18n();
@@ -109,7 +111,11 @@ const xTicks = computed(() => {
 
 <template>
   <section
-    class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
+    :class="[
+      props.embedded
+        ? 'bg-transparent rounded-none border-0 shadow-none p-0'
+        : 'bg-white rounded-lg border border-gray-200 shadow-sm p-6',
+    ]"
     :aria-label="t('trend.sectionAria')"
   >
     <header class="flex items-center justify-between mb-4">

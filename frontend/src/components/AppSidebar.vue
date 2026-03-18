@@ -106,7 +106,7 @@ onBeforeUnmount(() => {
 <template>
   <aside
     id="primary-navigation"
-    class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col"
+    class="fixed inset-y-0 left-0 z-40 w-64 transform border-r border-blue-100 bg-card-light transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-card-dark md:translate-x-0 md:static md:flex md:flex-col"
     :class="[
       isOpen ? 'translate-x-0' : '-translate-x-full',
       { 'pointer-events-none md:pointer-events-auto': !isOpen },
@@ -115,21 +115,25 @@ onBeforeUnmount(() => {
     :aria-hidden="!isOpen && !isDesktop"
     :inert="!isOpen && !isDesktop"
   >
-    <div class="flex items-center justify-center h-16 border-b border-gray-200 px-4 bg-white">
+    <div
+      class="flex h-16 items-center justify-center border-b border-blue-100 bg-card-light px-4 dark:border-slate-800 dark:bg-card-dark"
+    >
       <img src="/logo.svg" alt="MoneyIO Logo" class="w-8 h-8 mr-2" />
-      <h1 class="text-xl font-bold text-gray-800">{{ t('common.moneyio') }}</h1>
+      <h1 class="text-xl font-bold text-text-light dark:text-text-dark">
+        {{ t('common.moneyio') }}
+      </h1>
     </div>
 
-    <nav class="flex-1 overflow-y-auto py-4">
-      <ul class="space-y-1 px-3">
+    <nav class="flex-1 overflow-y-auto py-5">
+      <ul class="space-y-2 px-3">
         <li v-for="item in navItems" :key="item.to">
           <RouterLink
             :to="item.to"
-            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors border-l-[3px] border-transparent"
+            class="flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-sm font-semibold transition-all duration-200"
             :class="[
               route.path.startsWith(item.to)
-                ? 'border-l-blue-600 bg-blue-50 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                ? 'border-primary/30 bg-blue-50 text-primary shadow-[0_4px_0_0_rgba(37,99,235,0.42)] dark:border-blue-700/50 dark:bg-slate-800 dark:text-blue-300'
+                : 'border-transparent text-slate-600 hover:border-blue-200 hover:bg-blue-50/70 hover:text-primary dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800/80 dark:hover:text-blue-300',
             ]"
             @click="handleNavClick"
           >
@@ -140,7 +144,7 @@ onBeforeUnmount(() => {
       </ul>
     </nav>
 
-    <div class="relative border-t border-gray-200 p-4">
+    <div class="relative border-t border-blue-100 p-4 dark:border-slate-800">
       <UserProfileModal
         :is-open="profileModalOpen"
         :name="currentUser.name"
@@ -154,13 +158,13 @@ onBeforeUnmount(() => {
 
       <button
         type="button"
-        class="flex items-center w-full text-left gap-3 hover:bg-gray-50 p-2 rounded-md transition-colors"
+        class="flex w-full items-center gap-3 rounded-2xl border border-blue-100 p-2.5 text-left transition-colors hover:bg-blue-50/70 dark:border-slate-700 dark:hover:bg-slate-800"
         :aria-expanded="userMenuOpen"
         aria-haspopup="menu"
         @click.stop="toggleUserMenu"
       >
         <div
-          class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center text-white font-bold text-sm"
+          class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white"
         >
           <img
             :src="currentUser.avatar"
@@ -169,12 +173,14 @@ onBeforeUnmount(() => {
           />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-900 truncate">{{ currentUser.name }}</p>
-          <p class="text-xs text-gray-500 truncate">{{ currentUser.email }}</p>
+          <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {{ currentUser.name }}
+          </p>
+          <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ currentUser.email }}</p>
         </div>
         <component
           :is="ChevronDownIcon"
-          class="w-4 h-4 text-gray-500 transition-transform duration-200"
+          class="h-4 w-4 text-slate-500 transition-transform duration-200 dark:text-slate-400"
           :class="userMenuOpen ? 'rotate-180' : ''"
         />
       </button>

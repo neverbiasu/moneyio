@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue';
-import { DatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
 import axios from 'axios';
 import {
   ArrowDownLeftIcon,
   ArrowTrendingUpIcon,
   BoltIcon,
   BuildingStorefrontIcon,
-  ChevronDownIcon,
-  CheckIcon,
   MagnifyingGlassIcon,
-  CalendarIcon,
   SparklesIcon,
   XMarkIcon,
   FunnelIcon,
@@ -39,8 +33,8 @@ const selectedTransaction = ref<Transaction | null>(null);
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
 const selectedAccountId = ref<number | null>(null);
-const startDate = ref<Date | null>(null);
-const endDate = ref<Date | null>(null);
+const startDateInput = ref('');
+const endDateInput = ref('');
 
 const activeSearch = ref('');
 const activeFilters = reactive({
@@ -68,13 +62,6 @@ const ALL_ACCOUNT: AccountOption = { id: null, name: '__all__' };
 
 const categoryOptions = computed<CategoryOption[]>(() => [ALL_CATEGORY, ...categories.value]);
 const accountOptions = computed<AccountOption[]>(() => [ALL_ACCOUNT, ...accounts.value]);
-
-const selectedCategory = computed<CategoryOption>(
-  () => categoryOptions.value.find((c) => c.id === selectedCategoryId.value) ?? ALL_CATEGORY,
-);
-const selectedAccount = computed<AccountOption>(
-  () => accountOptions.value.find((a) => a.id === selectedAccountId.value) ?? ALL_ACCOUNT,
-);
 
 const paginatedTransactions = computed(() => {
   const start = (pagination.page - 1) * pagination.limit;
@@ -170,8 +157,10 @@ function commitAndFetch() {
   activeSearch.value = searchQuery.value;
   activeFilters.categoryId = selectedCategoryId.value;
   activeFilters.accountId = selectedAccountId.value;
-  activeFilters.startDate = startDate.value;
-  activeFilters.endDate = endDate.value;
+  activeFilters.startDate = startDateInput.value
+    ? new Date(`${startDateInput.value}T00:00:00`)
+    : null;
+  activeFilters.endDate = endDateInput.value ? new Date(`${endDateInput.value}T00:00:00`) : null;
   pagination.page = 1;
   void fetchTransactions();
 }
@@ -184,8 +173,8 @@ function resetFilters() {
   searchQuery.value = '';
   selectedCategoryId.value = null;
   selectedAccountId.value = null;
-  startDate.value = null;
-  endDate.value = null;
+  startDateInput.value = '';
+  endDateInput.value = '';
   activeSearch.value = '';
   Object.assign(activeFilters, {
     categoryId: null,
@@ -388,142 +377,84 @@ async function handleTransactionDeleted() {
           <label class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.category')
           }}</label>
-          <Listbox v-model="selectedCategoryId">
-            <div class="relative">
-              <ListboxButton
-                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
-              >
-                <span class="truncate text-neutral-800">{{
-                  selectedCategory.name === '__all__' ? t('common.all') : selectedCategory.name
-                }}</span>
-                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
-              </ListboxButton>
-              <ListboxOptions
-                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
-              >
-                <ListboxOption
-                  v-for="opt in categoryOptions"
-                  :key="opt.id ?? 'all'"
-                  v-slot="{ active, selected }"
-                  :value="opt.id"
-                >
-                  <li
-                    :class="[
-                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
-                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
-                    ]"
-                  >
-                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
-                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
-                  </li>
-                </ListboxOption>
-              </ListboxOptions>
-            </div>
-          </Listbox>
+          <select
+            v-model.number="selectedCategoryId"
+            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
+          >
+            <option :value="null">{{ t('common.all') }}</option>
+            <option
+              v-for="opt in categoryOptions.filter((item) => item.id !== null)"
+              :key="String(opt.id)"
+              :value="opt.id"
+            >
+              {{ opt.name }}
+            </option>
+          </select>
         </div>
 
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.account')
           }}</label>
-          <Listbox v-model="selectedAccountId">
-            <div class="relative">
-              <ListboxButton
-                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-left"
-              >
-                <span class="truncate text-neutral-800">{{
-                  selectedAccount.name === '__all__' ? t('common.all') : selectedAccount.name
-                }}</span>
-                <ChevronDownIcon class="size-4 text-neutral-400 shrink-0" />
-              </ListboxButton>
-              <ListboxOptions
-                class="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden focus:outline-none"
-              >
-                <ListboxOption
-                  v-for="opt in accountOptions"
-                  :key="opt.id ?? 'all'"
-                  v-slot="{ active, selected }"
-                  :value="opt.id"
-                >
-                  <li
-                    :class="[
-                      'flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none',
-                      active ? 'bg-blue-50 text-blue-700' : 'text-neutral-800',
-                    ]"
-                  >
-                    <span>{{ opt.name === '__all__' ? t('common.all') : opt.name }}</span>
-                    <CheckIcon v-if="selected" class="size-4 text-blue-600 shrink-0" />
-                  </li>
-                </ListboxOption>
-              </ListboxOptions>
-            </div>
-          </Listbox>
+          <select
+            v-model.number="selectedAccountId"
+            class="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-neutral-800"
+          >
+            <option :value="null">{{ t('common.all') }}</option>
+            <option
+              v-for="opt in accountOptions.filter((item) => item.id !== null)"
+              :key="String(opt.id)"
+              :value="opt.id"
+            >
+              {{ opt.name }}
+            </option>
+          </select>
         </div>
 
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.from')
           }}</label>
-          <DatePicker v-model="startDate" locale="en" :max-date="endDate ?? undefined">
-            <template #default="{ togglePopover, inputValue, inputEvents }">
-              <div class="relative">
-                <CalendarIcon
-                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-                />
-                <input
-                  v-bind="inputEvents"
-                  :value="inputValue"
-                  type="text"
-                  :placeholder="t('transactions.startDate')"
-                  readonly
-                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
-                  @click="togglePopover"
-                />
-                <button
-                  v-if="startDate"
-                  type="button"
-                  aria-label="Clear start date"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                  @click.stop="startDate = null"
-                >
-                  <XMarkIcon class="size-4" />
-                </button>
-              </div>
-            </template>
-          </DatePicker>
+          <div class="relative">
+            <input
+              v-model="startDateInput"
+              type="date"
+              :max="endDateInput || undefined"
+              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            />
+            <button
+              v-if="startDateInput"
+              type="button"
+              aria-label="Clear start date"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              @click.stop="startDateInput = ''"
+            >
+              <XMarkIcon class="size-4" />
+            </button>
+          </div>
         </div>
 
         <div class="flex-1 min-w-36">
           <label class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.to')
           }}</label>
-          <DatePicker v-model="endDate" locale="en" :min-date="startDate ?? undefined">
-            <template #default="{ togglePopover, inputValue, inputEvents }">
-              <div class="relative">
-                <CalendarIcon
-                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
-                />
-                <input
-                  v-bind="inputEvents"
-                  :value="inputValue"
-                  type="text"
-                  :placeholder="t('transactions.endDate')"
-                  readonly
-                  class="w-full pl-9 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
-                  @click="togglePopover"
-                />
-                <button
-                  v-if="endDate"
-                  type="button"
-                  aria-label="Clear end date"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                  @click.stop="endDate = null"
-                >
-                  <XMarkIcon class="size-4" />
-                </button>
-              </div>
-            </template>
-          </DatePicker>
+          <div class="relative">
+            <input
+              v-model="endDateInput"
+              type="date"
+              :min="startDateInput || undefined"
+              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
+            />
+            <button
+              v-if="endDateInput"
+              type="button"
+              aria-label="Clear end date"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              @click.stop="endDateInput = ''"
+            >
+              <XMarkIcon class="size-4" />
+            </button>
+          </div>
         </div>
 
         <div class="flex gap-2 shrink-0">

@@ -9,15 +9,20 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/vue/24/outline';
 import { SparklesIcon } from '@heroicons/vue/20/solid';
-import { computed, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
-import TrendChart from '@/components/TrendChart.vue';
-import CategoryPieChart from '@/components/CategoryPieChart.vue';
-import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
 import apiService from '@/api/services';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
+
+const trendChart = defineAsyncComponent(async () => import('@/components/TrendChart.vue'));
+const categoryPieChart = defineAsyncComponent(
+  async () => import('@/components/CategoryPieChart.vue'),
+);
+const budgetRadarChart = defineAsyncComponent(
+  async () => import('@/components/BudgetRadarChart.vue'),
+);
 
 defineOptions({ name: 'DashboardPage' });
 
@@ -29,6 +34,7 @@ const categories = ref<Category[]>([]);
 const chartData = ref<ChartData | null>(null);
 const budgets = ref<Budget[]>([]);
 const isLoading = ref(true);
+const isChartsLoading = ref(true);
 const error = ref<string | null>(null);
 const isModalOpen = ref(false);
 
@@ -209,27 +215,38 @@ function formatDateLabel(dateString: string): string {
 
 async function fetchDashboardData() {
   isLoading.value = true;
+  isChartsLoading.value = true;
   error.value = null;
 
   try {
-    const [summary, transactions, categoriesData, trendData, budgetsData] = await Promise.all([
+    const [summary, transactions, categoriesData] = await Promise.all([
       apiService.dashboard.getSummary(),
       apiService.transactions.getTransactions(),
       apiService.categories.getCategories(),
-      apiService.dashboard.getChartData(),
-      apiService.budgets.getBudgets(),
     ]);
 
     summaryData.value = summary;
     recentTransactions.value = transactions;
     categories.value = categoriesData;
+
+    isLoading.value = false;
+
+    const [trendData, budgetsData] = await Promise.all([
+      apiService.dashboard.getChartData(),
+      apiService.budgets.getBudgets(),
+    ]);
+
     chartData.value = trendData;
     budgets.value = budgetsData;
+    isChartsLoading.value = false;
   } catch (err) {
     console.error('Failed to load dashboard data:', err);
     error.value = t('dashboard.loadFailed');
+    isChartsLoading.value = false;
   } finally {
-    isLoading.value = false;
+    if (isLoading.value) {
+      isLoading.value = false;
+    }
   }
 }
 
@@ -337,19 +354,27 @@ async function handleTransactionSaved() {
       <div
         class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
       >
-        <TrendChart :points="trendPoints" :is-loading="isLoading" :embedded="true" />
+        <trendChart :points="trendPoints" :is-loading="isChartsLoading" :embedded="true" />
       </div>
 
       <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <div
           class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
         >
-          <CategoryPieChart :items="categoryPieItems" :is-loading="isLoading" :embedded="true" />
+          <categoryPieChart
+            :items="categoryPieItems"
+            :is-loading="isChartsLoading"
+            :embedded="true"
+          />
         </div>
         <div
           class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
         >
-          <BudgetRadarChart :items="budgetRadarItems" :is-loading="isLoading" :embedded="true" />
+          <budgetRadarChart
+            :items="budgetRadarItems"
+            :is-loading="isChartsLoading"
+            :embedded="true"
+          />
         </div>
       </div>
     </section>

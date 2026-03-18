@@ -269,7 +269,7 @@ function setLanguage(language: LanguagePreference): void {
 
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
             <RouterLink
-              :to="authStore.isAuthenticated ? '/app/dashboard' : '/register'"
+              :to="authStore.isAuthenticated ? '/app/dashboard' : '/login'"
               class="duo-btn-primary inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-semibold text-white"
               :class="
                 isDarkTheme
@@ -278,7 +278,7 @@ function setLanguage(language: LanguagePreference): void {
               "
             >
               <span>
-                {{ authStore.isAuthenticated ? t('landing.openApp') : t('landing.primaryCta') }}
+                {{ authStore.isAuthenticated ? t('landing.openApp') : t('auth.signIn') }}
               </span>
               <ArrowRightIcon class="h-5 w-5" />
             </RouterLink>
@@ -294,9 +294,9 @@ function setLanguage(language: LanguagePreference): void {
             >
               {{ t('nav.transactions') }}
             </RouterLink>
-            <a
+            <RouterLink
               v-else
-              href="#demo"
+              to="/register"
               class="duo-btn-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3.5 text-base font-semibold transition"
               :class="
                 isDarkTheme
@@ -304,8 +304,8 @@ function setLanguage(language: LanguagePreference): void {
                   : 'text-slate-800'
               "
             >
-              {{ t('landing.secondaryCta') }}
-            </a>
+              {{ t('auth.signUp') }}
+            </RouterLink>
           </div>
 
           <dl class="mt-10 grid gap-4 sm:grid-cols-3">

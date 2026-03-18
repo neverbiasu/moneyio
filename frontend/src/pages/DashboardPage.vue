@@ -287,7 +287,7 @@ async function handleTransactionSaved() {
           >
             <ArrowDownLeftIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-blue-500">+12%</span>
+          <span class="text-xs font-semibold text-blue-700">+12%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Income</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>
@@ -305,7 +305,7 @@ async function handleTransactionSaved() {
           >
             <ArrowTrendingDownIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-orange-500">-5%</span>
+          <span class="text-xs font-semibold text-orange-700">-5%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Expenses</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>
@@ -323,7 +323,7 @@ async function handleTransactionSaved() {
           >
             <ShieldCheckIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-emerald-500">+2%</span>
+          <span class="text-xs font-semibold text-emerald-700">+2%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Savings Rate</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>

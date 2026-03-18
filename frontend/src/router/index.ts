@@ -4,11 +4,11 @@ import GlobalLayout from '../layouts/GlobalLayout.vue';
 import LandingPage from '@/pages/LandingPage.vue';
 import LoginPage from '@/pages/LoginPage.vue';
 import RegisterPage from '@/pages/RegisterPage.vue';
+import DashboardPage from '@/pages/DashboardPage.vue';
+import TransactionsPage from '@/pages/TransactionsPage.vue';
 import { useAuthStore } from '@/stores/auth';
 
 // Lazy load authenticated pages for better code splitting
-const DashboardPage = defineAsyncComponent(() => import('@/pages/DashboardPage.vue'));
-const TransactionsPage = defineAsyncComponent(() => import('@/pages/TransactionsPage.vue'));
 const AccountsPage = defineAsyncComponent(() => import('@/pages/AccountsPage.vue'));
 const ReportsPage = defineAsyncComponent(() => import('@/pages/ReportsPage.vue'));
 const BudgetsPage = defineAsyncComponent(() => import('@/pages/BudgetsPage.vue'));

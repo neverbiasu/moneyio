@@ -22,5 +22,5 @@ Disallow: /
 User-agent: SemrushBot
 Disallow: /
 
-# Sitemap location
-Sitemap: /sitemap.xml
+# Sitemap location (must be absolute URL)
+Sitemap: https://moneyio.example.com/sitemap.xml

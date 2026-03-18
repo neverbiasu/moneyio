@@ -7,8 +7,7 @@ import {
   ArrowTrendingUpIcon,
   BoltIcon,
   BuildingStorefrontIcon,
-  
-  
+  CalendarIcon,
   MagnifyingGlassIcon,
   
   SparklesIcon,
@@ -447,12 +446,15 @@ async function handleTransactionDeleted() {
           <DatePicker v-model="startDateInput" :locale="datePickerLocale" mode="date" :max-date="endDateInput || undefined">
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
                 <input
                   id="start-date-filter"
                   :value="inputValue"
                   v-on="inputEvents"
                   readonly
-                  class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                   @click="togglePopover"
                 />
                 <button
@@ -476,12 +478,15 @@ async function handleTransactionDeleted() {
           <DatePicker v-model="endDateInput" :locale="datePickerLocale" mode="date" :min-date="startDateInput || undefined">
             <template #default="{ togglePopover, inputValue, inputEvents }">
               <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
                 <input
                   id="end-date-filter"
                   :value="inputValue"
                   v-on="inputEvents"
                   readonly
-                  class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition cursor-pointer"
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                   @click="togglePopover"
                 />
                 <button

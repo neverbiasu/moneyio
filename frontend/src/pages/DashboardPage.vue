@@ -221,14 +221,14 @@ async function fetchDashboardData() {
   error.value = null;
 
   try {
-    const [summary, transactions, categoriesData] = await Promise.all([
+    const [summary, transactionsPage, categoriesData] = await Promise.all([
       apiService.dashboard.getSummary(),
-      apiService.transactions.getTransactions(),
+      apiService.transactions.getTransactionsPage({ page: 1, pageSize: 20 }),
       apiService.categories.getCategories(),
     ]);
 
     summaryData.value = summary;
-    recentTransactions.value = transactions;
+    recentTransactions.value = transactionsPage.items;
     categories.value = categoriesData;
 
     isLoading.value = false;

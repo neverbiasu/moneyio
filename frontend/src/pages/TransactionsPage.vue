@@ -67,8 +67,7 @@ const categoryOptions = computed<CategoryOption[]>(() => [ALL_CATEGORY, ...categ
 const accountOptions = computed<AccountOption[]>(() => [ALL_ACCOUNT, ...accounts.value]);
 
 const paginatedTransactions = computed(() => {
-  const start = (pagination.page - 1) * pagination.limit;
-  return transactions.value.slice(start, start + pagination.limit);
+  return transactions.value;
 });
 
 const totalPages = computed(() => Math.ceil(pagination.total / pagination.limit));
@@ -99,42 +98,56 @@ function getApiErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
+function toApiDate(value: Date | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function fetchTransactions() {
   isLoading.value = true;
   error.value = null;
   try {
-    let filtered = await apiService.transactions.getTransactions();
+    const startDateValue = toApiDate(activeFilters.startDate);
+    const endDateValue = toApiDate(activeFilters.endDate);
+
+    const requestParams: {
+      page: number;
+      pageSize: number;
+      search?: string;
+      categoryId?: number;
+      accountId?: number;
+      startDate?: string;
+      endDate?: string;
+    } = {
+      page: pagination.page,
+      pageSize: pagination.limit,
+    };
 
     if (activeSearch.value) {
-      const sl = activeSearch.value.toLowerCase();
-      filtered = filtered.filter((t) => t.note?.toLowerCase().includes(sl) ?? false);
+      requestParams.search = activeSearch.value;
     }
     if (activeFilters.categoryId !== null) {
-      filtered = filtered.filter((t) => t.categoryId === activeFilters.categoryId);
+      requestParams.categoryId = activeFilters.categoryId;
     }
     if (activeFilters.accountId !== null) {
-      filtered = filtered.filter((t) => t.accountId === activeFilters.accountId);
+      requestParams.accountId = activeFilters.accountId;
     }
-    if (activeFilters.startDate) {
-      const sd = activeFilters.startDate;
-      filtered = filtered.filter((t) => new Date(t.transactionDate) >= sd);
+    if (startDateValue) {
+      requestParams.startDate = startDateValue;
     }
-    if (activeFilters.endDate) {
-      const ed = new Date(activeFilters.endDate);
-      ed.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((t) => new Date(t.transactionDate) <= ed);
+    if (endDateValue) {
+      requestParams.endDate = endDateValue;
     }
 
-    filtered.sort((a, b) => {
-      const dateDiff =
-        new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
-      if (dateDiff !== 0) {
-        return dateDiff;
-      }
-      return b.id - a.id;
-    });
-    transactions.value = filtered;
-    pagination.total = filtered.length;
+    const pageResult = await apiService.transactions.getTransactionsPage(requestParams);
+
+    transactions.value = pageResult.items;
+    pagination.total = pageResult.totalCount;
   } catch (err) {
     console.error('Failed to load transactions:', err);
     error.value = getApiErrorMessage(err, t('transactions.loadFailed'));
@@ -304,13 +317,17 @@ function nextPage() {
 }
 watch(
   () => pagination.page,
-  () => window.scrollTo(0, 0),
+  () => {
+    window.scrollTo(0, 0);
+    void fetchTransactions();
+  },
 );
 
 watch(
   () => pagination.limit,
   () => {
     pagination.page = 1;
+    void fetchTransactions();
   },
 );
 

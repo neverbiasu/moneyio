@@ -9,10 +9,10 @@ import TransactionsPage from '@/pages/TransactionsPage.vue';
 import { useAuthStore } from '@/stores/auth';
 
 // Lazy load authenticated pages for better code splitting
-const AccountsPage = defineAsyncComponent(() => import('@/pages/AccountsPage.vue'));
-const ReportsPage = defineAsyncComponent(() => import('@/pages/ReportsPage.vue'));
-const BudgetsPage = defineAsyncComponent(() => import('@/pages/BudgetsPage.vue'));
-const SettingsPage = defineAsyncComponent(() => import('@/pages/SettingsPage.vue'));
+const accountsPage = defineAsyncComponent(async () => import('@/pages/AccountsPage.vue'));
+const reportsPage = defineAsyncComponent(async () => import('@/pages/ReportsPage.vue'));
+const budgetsPage = defineAsyncComponent(async () => import('@/pages/BudgetsPage.vue'));
+const settingsPage = defineAsyncComponent(async () => import('@/pages/SettingsPage.vue'));
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -50,25 +50,25 @@ const router = createRouter({
         {
           path: 'accounts',
           name: 'accounts',
-          component: AccountsPage,
+          component: accountsPage,
           meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',
           name: 'reports',
-          component: ReportsPage,
+          component: reportsPage,
           meta: { subtitle: 'Analyze your spending and income trends' },
         },
         {
           path: 'budgets',
           name: 'budgets',
-          component: BudgetsPage,
+          component: budgetsPage,
           meta: { subtitle: 'Set and track your budgets' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: SettingsPage,
+          component: settingsPage,
           meta: { subtitle: 'Manage your account and preferences' },
         },
       ],

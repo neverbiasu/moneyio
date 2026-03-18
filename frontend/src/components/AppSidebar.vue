@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
             class="flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-sm font-semibold transition-all duration-200"
             :class="[
               route.path.startsWith(item.to)
-                ? 'border-primary/30 bg-blue-50 text-blue-700 shadow-[0_4px_0_0_rgba(37,99,235,0.42)] dark:border-blue-700/50 dark:bg-slate-800 dark:text-blue-300'
+                ? 'border-primary/30 bg-blue-50 text-primary shadow-[0_4px_0_0_rgba(37,99,235,0.42)] dark:border-blue-700/50 dark:bg-slate-800 dark:text-blue-300'
                 : 'border-transparent text-slate-600 hover:border-blue-200 hover:bg-blue-50/70 hover:text-primary dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800/80 dark:hover:text-blue-300',
             ]"
             @click="handleNavClick"
@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
     </nav>
 
     <div class="relative border-t border-blue-100 p-4 dark:border-slate-800">
-      <userProfileModal
+      <UserProfileModal
         :is-open="profileModalOpen"
         :name="currentUser.name"
         :email="currentUser.email"

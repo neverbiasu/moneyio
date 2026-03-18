@@ -81,11 +81,7 @@ watch(
   </a>
 
   <div class="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-    <appSidebar
-      v-if="isDesktop || sidebarOpen"
-      :is-open="sidebarOpen"
-      @close="sidebarOpen = false"
-    />
+    <AppSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div
       v-if="sidebarOpen"
@@ -137,7 +133,7 @@ watch(
           </div>
         </div>
         <div id="page-actions" class="flex shrink-0 items-center space-x-4">
-          <notificationBell />
+          <NotificationBell />
         </div>
       </header>
 

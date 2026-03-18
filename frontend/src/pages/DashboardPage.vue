@@ -9,22 +9,15 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/vue/24/outline';
 import { SparklesIcon } from '@heroicons/vue/20/solid';
-import { computed, defineAsyncComponent, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import TransactionFormModal from '@/components/TransactionFormModal.vue';
+import TrendChart from '@/components/TrendChart.vue';
+import CategoryPieChart from '@/components/CategoryPieChart.vue';
+import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
 import apiService from '@/api/services';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
-
-const transactionFormModal = defineAsyncComponent(
-  async () => import('@/components/TransactionFormModal.vue'),
-);
-const trendChart = defineAsyncComponent(async () => import('@/components/TrendChart.vue'));
-const categoryPieChart = defineAsyncComponent(
-  async () => import('@/components/CategoryPieChart.vue'),
-);
-const budgetRadarChart = defineAsyncComponent(
-  async () => import('@/components/BudgetRadarChart.vue'),
-);
 
 defineOptions({ name: 'DashboardPage' });
 
@@ -306,7 +299,7 @@ async function handleTransactionSaved() {
           >
             <ArrowDownLeftIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-blue-700">+12%</span>
+          <span class="text-xs font-semibold text-blue-500">+12%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Income</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>
@@ -324,7 +317,7 @@ async function handleTransactionSaved() {
           >
             <ArrowTrendingDownIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-orange-700">-5%</span>
+          <span class="text-xs font-semibold text-orange-500">-5%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Expenses</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>
@@ -342,7 +335,7 @@ async function handleTransactionSaved() {
           >
             <ShieldCheckIcon class="h-5 w-5" />
           </span>
-          <span class="text-xs font-semibold text-emerald-700">+2%</span>
+          <span class="text-xs font-semibold text-emerald-500">+2%</span>
         </div>
         <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Savings Rate</p>
         <p v-if="isLoading" class="mt-2 h-8 w-28 animate-pulse rounded-xl bg-slate-200"></p>
@@ -356,27 +349,19 @@ async function handleTransactionSaved() {
       <div
         class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
       >
-        <trendChart :points="trendPoints" :is-loading="isChartsLoading" :embedded="true" />
+        <TrendChart :points="trendPoints" :is-loading="isLoading" :embedded="true" />
       </div>
 
       <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <div
           class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
         >
-          <categoryPieChart
-            :items="categoryPieItems"
-            :is-loading="isChartsLoading"
-            :embedded="true"
-          />
+          <CategoryPieChart :items="categoryPieItems" :is-loading="isLoading" :embedded="true" />
         </div>
         <div
           class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
         >
-          <budgetRadarChart
-            :items="budgetRadarItems"
-            :is-loading="isChartsLoading"
-            :embedded="true"
-          />
+          <BudgetRadarChart :items="budgetRadarItems" :is-loading="isLoading" :embedded="true" />
         </div>
       </div>
     </section>

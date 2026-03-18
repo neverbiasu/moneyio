@@ -19,6 +19,7 @@ import { syncI18nLocale } from '@/i18n';
 defineOptions({ name: 'SettingsPage' });
 
 const { t, locale } = useI18n();
+const AVATAR_MAX_SIZE_MB = 2;
 
 const activeTab = ref<'profile' | 'security' | 'preferences'>('profile');
 const authStore = useAuthStore();
@@ -97,14 +98,14 @@ function handleAvatarFileChange(event: Event): void {
   selectedAvatarFileName.value = file.name;
 
   if (!file.type.startsWith('image/')) {
-    profileError.value = 'Please select an image file.';
+    profileError.value = t('settings.avatarImageOnly');
     selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
   }
 
-  if (file.size > 2 * 1024 * 1024) {
-    profileError.value = 'Image size must be less than 2MB.';
+  if (file.size > AVATAR_MAX_SIZE_MB * 1024 * 1024) {
+    profileError.value = t('settings.avatarTooLarge', { sizeMB: AVATAR_MAX_SIZE_MB });
     selectedAvatarFileName.value = t('settings.noFileSelected');
     target.value = '';
     return;
@@ -183,7 +184,7 @@ async function changePassword() {
   passwordSuccess.value = '';
 
   if (!passwordForm.password) {
-    passwordError.value = 'Password is required.';
+    passwordError.value = t('auth.passwordRequired');
     return;
   }
 
@@ -215,7 +216,7 @@ async function changePassword() {
     passwordError.value =
       err instanceof Error && err.message.trim() !== ''
         ? err.message
-        : 'Failed to update password.';
+        : t('settings.passwordUpdateFailed');
   }
 }
 
@@ -305,11 +306,13 @@ onMounted(() => {
                   for="profile-avatar"
                   class="duo-btn-secondary inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium"
                 >
-                  Choose image
+                  {{ t('settings.chooseImage') }}
                 </label>
                 <span class="truncate text-sm text-neutral-500">{{ selectedAvatarFileName }}</span>
               </div>
-              <p class="mt-1 text-xs text-neutral-400">PNG, JPG, WEBP, GIF up to 2MB</p>
+              <p class="mt-1 text-xs text-neutral-400">
+                {{ t('settings.avatarFileHint', { sizeMB: AVATAR_MAX_SIZE_MB }) }}
+              </p>
             </div>
           </div>
 

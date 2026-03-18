@@ -45,21 +45,31 @@
     />
     
     <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "MoneyIO",
-        "description": "Personal finance with calm clarity. Turn everyday money data into confident decisions.",
-        "url": "https://moneyio.example.com",
-        "applicationCategory": "FinanceApplication",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "image": "https://moneyio.example.com/logo.svg"
-      }
+    <script type="application/ld+json" id="structured-data"></script>
+    <script>
+      (function () {
+        var baseUrl = window.location.origin;
+        var structuredData = {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'MoneyIO',
+          description:
+            'Personal finance with calm clarity. Turn everyday money data into confident decisions.',
+          url: baseUrl,
+          applicationCategory: 'FinanceApplication',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+          },
+          image: baseUrl + '/logo.svg',
+        };
+
+        var scriptEl = document.getElementById('structured-data');
+        if (scriptEl) {
+          scriptEl.textContent = JSON.stringify(structuredData);
+        }
+      })();
     </script>
   </head>
   <body>

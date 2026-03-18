@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { defineAsyncComponent } from 'vue';
 import GlobalLayout from '../layouts/GlobalLayout.vue';
 import LandingPage from '@/pages/LandingPage.vue';
 import LoginPage from '@/pages/LoginPage.vue';
@@ -7,12 +6,6 @@ import RegisterPage from '@/pages/RegisterPage.vue';
 import DashboardPage from '@/pages/DashboardPage.vue';
 import TransactionsPage from '@/pages/TransactionsPage.vue';
 import { useAuthStore } from '@/stores/auth';
-
-// Lazy load authenticated pages for better code splitting
-const AccountsPage = defineAsyncComponent(() => import('@/pages/AccountsPage.vue'));
-const ReportsPage = defineAsyncComponent(() => import('@/pages/ReportsPage.vue'));
-const BudgetsPage = defineAsyncComponent(() => import('@/pages/BudgetsPage.vue'));
-const SettingsPage = defineAsyncComponent(() => import('@/pages/SettingsPage.vue'));
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -50,25 +43,25 @@ const router = createRouter({
         {
           path: 'accounts',
           name: 'accounts',
-          component: AccountsPage,
+          component: async () => import('@/pages/AccountsPage.vue'),
           meta: { subtitle: 'Manage your bank and financial accounts' },
         },
         {
           path: 'reports',
           name: 'reports',
-          component: ReportsPage,
+          component: async () => import('@/pages/ReportsPage.vue'),
           meta: { subtitle: 'Analyze your spending and income trends' },
         },
         {
           path: 'budgets',
           name: 'budgets',
-          component: BudgetsPage,
+          component: async () => import('@/pages/BudgetsPage.vue'),
           meta: { subtitle: 'Set and track your budgets' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: SettingsPage,
+          component: async () => import('@/pages/SettingsPage.vue'),
           meta: { subtitle: 'Manage your account and preferences' },
         },
       ],

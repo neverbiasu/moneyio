@@ -222,7 +222,7 @@ onMounted(() => {
           <button
             v-for="preset in datePresets"
             :key="preset.labelKey"
-            class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition"
+            class="duo-btn-secondary px-3 py-1.5 text-sm font-medium"
             @click="setDatePreset(preset.getValue)"
           >
             {{ t(preset.labelKey) }}

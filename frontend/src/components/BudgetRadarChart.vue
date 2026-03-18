@@ -12,11 +12,13 @@ interface RadarItem {
 interface Props {
   items?: RadarItem[];
   isLoading?: boolean;
+  embedded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   items: () => [],
   isLoading: false,
+  embedded: false,
 });
 
 const center = 110;
@@ -68,7 +70,11 @@ const levelPolygons = computed(() => {
 
 <template>
   <section
-    class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
+    :class="[
+      props.embedded
+        ? 'bg-transparent rounded-none border-0 shadow-none p-0'
+        : 'bg-white rounded-lg border border-gray-200 shadow-sm p-6',
+    ]"
     aria-label="Budget execution radar chart"
   >
     <h2 class="text-lg font-semibold text-gray-900 mb-4">Budget Usage Radar</h2>

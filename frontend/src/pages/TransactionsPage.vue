@@ -372,16 +372,13 @@ async function handleTransactionDeleted() {
           />
         </div>
         <button
-          class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          class="duo-btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-medium"
           @click="commitAndFetch"
         >
           <MagnifyingGlassIcon class="size-4" />
           {{ t('transactions.search') }}
         </button>
-        <button
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-1 active:bg-blue-800 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
-          @click="openCreateModal"
-        >
+        <button class="duo-btn-primary px-4 py-2 text-sm font-medium" @click="openCreateModal">
           {{ t('transactions.add') }}
         </button>
       </div>
@@ -531,7 +528,7 @@ async function handleTransactionDeleted() {
 
         <div class="flex gap-2 shrink-0">
           <button
-            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 active:bg-blue-200 transition"
+            class="duo-btn-secondary flex items-center gap-1.5 px-4 py-2 text-sm font-medium"
             @click="commitAndFetch"
           >
             <FunnelIcon class="size-4" />
@@ -539,7 +536,7 @@ async function handleTransactionDeleted() {
           </button>
           <button
             v-if="hasActiveFilters"
-            class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-neutral-300 text-neutral-600 rounded-lg hover:bg-neutral-50 transition"
+            class="duo-btn-secondary flex items-center gap-1.5 px-3 py-2 text-sm font-medium"
             @click="resetFilters"
           >
             <XMarkIcon class="size-4" />
@@ -679,7 +676,7 @@ async function handleTransactionDeleted() {
         </select>
         <button
           :disabled="!canPrevious"
-          class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          class="duo-btn-secondary px-3 py-1.5 text-sm font-medium"
           @click="prevPage"
         >
           {{ t('transactions.previous') }}
@@ -695,16 +692,13 @@ async function handleTransactionDeleted() {
             class="w-14 px-2 py-1.5 text-sm text-center border border-neutral-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none"
             @keydown.enter="jumpToPage"
           />
-          <button
-            class="px-2.5 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
-            @click="jumpToPage"
-          >
+          <button class="duo-btn-secondary px-2.5 py-1.5 text-sm font-medium" @click="jumpToPage">
             {{ t('transactions.go') }}
           </button>
         </div>
         <button
           :disabled="!canNext"
-          class="px-3 py-1.5 text-sm font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          class="duo-btn-secondary px-3 py-1.5 text-sm font-medium"
           @click="nextPage"
         >
           {{ t('transactions.next') }}

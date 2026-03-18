@@ -146,3 +146,81 @@ html[data-theme-mode='dark'] .shadow-lg {
 .fade-leave-to {
   opacity: 0;
 }
+
+.duo-btn-primary {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(37 99 235 / 0.28);
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 0 0 rgb(30 64 175 / 0.75);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-primary:hover {
+  transform: translateY(-1px);
+  background: #1d4ed8;
+}
+
+.duo-btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(30 64 175 / 0.75);
+}
+
+.duo-btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(30 64 175 / 0.45);
+}
+
+.duo-btn-secondary {
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  box-shadow: 0 3px 0 0 rgb(148 163 184 / 0.5);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-secondary:hover {
+  transform: translateY(-1px);
+  background: #f8fafc;
+}
+
+.duo-btn-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(148 163 184 / 0.5);
+}
+
+.duo-btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(148 163 184 / 0.3);
+}
+
+.duo-btn-danger {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(220 38 38 / 0.28);
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 4px 0 0 rgb(153 27 27 / 0.75);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.duo-btn-danger:hover {
+  transform: translateY(-1px);
+  background: #b91c1c;
+}
+
+.duo-btn-danger:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgb(153 27 27 / 0.75);
+}
+
+.duo-btn-danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 2px 0 0 rgb(153 27 27 / 0.45);
+}

@@ -145,14 +145,14 @@ function goToTransactions() {
       <div class="flex items-center justify-between gap-2">
         <button
           type="button"
-          class="text-sm font-medium text-blue-600 hover:text-blue-700 py-2 px-2 rounded-md hover:bg-blue-50 transition-colors"
+          class="duo-btn-secondary px-3 py-2 text-sm font-medium"
           @click="goToTransactions"
         >
           {{ t('recentTx.viewAll') }}
         </button>
         <button
           type="button"
-          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition"
+          class="duo-btn-primary px-4 py-2 text-sm font-medium"
           @click="$emit('addClick')"
         >
           {{ t('recentTx.add') }}

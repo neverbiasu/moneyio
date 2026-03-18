@@ -419,7 +419,7 @@ onMounted(() => {
           <button
             type="button"
             :disabled="!budgetMutationsSupported"
-            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)] disabled:cursor-not-allowed disabled:opacity-60"
+            class="duo-btn-primary inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold"
             @click="openCreateModal"
           >
             <PlusIcon class="size-4" aria-hidden="true" />
@@ -524,7 +524,7 @@ onMounted(() => {
       <button
         type="button"
         :disabled="!allowBudgetMutations"
-        class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        class="duo-btn-primary mt-5 inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold"
         @click="openCreateModal"
       >
         <PlusIcon class="size-4" aria-hidden="true" />
@@ -653,14 +653,14 @@ onMounted(() => {
               <div class="flex w-full max-w-xs gap-2">
                 <button
                   type="button"
-                  class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  class="duo-btn-secondary flex-1 px-3 py-2 text-sm font-medium"
                   @click="cancelDelete"
                 >
                   {{ t('common.cancel') }}
                 </button>
                 <button
                   type="button"
-                  class="flex-1 rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                  class="duo-btn-danger flex-1 px-3 py-2 text-sm font-medium"
                   @click="confirmDelete(budget.id)"
                 >
                   {{ t('common.delete') }}
@@ -696,7 +696,7 @@ onMounted(() => {
 
           <button
             type="button"
-            class="mt-6 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+            class="duo-btn-secondary mt-6 inline-flex items-center px-4 py-2 text-sm font-semibold"
             @click="openReportsPage"
           >
             {{ t('budgets.viewAnalysis') }}
@@ -727,7 +727,7 @@ onMounted(() => {
 
           <button
             type="button"
-            class="mt-6 text-sm font-semibold text-emerald-600 transition hover:text-emerald-700"
+            class="duo-btn-secondary mt-6 inline-flex items-center px-4 py-2 text-sm font-semibold"
             @click="openSettingsPage"
           >
             {{ t('budgets.setSavingsGoal') }}

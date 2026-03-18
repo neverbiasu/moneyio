@@ -303,7 +303,7 @@ onMounted(() => {
                 />
                 <label
                   for="profile-avatar"
-                  class="inline-flex cursor-pointer items-center rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+                  class="duo-btn-secondary inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium"
                 >
                   Choose image
                 </label>
@@ -344,7 +344,7 @@ onMounted(() => {
           <div class="flex justify-end pt-2">
             <button
               type="button"
-              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:bg-blue-700 active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
+              class="duo-btn-primary px-4 py-2 text-sm font-medium"
               @click="saveProfile"
             >
               {{ t('settings.saveProfile') }}
@@ -399,7 +399,7 @@ onMounted(() => {
 
             <button
               type="button"
-              class="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
+              class="duo-btn-primary px-4 py-2 text-sm font-medium"
               @click="changePassword"
             >
               {{ t('settings.updatePassword') }}
@@ -416,14 +416,10 @@ onMounted(() => {
         </h2>
 
         <div class="space-y-3">
-          <button
-            class="w-full px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition text-left"
-          >
+          <button class="duo-btn-secondary w-full px-4 py-2 text-sm font-medium text-left">
             {{ t('settings.exportData') }}
           </button>
-          <button
-            class="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-left"
-          >
+          <button class="duo-btn-danger w-full px-4 py-2 text-sm font-medium text-left">
             {{ t('settings.deleteAccount') }}
           </button>
         </div>
@@ -549,7 +545,7 @@ onMounted(() => {
             <button
               type="submit"
               :disabled="isSaving"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              class="duo-btn-primary px-4 py-2 text-sm font-medium"
             >
               {{ isSaving ? t('settings.saving') : t('settings.savePreferences') }}
             </button>

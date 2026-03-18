@@ -12,6 +12,9 @@ import { SparklesIcon } from '@heroicons/vue/20/solid';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
+import TrendChart from '@/components/TrendChart.vue';
+import CategoryPieChart from '@/components/CategoryPieChart.vue';
+import BudgetRadarChart from '@/components/BudgetRadarChart.vue';
 import apiService from '@/api/services';
 import type { Summary, Transaction, Category, ChartData, Budget } from '@/api/types';
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
@@ -76,6 +79,40 @@ const topCategory = computed(() => {
 const streakDays = computed(() => {
   const positiveDays = recentTransactions.value.filter((tx) => tx.amount > 0).length;
   return Math.max(positiveDays, 3);
+});
+
+const trendPoints = computed(() => chartData.value?.data ?? []);
+
+const categoryPieItems = computed(() => {
+  const expenseByCategory = new Map<string, number>();
+
+  for (const tx of recentTransactions.value) {
+    if (tx.categoryId === null) continue;
+    const category = categories.value.find((item) => item.id === tx.categoryId);
+    if (category?.type !== 'expense') continue;
+
+    expenseByCategory.set(category.name, (expenseByCategory.get(category.name) ?? 0) + tx.amount);
+  }
+
+  return Array.from(expenseByCategory.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+});
+
+const budgetRadarItems = computed(() => {
+  return budgets.value
+    .map((budget) => {
+      const maxValue =
+        budget.amountLimit > 0 ? budget.amountLimit : Math.max(budget.actualSpending, 1);
+
+      return {
+        name: budget.name,
+        value: budget.actualSpending,
+        maxValue,
+      };
+    })
+    .slice(0, 6);
 });
 
 function getCategoryName(categoryId: number | null): string {
@@ -237,7 +274,9 @@ async function handleTransactionSaved() {
     </section>
 
     <section class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-      <article class="rounded-3xl border border-blue-200 bg-white p-6">
+      <article
+        class="rounded-3xl border border-blue-200 bg-white p-6 shadow-[0_5px_0_0_rgba(59,130,246,0.25)] transition hover:-translate-y-0.5"
+      >
         <div class="mb-4 flex items-center justify-between">
           <span
             class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600"
@@ -253,7 +292,9 @@ async function handleTransactionSaved() {
         </p>
       </article>
 
-      <article class="rounded-3xl border border-orange-200 bg-white p-6">
+      <article
+        class="rounded-3xl border border-orange-200 bg-white p-6 shadow-[0_5px_0_0_rgba(245,158,11,0.25)] transition hover:-translate-y-0.5"
+      >
         <div class="mb-4 flex items-center justify-between">
           <span
             class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 text-orange-600"
@@ -269,7 +310,9 @@ async function handleTransactionSaved() {
         </p>
       </article>
 
-      <article class="rounded-3xl border border-emerald-200 bg-white p-6">
+      <article
+        class="rounded-3xl border border-emerald-200 bg-white p-6 shadow-[0_5px_0_0_rgba(16,185,129,0.25)] transition hover:-translate-y-0.5"
+      >
         <div class="mb-4 flex items-center justify-between">
           <span
             class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600"
@@ -286,6 +329,27 @@ async function handleTransactionSaved() {
       </article>
     </section>
 
+    <section class="space-y-5">
+      <div
+        class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+      >
+        <TrendChart :points="trendPoints" :is-loading="isLoading" :embedded="true" />
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div
+          class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+        >
+          <CategoryPieChart :items="categoryPieItems" :is-loading="isLoading" :embedded="true" />
+        </div>
+        <div
+          class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
+        >
+          <BudgetRadarChart :items="budgetRadarItems" :is-loading="isLoading" :embedded="true" />
+        </div>
+      </div>
+    </section>
+
     <section
       class="rounded-[30px] border border-blue-100 bg-white p-6 shadow-[0_4px_0_0_rgba(148,163,184,0.42)]"
     >
@@ -293,7 +357,7 @@ async function handleTransactionSaved() {
         <h2 class="text-3xl font-bold tracking-tight text-slate-900">Recent Achievements</h2>
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_0_0_rgba(30,64,175,0.75)] transition hover:-translate-y-0.5 hover:bg-primary-hover active:translate-y-1 active:shadow-[0_1px_0_0_rgba(30,64,175,0.75)]"
+          class="duo-btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
           @click="isModalOpen = true"
         >
           <PlusIcon class="h-4 w-4" />
@@ -351,7 +415,7 @@ async function handleTransactionSaved() {
       <div class="mt-5 flex justify-center">
         <button
           type="button"
-          class="w-full max-w-sm rounded-full border border-blue-200 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-wide text-slate-500 transition hover:bg-blue-50 hover:text-primary"
+          class="duo-btn-secondary w-full max-w-sm rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-wide"
         >
           View all history
         </button>

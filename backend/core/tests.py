@@ -219,6 +219,75 @@ class AuthMethodConstraintTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response.json()["error"], "method not allowed")
 
+    def test_export_only_allows_get(self):
+        self.client.login(username="auth_tester", password="password123")
+        response = self.client.post("/api/auth/export/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.json()["error"], "method not allowed")
+
+    def test_delete_account_only_allows_post(self):
+        self.client.login(username="auth_tester", password="password123")
+        response = self.client.get("/api/auth/delete-account/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.json()["error"], "method not allowed")
+
+    def test_export_requires_login(self):
+        response = self.client.get("/api/auth/export/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.json()["error"], "login required")
+
+    def test_export_returns_expected_shape(self):
+        self.client.login(username="auth_tester", password="password123")
+        account = Account.objects.create(
+            user=self.user,
+            name="Auth Export Account",
+            account_type="Cash",
+            balance="12.34",
+        )
+        category = Category.objects.create(
+            user=self.user,
+            name="Auth Export Category",
+            category_type="OUT",
+        )
+        Transaction.objects.create(
+            user=self.user,
+            account=account,
+            category=category,
+            amount="12.34",
+            note="Export test",
+            trans_date=timezone.now(),
+        )
+        Budget.objects.create(
+            user=self.user,
+            name="Auth Export Budget",
+            amount_limit="300.00",
+            actual_spending="10.00",
+            budget_month=timezone.localdate().replace(day=1),
+            is_recurring=False,
+        )
+
+        response = self.client.get("/api/auth/export/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertIn("exported_at", payload)
+        self.assertEqual(payload["user"]["username"], "auth_tester")
+        self.assertTrue(any(item["name"] == "Auth Export Account" for item in payload["accounts"]))
+        self.assertTrue(
+            any(item["name"] == "Auth Export Category" for item in payload["categories"])
+        )
+        self.assertTrue(any(item["note"] == "Export test" for item in payload["transactions"]))
+        self.assertTrue(any(item["name"] == "Auth Export Budget" for item in payload["budgets"]))
+
+    def test_delete_account_removes_user(self):
+        self.client.login(username="auth_tester", password="password123")
+
+        response = self.client.post("/api/auth/delete-account/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"], "account deleted")
+        self.assertFalse(User.objects.filter(username="auth_tester").exists())
+
 class BudgetAPITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

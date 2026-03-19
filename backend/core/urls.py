@@ -4,6 +4,8 @@ from .views_accounts import accounts_collection, accounts_item
 from .views_auth import (
     change_password,
     current_user,
+    delete_account,
+    export_data,
     login_view,
     logout_view,
     register,
@@ -23,6 +25,8 @@ urlpatterns = [
     path("auth/logout/", logout_view),
     path("auth/me/", current_user),
     path("auth/change-password/", change_password),
+    path("auth/export/", export_data),
+    path("auth/delete-account/", delete_account),
     # Accounts
     path("accounts/", accounts_collection),
     path("accounts/<int:account_id>/", accounts_item),

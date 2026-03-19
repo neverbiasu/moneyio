@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { CheckIcon } from '@heroicons/vue/20/solid';
 import axios from 'axios';
+import * as authApi from '@/api/auth';
 import {
   DEFAULT_USER_PREFERENCES,
   applyUserPreferencesToDocument,
@@ -19,6 +21,7 @@ import { syncI18nLocale } from '@/i18n';
 defineOptions({ name: 'SettingsPage' });
 
 const { t, locale } = useI18n();
+const router = useRouter();
 
 const activeTab = ref<'profile' | 'security' | 'preferences'>('profile');
 const authStore = useAuthStore();
@@ -36,6 +39,10 @@ const passwordError = ref('');
 const passwordSuccess = ref('');
 const profileError = ref('');
 const profileSuccess = ref('');
+const accountActionError = ref('');
+const accountActionSuccess = ref('');
+const isExporting = ref(false);
+const isDeletingAccount = ref(false);
 
 const isSaving = ref(false);
 const saveSuccess = ref(false);
@@ -120,12 +127,74 @@ function handleAvatarFileChange(event: Event): void {
   reader.readAsDataURL(file);
 }
 
-function handleExportData() {
-  window.alert('Export data feature is coming soon.');
+function downloadJson(content: unknown, fileName: string) {
+  const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
 }
 
-function handleDeleteAccount() {
-  window.alert('Delete account feature is coming soon.');
+async function handleExportData() {
+  accountActionError.value = '';
+  accountActionSuccess.value = '';
+  isExporting.value = true;
+
+  try {
+    const payload = await authApi.exportData();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    downloadJson(payload, `moneyio-export-${timestamp}.json`);
+    accountActionSuccess.value = t('settings.exportSuccess');
+  } catch (err) {
+    console.error('Failed to export data:', err);
+    if (axios.isAxiosError(err)) {
+      const backendError = (err.response?.data as { error?: unknown } | undefined)?.error;
+      if (typeof backendError === 'string' && backendError.trim() !== '') {
+        accountActionError.value = backendError;
+        return;
+      }
+    }
+
+    accountActionError.value = t('settings.exportFailed');
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+async function handleDeleteAccount() {
+  accountActionError.value = '';
+  accountActionSuccess.value = '';
+
+  const confirmed = window.confirm(t('settings.deleteAccountConfirm'));
+  if (!confirmed) {
+    return;
+  }
+
+  isDeletingAccount.value = true;
+  try {
+    await authApi.deleteAccount();
+    authStore.clearLocalAuthState();
+    window.localStorage.removeItem('userAvatarDataUrl');
+    window.localStorage.removeItem('userPreferences');
+    await router.push({ name: 'login' });
+  } catch (err) {
+    console.error('Failed to delete account:', err);
+    if (axios.isAxiosError(err)) {
+      const backendError = (err.response?.data as { error?: unknown } | undefined)?.error;
+      if (typeof backendError === 'string' && backendError.trim() !== '') {
+        accountActionError.value = backendError;
+        return;
+      }
+    }
+
+    accountActionError.value = t('settings.deleteAccountFailed');
+  } finally {
+    isDeletingAccount.value = false;
+  }
 }
 
 function saveProfile(): void {
@@ -424,17 +493,25 @@ onMounted(() => {
         </h2>
 
         <div class="space-y-3">
+          <p v-if="accountActionError" class="text-sm text-red-600">{{ accountActionError }}</p>
+          <p v-if="accountActionSuccess" class="text-sm text-green-600">
+            {{ accountActionSuccess }}
+          </p>
           <button
+            type="button"
+            :disabled="isExporting || isDeletingAccount"
             class="duo-btn-secondary w-full px-4 py-2 text-sm font-medium text-left"
             @click="handleExportData"
           >
-            {{ t('settings.exportData') }}
+            {{ isExporting ? t('settings.exportingData') : t('settings.exportData') }}
           </button>
           <button
+            type="button"
+            :disabled="isExporting || isDeletingAccount"
             class="duo-btn-danger w-full px-4 py-2 text-sm font-medium text-left"
             @click="handleDeleteAccount"
           >
-            {{ t('settings.deleteAccount') }}
+            {{ isDeletingAccount ? t('settings.deletingAccount') : t('settings.deleteAccount') }}
           </button>
         </div>
       </div>

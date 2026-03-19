@@ -1,7 +1,8 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 
-from .models import Account, Category, User
+from .models import Account, Budget, Category, Transaction, User
 
 DEFAULT_CATEGORIES = [
     {"name": "Food", "category_type": Category.CategoryType.EXPENSE},
@@ -87,3 +88,75 @@ def update_password(user, new_password):
     user.password = make_password(new_password)
     user.save()
     return user
+
+
+def export_user_data(user):
+    accounts = [
+        {
+            "id": account.id,
+            "name": account.name,
+            "account_type": account.account_type,
+            "balance": str(account.balance),
+        }
+        for account in Account.objects.filter(user=user).order_by("id")
+    ]
+
+    categories = [
+        {
+            "id": category.id,
+            "name": category.name,
+            "category_type": category.category_type,
+            "parent_id": category.parent_id,
+            "tree_level": category.tree_level,
+            "icon_id": category.icon_id,
+        }
+        for category in Category.objects.filter(user=user).order_by("id")
+    ]
+
+    transactions = [
+        {
+            "id": transaction.id,
+            "account_id": transaction.account_id,
+            "category_id": transaction.category_id,
+            "amount": str(transaction.amount),
+            "trans_date": transaction.trans_date.isoformat(),
+            "note": transaction.note,
+            "created_at": transaction.crt_time.isoformat(),
+            "updated_at": transaction.upt_time.isoformat(),
+        }
+        for transaction in Transaction.objects.filter(user=user)
+        .select_related("account", "category")
+        .order_by("-trans_date", "-id")
+    ]
+
+    budgets = [
+        {
+            "id": budget.id,
+            "name": budget.name,
+            "description": budget.description,
+            "amount_limit": str(budget.amount_limit),
+            "actual_spending": str(budget.actual_spending),
+            "budget_month": budget.budget_month.strftime("%Y-%m"),
+            "is_recurring": budget.is_recurring,
+            "updated_at": budget.upt_time.isoformat(),
+        }
+        for budget in Budget.objects.filter(user=user).order_by("-budget_month", "id")
+    ]
+
+    return {
+        "exported_at": timezone.now().isoformat(),
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "registered_at": user.reg_date.isoformat(),
+        },
+        "accounts": accounts,
+        "categories": categories,
+        "transactions": transactions,
+        "budgets": budgets,
+    }
+
+
+def delete_user_account(user):
+    user.delete()

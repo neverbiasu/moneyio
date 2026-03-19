@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, watch, onMounted } from 'vue';
 import { DatePicker } from 'v-calendar';
 import 'v-calendar/style.css';
 import {
@@ -64,6 +64,7 @@ const selectedMonth = computed<Date>({
     return new Date(year, month - 1, 1);
   },
   set(value) {
+    if (!value) return;
     form.budgetMonth = `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`;
   },
 });
@@ -143,8 +144,19 @@ function handleClose(): void {
 
 // ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
-  initializeForm();
+  if (props.isOpen) {
+    initializeForm();
+  }
 });
+
+watch(
+  () => [props.isOpen, props.mode, props.budget?.id],
+  () => {
+    if (props.isOpen) {
+      initializeForm();
+    }
+  },
+);
 </script>
 
 <template>

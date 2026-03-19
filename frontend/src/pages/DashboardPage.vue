@@ -11,6 +11,7 @@ import {
 import { SparklesIcon } from '@heroicons/vue/20/solid';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import TransactionFormModal from '@/components/TransactionFormModal.vue';
 import TrendChart from '@/components/TrendChart.vue';
 import CategoryPieChart from '@/components/CategoryPieChart.vue';
@@ -22,6 +23,7 @@ import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 defineOptions({ name: 'DashboardPage' });
 
 const { t } = useI18n();
+const router = useRouter();
 
 const summaryData = ref<Summary | null>(null);
 const recentTransactions = ref<Transaction[]>([]);
@@ -245,6 +247,10 @@ async function fetchDashboardData() {
   }
 }
 
+function goToTransactions() {
+  void router.push({ name: 'transactions' });
+}
+
 onMounted(() => {
   void fetchDashboardData();
 });
@@ -432,6 +438,7 @@ async function handleTransactionSaved() {
         <button
           type="button"
           class="duo-btn-secondary w-full max-w-sm rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-wide"
+          @click="goToTransactions"
         >
           View all history
         </button>

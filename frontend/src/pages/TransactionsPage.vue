@@ -7,16 +7,18 @@ import {
   ArrowTrendingUpIcon,
   BoltIcon,
   BuildingStorefrontIcon,
-  ChevronDownIcon,
-  CheckIcon,
-  MagnifyingGlassIcon,
   CalendarIcon,
+  MagnifyingGlassIcon,
   SparklesIcon,
   XMarkIcon,
   FunnelIcon,
 } from '@heroicons/vue/20/solid';
 import type { Transaction, Category, Account } from '@/api/types';
 import apiService from '@/api/services';
+import { DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
+import { getPreferredLocale } from '@/utils/userPreferences';
+
 import { formatCurrencyWithPreference } from '@/utils/userPreferences';
 
 const transactionFormModal = defineAsyncComponent(
@@ -26,6 +28,7 @@ const transactionFormModal = defineAsyncComponent(
 defineOptions({ name: 'TransactionsPage' });
 
 const { t } = useI18n();
+const datePickerLocale = computed(() => getPreferredLocale());
 
 const transactions = ref<Transaction[]>([]);
 const categories = ref<Category[]>([]);
@@ -39,8 +42,8 @@ const selectedTransaction = ref<Transaction | null>(null);
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
 const selectedAccountId = ref<number | null>(null);
-const startDateInput = ref('');
-const endDateInput = ref('');
+const startDateInput = ref<Date | null>(null);
+const endDateInput = ref<Date | null>(null);
 
 const activeSearch = ref('');
 const activeFilters = reactive({
@@ -176,10 +179,8 @@ function commitAndFetch() {
   activeSearch.value = searchQuery.value;
   activeFilters.categoryId = selectedCategoryId.value;
   activeFilters.accountId = selectedAccountId.value;
-  activeFilters.startDate = startDateInput.value
-    ? new Date(`${startDateInput.value}T00:00:00`)
-    : null;
-  activeFilters.endDate = endDateInput.value ? new Date(`${endDateInput.value}T00:00:00`) : null;
+  activeFilters.startDate = startDateInput.value;
+  activeFilters.endDate = endDateInput.value;
   pagination.page = 1;
   void fetchTransactions();
 }
@@ -192,8 +193,8 @@ function resetFilters() {
   searchQuery.value = '';
   selectedCategoryId.value = null;
   selectedAccountId.value = null;
-  startDateInput.value = '';
-  endDateInput.value = '';
+  startDateInput.value = null;
+  endDateInput.value = null;
   activeSearch.value = '';
   Object.assign(activeFilters, {
     categoryId: null,
@@ -440,48 +441,74 @@ async function handleTransactionDeleted() {
           <label for="start-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.from')
           }}</label>
-          <div class="relative">
-            <input
-              id="start-date-filter"
-              v-model="startDateInput"
-              type="date"
-              :max="endDateInput || undefined"
-              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            />
-            <button
-              v-if="startDateInput"
-              type="button"
-              aria-label="Clear start date"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-              @click.stop="startDateInput = ''"
-            >
-              <XMarkIcon class="size-4" />
-            </button>
-          </div>
+          <DatePicker
+            v-model="startDateInput"
+            :locale="datePickerLocale"
+            mode="date"
+            :max-date="endDateInput || undefined"
+          >
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  id="start-date-filter"
+                  :value="inputValue"
+                  readonly
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  v-on="inputEvents"
+                  @click="togglePopover"
+                />
+                <button
+                  v-if="startDateInput"
+                  type="button"
+                  aria-label="Clear start date"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  @click.stop="startDateInput = null"
+                >
+                  <XMarkIcon class="size-4" />
+                </button>
+              </div>
+            </template>
+          </DatePicker>
         </div>
 
         <div class="flex-1 min-w-36">
           <label for="end-date-filter" class="block text-xs font-medium text-neutral-500 mb-1">{{
             t('transactions.to')
           }}</label>
-          <div class="relative">
-            <input
-              id="end-date-filter"
-              v-model="endDateInput"
-              type="date"
-              :min="startDateInput || undefined"
-              class="w-full px-3 pr-8 py-2 text-sm border border-neutral-300 rounded-lg bg-neutral-50 hover:bg-white hover:border-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            />
-            <button
-              v-if="endDateInput"
-              type="button"
-              aria-label="Clear end date"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-              @click.stop="endDateInput = ''"
-            >
-              <XMarkIcon class="size-4" />
-            </button>
-          </div>
+          <DatePicker
+            v-model="endDateInput"
+            :locale="datePickerLocale"
+            mode="date"
+            :min-date="startDateInput || undefined"
+          >
+            <template #default="{ togglePopover, inputValue, inputEvents }">
+              <div class="relative">
+                <CalendarIcon
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400"
+                />
+                <input
+                  id="end-date-filter"
+                  :value="inputValue"
+                  readonly
+                  class="w-full cursor-pointer rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-9 pr-8 text-sm transition hover:border-neutral-400 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  v-on="inputEvents"
+                  @click="togglePopover"
+                />
+                <button
+                  v-if="endDateInput"
+                  type="button"
+                  aria-label="Clear end date"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  @click.stop="endDateInput = null"
+                >
+                  <XMarkIcon class="size-4" />
+                </button>
+              </div>
+            </template>
+          </DatePicker>
         </div>
 
         <div class="flex gap-2 shrink-0">

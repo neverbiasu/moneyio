@@ -316,6 +316,7 @@ watch(
     resetForm();
     transactionType.value = 'expense';
   },
+  { immediate: true },
 );
 </script>
 

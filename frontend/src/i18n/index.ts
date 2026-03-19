@@ -48,6 +48,7 @@ const messages = {
       terms: 'Terms of Service',
       loginFailed: 'Login failed',
       registrationFailed: 'Registration failed',
+      signUp: 'Sign up',
     },
     landing: {
       navTagline: 'Personal finance with calm clarity',
@@ -398,6 +399,7 @@ const messages = {
       terms: '服务条款',
       loginFailed: '登录失败',
       registrationFailed: '注册失败',
+      signUp: '注册',
     },
     landing: {
       navTagline: '清晰而平静的个人财务体验',

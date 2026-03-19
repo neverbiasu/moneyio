@@ -1,4 +1,4 @@
-# MoneyIO
+# <img src="frontend/public/logo.svg" alt="MoneyIO Logo" width="32" height="32" style="vertical-align: middle;"> MoneyIO
 
 This repository contains both the **Django backend** and the **Vue (Vite) frontend** in a single monorepo structure.
 

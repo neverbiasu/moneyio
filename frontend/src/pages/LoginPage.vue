@@ -53,9 +53,9 @@ async function handleSubmit() {
       <div class="flex flex-col items-center mb-8">
         <div class="flex items-center gap-3 mb-2">
           <div
-            class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 text-white transform transition-transform duration-300 hover:scale-105"
+            class="w-12 h-12 flex items-center justify-center transform transition-transform duration-300 hover:scale-105"
           >
-            <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+            <img src="/logo.svg" alt="MoneyIO Logo" class="h-11 w-11 object-contain" />
           </div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             {{ t('common.moneyio') }}

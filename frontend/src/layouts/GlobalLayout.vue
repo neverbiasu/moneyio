@@ -80,7 +80,7 @@ watch(
     Skip to main content
   </a>
 
-  <div class="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
+  <div class="flex h-[100dvh] overflow-hidden bg-background-light dark:bg-background-dark">
     <component :is="appSidebar" :is-open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div
